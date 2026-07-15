@@ -7,5 +7,7 @@
   "get": "The mining loop end to end — waste audits, voice priors, graded sessions — plus the tool's own confession that it was rebuilt 12 times before being made durable.",
   "do": "Grep your transcripts for one counted waste number before building anything; save corrections where the next session reads them.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 04 title slide: a real artifact-miner run over 2,747 transcripts"
+  "previewAlt": "Demo 04 title slide: a real artifact-miner run over 2,747 transcripts",
+  "theme": "memory",
+  "accent": "#46c395"
 }

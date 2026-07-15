@@ -7,5 +7,7 @@
   "get": "The circular-audit failure mode, a prod-broke-twice case study peeled layer by layer, and the re-derivation discipline with its real budget.",
   "do": "Ask \"checked how?\" — then run that check yourself: grep the file, run the command, end at the runtime.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 07 title slide with a claim-versus-runtime-check exhibit"
+  "previewAlt": "Demo 07 title slide with a claim-versus-runtime-check exhibit",
+  "theme": "verification",
+  "accent": "#a78bfa"
 }

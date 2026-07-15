@@ -72,14 +72,14 @@ for (const slug of slugs) {
   cards.push(d)
 }
 
-// Newest first on the index.
-cards.sort((a, b) => b.meta.number.localeCompare(a.meta.number))
+// The series is a teaching arc — the index reads 01 → 08.
+cards.sort((a, b) => a.meta.number.localeCompare(b.meta.number))
 
 const cardHtml = cards
-  .map(({ slug, meta }) => `      <a class="card" href="/${slug}/">
+  .map(({ slug, meta }) => `      <a class="card" href="/${slug}/" style="--acc: ${meta.accent}">
         <span class="card-preview"><img src="/${slug}/${meta.preview}" alt="${meta.previewAlt}" loading="lazy"></span>
         <span class="card-body">
-          <span class="card-label">demo ${meta.number} · ${meta.date}</span>
+          <span class="card-label"><i></i>demo ${meta.number} · ${meta.theme}</span>
           <span class="card-title">${meta.title}</span>
           <span class="card-hook">${meta.hook}</span>
           <span class="card-rows">
@@ -92,6 +92,12 @@ const cardHtml = cards
       </a>`)
   .join('\n')
 
-const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8').replace('<!--DEMOS-->', cardHtml)
+const arcHtml = cards
+  .map(({ slug, meta }) => `      <a class="arc-item" href="/${slug}/" style="--acc: ${meta.accent}"><i></i><b>${meta.number}</b>${meta.theme}</a>`)
+  .join('\n')
+
+const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
+  .replace('<!--ARC-->', arcHtml)
+  .replace('<!--DEMOS-->', cardHtml)
 writeFileSync(join(DIST, 'index.html'), index)
 console.log(`dist/ — ${slugs.length} demo(s) + index`)

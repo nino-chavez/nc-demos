@@ -7,5 +7,7 @@
   "get": "The four-stage loop, the allowlist gate read from live source, six real tickets sorted by lane, and a run ledger whose best result was declining to fabricate a fix.",
   "do": "Let the model classify, never authorize: write the autonomy boundary as a small tested allowlist, and keep merging human.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 05 title slide with a real agent-lane ticket and its labels"
+  "previewAlt": "Demo 05 title slide with a real agent-lane ticket and its labels",
+  "theme": "autonomy",
+  "accent": "#5b9dff"
 }
