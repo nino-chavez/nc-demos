@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="100%" role="img" aria-label="ways of working — a demo series of real AI-agent working sessions: verbatim messages, real production systems, honest failures. Receipts, not a highlight reel. Eight demos at demos.ninochavez.co, spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, and process.">
+  <title>ways of working — a demo series of real AI-agent sessions: receipts, not a highlight reel</title>
+
+  <rect x="8" y="8" width="1184" height="324" rx="12" fill="#f6f4ef" stroke="#ddd9d0" stroke-width="1.5"/>
+
+  <text x="48" y="62" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" letter-spacing="2.2" fill="#5f646c">WAYS OF WORKING — DEMO SERIES</text>
+
+  <text x="48" y="140" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="56" font-weight="600" letter-spacing="-1" fill="#1c1e21">ways of working</text>
+  <rect x="562" y="96" width="22" height="52" fill="#2b55d4"/>
+
+  <text x="48" y="188" font-family="'Avenir Next', 'Segoe UI', system-ui, sans-serif" font-size="20" fill="#5f646c">Real sessions with an AI agent — <tspan font-weight="600" fill="#1c1e21">verbatim messages, real production systems, honest failures.</tspan></text>
+  <text x="48" y="216" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#5f646c">receipts, not a highlight reel  ·  demos.ninochavez.co</text>
+
+  <!-- the arc: eight themes, in order, each carrying its demo's real accent -->
+  <line x1="70" y1="270" x2="1130" y2="270" stroke="#ddd9d0" stroke-width="1.5"/>
+
+  <circle cx="70" cy="270" r="7" fill="#f97316"/>
+  <text x="70" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">01</text>
+  <text x="70" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">delegation</text>
+
+  <circle cx="221" cy="270" r="7" fill="#f2b13d"/>
+  <text x="221" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">02</text>
+  <text x="221" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">tools</text>
+
+  <circle cx="373" cy="270" r="7" fill="#c2382f"/>
+  <text x="373" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">03</text>
+  <text x="373" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">enforcement</text>
+
+  <circle cx="524" cy="270" r="7" fill="#46c395"/>
+  <text x="524" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">04</text>
+  <text x="524" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">memory</text>
+
+  <circle cx="675" cy="270" r="7" fill="#5b9dff"/>
+  <text x="675" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">05</text>
+  <text x="675" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">autonomy</text>
+
+  <circle cx="827" cy="270" r="7" fill="#b8940c"/>
+  <text x="827" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">06</text>
+  <text x="827" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">knowledge</text>
+
+  <circle cx="978" cy="270" r="7" fill="#a78bfa"/>
+  <text x="978" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">07</text>
+  <text x="978" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">verification</text>
+
+  <circle cx="1130" cy="270" r="7" fill="#7dd3fc"/>
+  <text x="1130" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">08</text>
+  <text x="1130" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">process</text>
+</svg>
