@@ -1,7 +1,8 @@
 # ways of working — demo roadmap
 
 Shipped: **01 Twelve Messages** (delegation split), **02 The Browser Is a Shell
-Command** (tool token-economics). Candidates below were selected by a two-track
+Command** (tool token-economics), **03 Taught Once, Enforced Forever**
+(corrections → helpers/hooks/ratchets). Candidates below were selected by a two-track
 research pass: a workspace survey (apps/wip/tools) and a session-corpus mining
 run over 2,747 transcripts via claude-recall-cli — the series' own method,
 applied to choosing its next subjects.
@@ -11,19 +12,6 @@ anchored to real sessions/artifacts with honest failure material → sanitizable
 for permanent public hosting.
 
 ## Queue
-
-### 03 · Taught Once, Enforced Forever
-**Thesis:** stop re-correcting the agent; change its environment. Three
-escalating mechanisms: helpers that make the cheap path the default (`q`,
-`preview`, `waitfor` — born from 122 mined `pkill` invocations chasing stray
-dev servers), PreToolUse/Stop hooks that deny the bad path (worktree-guard,
-born from two sessions switching branches under each other; read-guard, born
-from a 60-day audit showing half of file reads were re-reads; anti-hesitation,
-born from 553 mined ask-then-told-"go" exchanges), and CI ratchets that make
-conventions project law (design-system linter, doc-coverage baseline).
-**Evidence:** every guard's docstring cites its origin audit; each is
-anchorable to the single session that wrote it.
-**Sanitization:** clean — scripts and hook docstrings, no client data.
 
 ### 04 · Your Sessions Are a Corpus
 **Thesis:** agent-session history is data — mine it for reusable prompts, your

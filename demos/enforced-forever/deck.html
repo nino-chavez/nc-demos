@@ -1,0 +1,472 @@
+<title>Taught Once, Enforced Forever — corrections become environment</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 03 identity: incident-report-on-paper. Light ground (the first light
+     deck in the series), enforcement-red accent, dark terminal exhibits.
+     Structure device: EXHIBIT A-D — each guard is evidence, presented with its
+     origin audit and its real deny message. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: light;
+    --paper: #f4f2ec;
+    --card: #fdfcf9;
+    --ink: #1e1f21;
+    --dim: #5f5b52;
+    --faint: #8d8778;
+    --line: #ddd7c9;
+    --red: #c2382f;
+    --red-soft: rgba(194, 56, 47, 0.07);
+    --pass: #2e7d4f;
+    --term-bg: #16181b;
+    --term-line: #2b2f34;
+    --term-text: #dfe5ea;
+    --term-dim: #8a94a0;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: var(--red); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--red); }
+  .rail a:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--red); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--ink); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--red); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(58px, 11vw, 132px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--red); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); background: var(--card);
+  }
+
+  /* —— the enforcement ladder ————————————————————— */
+  .ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .rung { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; position: relative; }
+  .rung .lvl {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--red); margin: 0 0 12px;
+  }
+  .rung h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; margin: 0 0 10px; line-height: 1.1; }
+  .rung p { margin: 0; font-size: 15px; color: var(--dim); }
+
+  /* —— exhibit chrome ————————————————————————————— */
+  .extag {
+    display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--red); border: 1.5px solid var(--red);
+    border-radius: 3px; padding: 4px 12px; margin: 0 0 18px; background: var(--red-soft);
+  }
+  .origin { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 0 0 24px; }
+  .origin .o { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+  .origin .o b { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+  .origin .o span { font-size: 14.5px; color: var(--dim); }
+  .origin .o span strong { color: var(--ink); }
+
+  /* —— terminal exhibits ————————————————————————— */
+  .term { background: var(--term-bg); border: 1px solid var(--term-line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: #1c1f23; border-bottom: 1px solid var(--term-line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #363c43; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--term-dim); margin-left: 8px; }
+  .term-bar .stamp {
+    margin-left: auto; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+    color: #ff6b61; border: 1px solid rgba(255, 107, 97, 0.5); border-radius: 3px; padding: 2px 8px;
+  }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--term-text); }
+  .term .p { color: #7ee787; }
+  .term .c { color: var(--term-text); }
+  .term .o { color: var(--term-dim); }
+  .term .d { color: #ff8a80; }
+  .term .cm { color: #5d6c79; }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--red); font-weight: 600; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--red); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--red); }
+
+  /* —— layered defense (exhibit D) ————————————————— */
+  .layers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .layer { display: grid; grid-template-columns: 210px 1fr; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 15px 20px; align-items: baseline; }
+  .layer b { font-family: var(--mono); font-size: 12px; color: var(--red); letter-spacing: 0.04em; }
+  .layer span { font-size: 14.5px; color: var(--dim); }
+  @media (max-width: 640px) { .layer { grid-template-columns: 1fr; gap: 4px; } }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--card);
+  }
+  .stack a { color: var(--red); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--red); }
+  a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 03</b> NINO CHAVEZ</p>
+    <h1>Taught once,<br>enforced forever<span class="dot">.</span></h1>
+    <p class="title-sub">Corrections you give an agent in chat decay the moment the session ends. The fix isn't repetition — it's changing the agent's <strong>environment</strong>: helpers that make the cheap path the default, hooks that deny the bad path, and CI gates that make the rule law.</p>
+    <div class="term" style="max-width: 700px; margin-bottom: 44px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>PreToolUse — read-guard</span><span class="stamp">DENIED</span></div>
+      <pre><span class="d">Read-cost guard: oversized image.</span>
+<span class="o">  v-log.png is 3258x3346 (~5,000 image tokens at this size).
+  A 1000px downscaled copy has been written to: ~/.claude/cache/read-guard/1d3f…png
+  Read that copy instead.</span></pre>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE DECAY PROBLEM ————————————————————————— -->
+<section class="slide" id="s2" aria-label="The decay problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE DECAY PROBLEM</p>
+    <h2>Rules in prose leak. Sessions forget.</h2>
+    <p class="lede">A correction typed into chat lives exactly one session. A rule written into the project instructions survives — but it's still prose an agent <strong>reads and chooses to apply</strong>, and adherence drifts under pressure. Every guard in this deck exists because a written rule wasn't enough. The escalation ladder:</p>
+    <div class="ladder">
+      <div class="rung">
+        <p class="lvl">Level 1 · Default</p>
+        <h3>Helpers</h3>
+        <p>Make the cheap, correct path the easiest one to take. Wrappers that collapse noisy commands to one line of signal. The agent complies because it's the path of least resistance.</p>
+      </div>
+      <div class="rung">
+        <p class="lvl">Level 2 · Gate</p>
+        <h3>Hooks</h3>
+        <p>Deny the bad path at the tool boundary, before it executes. The agent physically can't take the wasteful or dangerous action — and the denial message teaches it what to do instead.</p>
+      </div>
+      <div class="rung">
+        <p class="lvl">Level 3 · Law</p>
+        <h3>CI ratchets</h3>
+        <p>Conventions the whole project must hold become build gates. No agent — and no human — ships a violation, in any session, ever.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 28px 0 0;">The pattern behind all three: <strong>a rule is only as durable as the mechanism that carries it.</strong></p>
+  </div>
+</section>
+
+<!-- 03 · EXHIBIT A ——————————————————————————————— -->
+<section class="slide" id="s3" aria-label="Exhibit A: measure the waste">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> LEVEL 1 · HELPERS</p>
+    <span class="extag">Exhibit A</span>
+    <h2>122 pkills nobody remembers typing</h2>
+    <div class="origin">
+      <div class="o"><b>The audit</b><span>A mining pass over the full session corpus found <strong>122 <span style="font-family:var(--mono); font-size:13px;">pkill</span> invocations across 16 projects</strong> — most of them hunting stray preview servers that some earlier turn had started and lost track of.</span></div>
+      <div class="o"><b>The insight</b><span>Nobody decided to spend context on process janitoring. It's what agents do by default when the environment gives them no cheaper move.</span></div>
+      <div class="o"><b>The mechanism</b><span>Small wrappers on PATH: <strong>preview</strong> manages the server with a pidfile, <strong>q</strong> collapses any build/test run to one line, <strong>waitfor</strong> replaces hand-written polling loops.</span></div>
+    </div>
+    <div class="cols c2">
+      <div>
+        <div class="term">
+          <div class="term-bar"><i></i><i></i><i></i><span>before — mined from real sessions</span></div>
+          <pre><span class="p">$</span> <span class="c">pkill -f "http.server 8765" 2>/dev/null; echo "server stopped…"</span>
+<span class="cm"># × 122, across 16 projects</span>
+<span class="p">$</span> <span class="c">npm run build</span>
+<span class="o">… 240 lines of webpack output for one bit of signal …</span></pre>
+        </div>
+        <p class="cap">the mined example is verbatim — port 8765 and all</p>
+      </div>
+      <div>
+        <div class="term">
+          <div class="term-bar"><i></i><i></i><i></i><span>after — helpers on PATH</span></div>
+          <pre><span class="p">$</span> <span class="c">preview dist/</span>
+<span class="o">http://localhost:8765/</span>
+<span class="p">$</span> <span class="c">preview --stop</span>
+<span class="p">$</span> <span class="c">q npm run build</span>
+<span class="o">ok (14s) ✓ built in 13.2s</span></pre>
+        </div>
+        <p class="cap"><b>one line on success;</b> on failure: last 30 lines + a log path</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;"><strong>Instrument first, build second.</strong> Every helper was born from a counted waste pattern, not from speculation about what might be useful.</p>
+  </div>
+</section>
+
+<!-- 04 · EXHIBIT B ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Exhibit B: the collision">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> LEVEL 2 · HOOKS</p>
+    <span class="extag">Exhibit B</span>
+    <h2>Two sessions, one checkout, wrong branch</h2>
+    <div class="origin">
+      <div class="o"><b>The incident</b><span>Two parallel agent sessions shared a working directory and <strong>switched branches under each other's feet</strong> — commits landed on the wrong branch. The worktree rule existed in prose; it didn't hold.</span></div>
+      <div class="o"><b>The mechanism</b><span>Each session writes a heartbeat lock inside the repo's git dir. When another session's lock is live, contended git operations from the shared checkout are <strong>denied before they run</strong>.</span></div>
+      <div class="o"><b>The care</b><span>The guard walks the actual shell command — tracking <span style="font-family:var(--mono); font-size:13px;">cd</span> and <span style="font-family:var(--mono); font-size:13px;">git -C</span> — so a commit in an uncontended repo is never blocked just because the session lives in a busy one.</span></div>
+    </div>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>PreToolUse — worktree-guard</span><span class="stamp">DENIED</span></div>
+      <pre><span class="p">$</span> <span class="c">git commit -m "fix: registration guard"</span>
+<span class="d">1 other live Claude session(s) are ALREADY working here:
+  - session 3f9a12c4 on 'main' at ~/Workspace/dev/apps/rally-hq</span>
+<span class="o">Per working-style.md, parallel sessions MUST isolate in worktrees — sharing this
+checkout will overwrite each other's edits and land commits on the wrong branch.
+Before doing any work, create your own worktree:
+
+  git -C ~/Workspace/dev/apps/rally-hq worktree add ../rally-hq-wt -b fix && cd ../rally-hq-wt</span></pre>
+    </div>
+    <p class="cap">message text from the hook itself; session id illustrative. <b>Note what the denial does:</b> it hands the agent the exact command that fixes the situation.</p>
+  </div>
+</section>
+
+<!-- 05 · EXHIBIT C ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Exhibit C: the re-read audit">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> LEVEL 2 · HOOKS</p>
+    <span class="extag">Exhibit C</span>
+    <h2>Half of all file reads were re-reads</h2>
+    <div class="origin">
+      <div class="o"><b>The audit</b><span>A 60-day session-log audit found <strong>50% of Reads re-read a file already in context</strong> (worst case: one file, 184 times in a session), and full-resolution screenshots cost ~4,800 image tokens where a 1000px copy carries the same information for ~900.</span></div>
+      <div class="o"><b>The compounding</b><span>Every wasted token is then re-read on each subsequent turn through the prompt cache — an observed <strong>~41× multiplier</strong>. Trimming at the Read boundary compounds.</span></div>
+      <div class="o"><b>The mechanism</b><span>A hook on the Read tool: oversized images get denied once with a downscaled copy already written; recent re-reads get denied once with a cite-from-context reminder. <strong>The immediate retry always passes</strong> — post-compaction re-reads are legitimate.</span></div>
+    </div>
+    <div class="term" style="max-width: 760px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>PreToolUse — read-guard</span><span class="stamp">DENIED</span></div>
+      <pre><span class="d">Read-cost guard: oversized image.</span>
+<span class="o">  v-log.png is 3258x3346 (~5,000 image tokens at this size).
+  A 1000px downscaled copy has been written to:
+    ~/.claude/cache/read-guard/1d3f40967356b765.png
+  Read that copy instead — for screenshots and layout/design review it carries
+  the same information at a fraction of the token cost.
+  If full-resolution detail is genuinely required, re-run this exact Read —
+  the retry will be allowed.</span></pre>
+    </div>
+    <p class="cap"><b>verbatim, and recursive:</b> this denial fired on the agent while it was building this demo series — reviewing a screenshot of demo 01. The guard was right, and the downscaled copy was used.</p>
+  </div>
+</section>
+
+<!-- 06 · EXHIBIT D ——————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Exhibit D: the hesitation habit">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> LEVEL 2 · HOOKS</p>
+    <span class="extag">Exhibit D</span>
+    <h2>553 questions that were always answered "go"</h2>
+    <p class="lede">Mining the corpus for correction patterns found <strong>553 exchanges with the same shape</strong>: the agent ends its turn on a permission-seeking question — "want me to continue?", "should I proceed with #1?" — and the human answers with one word. The question wasn't a decision point; it was a reflex. So the reflex got a hook.</p>
+    <div class="layers">
+      <div class="layer"><b>1 · declarative rule</b><span>A "decision bias" section in the standing instructions: when the next step is the obvious continuation, take it. Durable, but still prose.</span></div>
+      <div class="layer"><b>2 · predictive context</b><span>A prompt-submit hook injects the user's known override patterns before the agent responds — the question-shapes historically answered "go."</span></div>
+      <div class="layer"><b>3 · corrective stop hook</b><span>If the agent still ends its turn on a hesitation question, a Stop hook blocks the turn with a corrective reason and forces a rewrite. Every fire is logged, so the detection patterns are tuned from data — not from re-arguing in chat.</span></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">The three layers share one classifier, fire at different lifecycle points, and exist because <strong>each layer alone leaks.</strong> That's not redundancy — that's how you retire a correction permanently.</p>
+  </div>
+</section>
+
+<!-- 07 · PROJECT LAW ————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Project law: CI ratchets">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> LEVEL 3 · LAW</p>
+    <h2>Conventions that fail the build</h2>
+    <p class="lede">Session-level guards protect one machine. Conventions the whole project must hold graduate to CI — where no session, agent or human, can ship a violation.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Design-system linter</p>
+        <p>Raw color values that break in dark mode, component-level theme overrides, states borrowing another state's color family — each violation class is a lint rule that blocks the build.</p>
+        <p class="lesson"><b>The standing rule:</b> when a new violation class appears, add a RULE — never run a manual sweep. Sweeps fix instances; rules fix the class.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Doc-coverage ratchet</p>
+        <p>A baseline file records current documentation coverage. CI fails if coverage drops below it — and the baseline only ever ratchets toward better. Drift is structurally impossible; improvement is one-way.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Invariants in CI</p>
+        <p>Load-bearing facts that grep can't surface — a column written but never read, a flag the runtime can't distinguish — are declared in a catalog that derives live COMPLIANT/NON-COMPLIANT status and runs as a test.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · ANATOMY OF A GOOD GUARD ————————————————— -->
+<section class="slide" id="s8" aria-label="Anatomy of a good guard">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> ANATOMY</p>
+    <h2>Why these guards survive</h2>
+    <p class="lede">Most guardrails get ripped out within a month, because they block legitimate work once and lose the operator's trust. The ones in this deck share five properties — all quoted or paraphrased from their own docstrings:</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">1 · Born from an audit</p>
+        <p>Every guard cites the counted waste or the real incident that created it. No speculative rules — speculation is how you get guards that fight the work.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">2 · Fail-open by design</p>
+        <p>Anything uncertain — unparseable command, missing file, tool error — resolves to <em>allow</em>. In the hooks' own words: "a guard that blocks legitimate solo work gets ripped out; this one only blocks when it is certain."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">3 · Deny once, allow the retry</p>
+        <p>The denial is friction for the reflexive action, not a wall. If the agent re-runs the exact call, it passes — because sometimes full resolution really is needed.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">4 · The message teaches</p>
+        <p>A good denial contains the fix: the downscaled copy already written, the exact worktree command to run. The agent's next action is in the error text.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">And fifth: <strong>an escape hatch, always</strong> — one <span style="font-family: var(--mono); font-size: 14px;">touch .guard-off</span> away. A guard you can't turn off is a guard you'll delete.</p>
+  </div>
+</section>
+
+<!-- 09 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s9" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> HONEST LIMITS</p>
+    <h2>What the guards don't catch</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Fail-open is an admission</p>
+        <p>Choosing to allow on uncertainty means real violations pass when the guard can't be sure. That's the price of keeping the guard installed at all — a strict guard protects nothing after it's deleted.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Guards see tools, not intent</p>
+        <p>In <a href="/twelve-messages/">demo 01's session</a>, a wildcard delete during cleanup destroyed a file no safety net covered — the command was legitimate, the target selection was the error. No tool-boundary guard catches a correctly-formed mistake.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Portability is real work</p>
+        <p>The image guard shells out to a macOS-native tool; on other platforms that branch simply fails open. Owning small sharp tools means owning their edges — same trade as <a href="/browse-tool/">demo 02</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s10" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> YOUR VERSION OF THIS</p>
+    <h2>Count your corrections, then promote them</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Notice what you keep telling your AI twice. Anything you've corrected three times is not a conversation — it's a missing rule. Write it down where the agent reads it every session.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Audit before you build: count the waste in your own session logs first. Then climb the ladder — wrapper, then hook, then CI gate — and stop at the lowest level that holds.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Design denials as teaching moments: fail open on uncertainty, allow the retry, put the fix in the message, ship an escape hatch. Guards earn permanence by never blocking legitimate work.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>PreToolUse / Stop hooks · pure stdlib</span>
+      <span>helpers on PATH: q · gs · preview · waitfor · with-secret</span>
+      <span>lint + coverage ratchets in CI</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every number on this page was re-derived from source for this deck — the 122 pkills from a fresh mining run, the audit figures from the guards' own docstrings, the deny messages verbatim (one of them fired on the agent building this page). Demo 03 in the <a href="/">ways-of-working series</a> — the delegation split is <a href="/twelve-messages/">demo 01</a>, the tool economics are <a href="/browse-tool/">demo 02</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
