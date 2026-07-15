@@ -1,0 +1,422 @@
+<title>Gates Between Agentic Stages — deterministic core, agentic shell</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 08 identity: blueprint paper. Prussian-blue ground with a drafting
+     grid, chalk-cyan linework — the finale wears the subject's own aesthetic.
+     Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e2440;
+    --panel: #143050;
+    --panel2: #102a48;
+    --line: #2a4d75;
+    --text: #eaf3fc;
+    --dim: #9db8d4;
+    --faint: #5f7fa3;
+    --chalk: #7dd3fc;
+    --chalk-soft: rgba(125, 211, 252, 0.12);
+    --warn: #fca5a5;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background-color: var(--bg);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(125, 211, 252, 0.045) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(125, 211, 252, 0.045) 0 1px, transparent 1px 28px);
+    color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #35618f, var(--chalk)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--chalk); }
+  .rail a:focus-visible { outline: 2px solid var(--chalk); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--chalk); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--chalk); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 122px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--chalk); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— stage flow with gate posts ————————————————— */
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin-bottom: 26px; }
+  .node {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 15px; flex: 1 1 140px; min-width: 132px; max-width: 240px;
+  }
+  .node .t { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .node .s { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 6px; letter-spacing: 0.04em; line-height: 1.5; }
+  .node .who { display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; padding: 2px 7px; border-radius: 3px; color: var(--chalk); background: var(--chalk-soft); }
+  .node.slim { flex-basis: 108px; min-width: 100px; padding: 12px 13px; }
+  .gatepost {
+    align-self: center; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--bg); background: var(--chalk);
+    border-radius: 3px; padding: 4px 7px; font-weight: 700;
+  }
+  @media (max-width: 760px) { .gatepost { display: none; } .node { flex-basis: 44%; } }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--chalk); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--chalk); }
+  .panel.warn { border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+  .panel.warn .ptag { color: var(--warn); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--chalk); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .term { background: #0a1c33; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: var(--panel2); border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #274666; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .o { color: var(--dim); }
+  .term .cm { color: var(--faint); }
+  .term .c { color: var(--chalk); }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--chalk); font-weight: 600; }
+
+  .readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .rd { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+  .rd b { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+  .rd span { font-family: var(--mono); font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rd span em { font-style: normal; color: var(--chalk); }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .stack a { color: var(--chalk); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--chalk); }
+  a:focus-visible { outline: 2px solid var(--chalk); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 08</b> NINO CHAVEZ</p>
+    <h1>Gates between<br>agentic stages<span class="dot">.</span></h1>
+    <p class="title-sub">Agents are strong inside a stage and unreliable at the boundaries — a confidently wrong artifact handed downstream gets amplified, not caught. Blueprint is a product-delivery methodology built on that observation: <strong>deterministic core, agentic shell</strong>. Eighty-eight revisions in, running fourteen registered initiatives.</p>
+    <div class="flow" style="max-width: 980px; margin-bottom: 44px;">
+      <div class="node slim"><div class="t">Research</div></div>
+      <div class="gatepost">gate</div>
+      <div class="node slim"><div class="t">Strategy docs</div></div>
+      <div class="gatepost">gate</div>
+      <div class="node slim"><div class="t">Prototype</div></div>
+      <div class="gatepost">gate</div>
+      <div class="node slim"><div class="t">Validate</div></div>
+      <div class="gatepost">gate</div>
+      <div class="node slim"><div class="t">Handoff</div></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE SHAPE ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The shape">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE SHAPE</p>
+    <h2>Each stage agentic, each boundary mechanical</h2>
+    <blockquote>
+      "Research feeds BRD/PRD-class documents [...], the documents plan the prototype, <strong>the prototype validates the plan</strong>, and the validated package hands off to build."
+      <cite>METHODOLOGY.md — the pipeline, verbatim</cite>
+    </blockquote>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Inside a stage</p>
+        <p>Agents do the work — read the market, draft the strategy doc, build the prototype. Judgment calls escalate to the operator; production is delegated. <a href="/twelve-messages/">Demo 01's split</a>, at initiative scale.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">At the boundary</p>
+        <p>The artifact is checked mechanically before the next stage consumes it: schema-validated metadata, derived state, reviewer checklists that are code, not vibes. A stage can't hand off what the gate can't verify.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Why the prototype validates the plan</p>
+        <p>Documents can agree with each other and still be wrong. A running prototype is the strategy doc's first contact with reality — cheap enough to throw away, real enough to falsify the plan.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 · THE SWEEP ——————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The sweep">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> CASE STUDY</p>
+    <h2>The day production published fiction</h2>
+    <p class="lede">May 2026: a migration sweep moved <strong>every prototype page</strong> into a live product's production routes. The prototype's page metadata had no field saying what each page <em>was</em> — so the sweep, reasonably, took everything.</p>
+    <div class="cols c3">
+      <div class="panel warn">
+        <p class="ptag">What went live</p>
+        <p>Fictional pilot integrations. Unsigned partnership terms presented as real. Competitor-comparison claims — all on the production domain, <strong>fully SEO-indexable</strong>.</p>
+      </div>
+      <div class="panel warn">
+        <p class="ptag">Why it happened</p>
+        <p>Not bad judgment — a missing declaration. Strategy surfaces and product surfaces lived in one prototype, distinguishable only in a human's head. The boundary existed; <strong>nothing carried it.</strong></p>
+      </div>
+      <div class="panel warn">
+        <p class="ptag">Why it's this deck's case</p>
+        <p>This is what an ungated agentic boundary looks like: the hand-off executed flawlessly and amplified the error. The sweep did exactly what it was told — that's the problem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · THE GATE THAT CAME OUT ————————————————————— -->
+<section class="slide" id="s4" aria-label="The gate that came out">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> SCAR TISSUE</p>
+    <h2>Now every page declares what it is</h2>
+    <p class="lede">The fix wasn't "be more careful." It was a schema field plus an inverted check. Every prototype page now declares a destination — <span style="font-family: var(--mono); font-size: 14px;">product / blueprint / noindex-only</span> — and only <em>product</em> pages may ship to production routes.</p>
+    <div class="term" style="margin-bottom: 24px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>state-derive catalog — the check, with its incident note, verbatim</span></div>
+      <pre><span class="cm">/* DROPPED 2026-05-25: [three strategic surfaces] — these were catalogued as
+   production capabilities but the surfaces are STRATEGIC POSITIONING, not
+   product features. [...] If a future commit puts them back under
+   src/routes/, an inverted convention check below catches it. */</span>
+<span class="o">{
+  id: </span><span class="c">'convention-no-strategic-surfaces-in-production'</span><span class="o">,
+  invert: </span><span class="c">true</span><span class="o">,  </span><span class="cm">// these files existing = the build goes NON-COMPLIANT</span><span class="o">
+}</span></pre>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">The check is <strong>inverted</strong> — it greps for the strategic surfaces' return and fails when they exist. Gates are scar tissue: the incident is documented in the check that prevents its recurrence, the same move as <a href="/enforced-forever/">demo 03's guards</a> and <a href="/landmine-registry/">demo 06's registry</a>.</p>
+  </div>
+</section>
+
+<!-- 05 · WAVES ————————————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Waves">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE FEEDBACK LOOP</p>
+    <h2>The methodology eats its consumers' failures</h2>
+    <div class="readout">
+      <div class="rd"><b>Revisions shipped</b><span><em>88</em> numbered waves</span></div>
+      <div class="rd"><b>Running initiatives</b><span><em>14</em> registered consumers</span></div>
+      <div class="rd"><b>Distribution</b><span>public npm CLI · MIT</span></div>
+    </div>
+    <blockquote>
+      "Every change ships as a <strong>wave</strong> — a numbered batch of methodology changes released together [...]. Each initiative has caught gaps that became <strong>reviewer checks, schema fields, or logic in the stamper</strong> (the scaffolder that generates new initiatives) in subsequent waves."
+      <cite>METHODOLOGY.md, verbatim</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">That's the loop: a consumer initiative breaks somewhere → the failure becomes a check or a schema field → the stamper installs it into every <em>future</em> initiative at birth. The destination gate above followed exactly this path. A methodology that doesn't version itself is a document; <strong>this one is a product with a changelog.</strong></p>
+  </div>
+</section>
+
+<!-- 06 · EPISTEMICS ALL THE WAY DOWN ————————————————— -->
+<section class="slide" id="s6" aria-label="Epistemics all the way down">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE DETAILS THAT TELL</p>
+    <h2>Machinery that admits what it can't know</h2>
+    <p class="lede">Three small design choices reveal the discipline more than any diagram:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">A registry that knows it's a mirror</p>
+        <p>The consumer registry's own header declares the authoritative pin lives in each consumer, and that this file is a hand-maintained mirror that can go stale — so the fleet tool "reports drift-against-the-mirror, <strong>never authoritative drift</strong>." A document refusing to over-claim: <a href="/said-it-checked/">demo 07</a> as file format.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Gates that degrade honestly</p>
+        <p>The gate-derivation package is substrate-degrading: with no project data sources configured it returns <strong>empty structures</strong>, and the portal builds green at tier zero. No data means "nothing to report" — never a fabricated status.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The public/private boundary, practiced</p>
+        <p>Two of the founding initiatives are real industry work — present in the public methodology docs, <strong>de-named</strong> because the repo is public. The same boundary this demo series holds for its own commerce case study.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · THE CLUSTER ————————————————————————————— -->
+<section class="slide" id="s7" aria-label="The cluster">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE FAMILY</p>
+    <h2>One demo, standing for a cluster</h2>
+    <p class="lede">Blueprint is the public face of a spec-driven family that grew in parallel — same conviction, different altitudes:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The methodology</p>
+        <p>Blueprint: initiative-level. Research through handoff, gated boundaries, waves, a stamper. This deck.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The implementation chain</p>
+        <p>A sibling tool at task-level: specs in, structured agents implement and verify, a <strong>capped remediation loop</strong> routes verifier findings back to implementers, and crash recovery makes the whole run resumable — agent work you can restart, not re-prompt.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The shipped case study</p>
+        <p>A commerce-platform initiative run this way end-to-end: dozens of decision records, machine-derived "what's actually built" state, and a synthesis ID carried from every decision into its commit. <strong>Its artifacts stay private;</strong> the method is what you're reading.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s8" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> HONEST LIMITS</p>
+    <h2>Gates lag failures, by definition</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Scar tissue arrives after the wound</p>
+        <p>The sweep happened <em>with</em> the methodology in place. Gates encode failures already survived — they prevent recurrence, not novelty. Anyone selling a gate set that prevents unknown failures is selling the sentence, not the check.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Gates check the declarable</p>
+        <p>Whether the strategy is right, whether the design is tasteful, whether the initiative should exist — no schema field carries those. The gates free human attention for exactly those calls; they don't replace them.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The overhead is real</p>
+        <p>Eighty-eight waves of machinery is right-sized for product initiatives and absurd for a script. Fourteen consumers also means fourteen pinned versions that drift — the fleet tool reports it, but adoption of each wave is still work someone must do.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> YOUR VERSION OF THIS</p>
+    <h2>Gate the boundaries, free the stages</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>When AI work moves between stages — draft to review, analysis to deck, plan to execution — ask what checks the hand-off. If the answer is "someone reads it," the boundary is where your next incident lives.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Make artifacts declare themselves: a schema field for what a thing is beats a convention for where it sits. Then write the inverted check — the one that fails when the incident tries to recur.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Version your process like a product: numbered releases, a changelog, a scaffolder that installs the hardening into every new project at birth. Process that doesn't ship isn't process — it's folklore.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <a href="https://github.com/nino-chavez/blueprint">github.com/nino-chavez/blueprint</a>
+      <span>@nino-chavez-labs/blueprint-cli · npm · MIT</span>
+      <span>88 waves · 14 consumers · one stamper</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Pipeline and wave-model quotes verbatim from the methodology source; wave and consumer counts from the live wave log and registry; the destination-gate check and its incident comment quoted verbatim from the consumer's derive catalog — all read on publication day. Demo 08 closes the <a href="/">ways-of-working series</a>' opening arc: delegation (<a href="/twelve-messages/">01</a>), tools (<a href="/browse-tool/">02</a>), enforcement (<a href="/enforced-forever/">03</a>), memory (<a href="/session-corpus/">04</a>), autonomy (<a href="/feedback-loop/">05</a>), knowledge (<a href="/landmine-registry/">06</a>), verification (<a href="/said-it-checked/">07</a>), and process (08) — each deck built by the methods the others teach.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

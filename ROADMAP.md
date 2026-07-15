@@ -6,7 +6,8 @@ Command** (tool token-economics), **03 Taught Once, Enforced Forever**
 (transcript mining → audits/priors/grades), **05 The Product That Files Its Own
 Tickets** (autonomy gate in code), **06 The Registry of Landmines** (facts grep
 can't surface, CI-enforced), **07 The Agent Said It Checked** (self-attestation
-is not verification). Candidates below were selected by a two-track
+is not verification), **08 Gates Between Agentic Stages** (deterministic core,
+agentic shell). Candidates were selected by a two-track
 research pass: a workspace survey (apps/wip/tools) and a session-corpus mining
 run over 2,747 transcripts via claude-recall-cli — the series' own method,
 applied to choosing its next subjects.
@@ -17,14 +18,8 @@ for permanent public hosting.
 
 ## Queue
 
-### 08 · Gates Between Agentic Stages
-**Thesis:** deterministic core, agentic shell — stage AI-assisted delivery
-(research → strategy docs → prototype → validation → handoff) with mechanical
-gates verifying each artifact before it advances. Represents the whole
-spec-driven cluster; Blueprint is the public face (npm, MIT, self-applied at
-its own portal). A commerce-platform case study exists but its artifacts stay
-private — the method appears here without them.
-**Sanitization:** low for Blueprint itself.
+The opening arc (01-08) is complete. Next demos come from the backlog below,
+or from new sessions worth telling — the selection bar above still applies.
 
 ## Backlog / segments (not standalone decks)
 

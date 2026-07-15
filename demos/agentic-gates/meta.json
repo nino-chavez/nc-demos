@@ -1,0 +1,11 @@
+{
+  "number": "08",
+  "title": "Gates Between Agentic Stages",
+  "hook": "Agents are strong inside a stage and unreliable at the boundaries. A delivery methodology built on that: deterministic gates between agentic stages — 88 versioned revisions, 14 running initiatives, and the day production published fiction.",
+  "date": "2026-07",
+  "for": "Anyone chaining AI work across stages — draft to review, analysis to deck, prototype to production.",
+  "get": "The deterministic-core/agentic-shell shape, the migration-sweep incident and the inverted check it left behind, and a methodology versioned like a product.",
+  "do": "Make artifacts declare what they are; gate every hand-off mechanically; version your process with a changelog.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 08 title slide: the staged pipeline with gate posts between every stage"
+}
