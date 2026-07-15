@@ -1,0 +1,396 @@
+<title>The Product That Files Its Own Tickets — an autonomous feedback loop with the gate in code</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 05 identity: the control room. Deep navy ground, signal-blue accent.
+     Lane colors are data, not decoration: agent lane = blue, human lane =
+     neutral, decision lane = violet — the whole deck is about which lane a
+     ticket lands in. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0f1420;
+    --panel: #151c2b;
+    --panel2: #111726;
+    --line: #27334a;
+    --text: #e8ecf4;
+    --dim: #98a3b8;
+    --faint: #5f6b84;
+    --blue: #5b9dff;
+    --blue-soft: rgba(91, 157, 255, 0.12);
+    --violet: #a78bfa;
+    --ok: #56d364;
+    --warn: #e5534b;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #23477e, var(--blue)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--blue); }
+  .rail a:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--blue); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--blue); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(52px, 9.5vw, 116px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--blue); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— issue cards ————————————————————————————— */
+  .issue {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 18px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .issue .t { font-size: 14.5px; color: var(--text); line-height: 1.4; }
+  .issue .t .no { font-family: var(--mono); font-size: 12.5px; color: var(--faint); margin-right: 8px; }
+  .labels { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lb {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    border: 1px solid; border-radius: 99px; padding: 2px 9px;
+  }
+  .lb.agent  { color: var(--blue);   border-color: color-mix(in srgb, var(--blue) 55%, transparent);   background: var(--blue-soft); }
+  .lb.human  { color: var(--dim);    border-color: color-mix(in srgb, var(--dim) 45%, transparent); }
+  .lb.decide { color: var(--violet); border-color: color-mix(in srgb, var(--violet) 50%, transparent); background: color-mix(in srgb, var(--violet) 10%, transparent); }
+  .lb.meta   { color: var(--faint);  border-color: var(--line); }
+  .issues { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+
+  /* —— flow ————————————————————————————————————— */
+  .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin-bottom: 26px; }
+  .node { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; flex: 1 1 150px; min-width: 140px; max-width: 250px; }
+  .node .t { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .node .s { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 6px; letter-spacing: 0.04em; line-height: 1.5; }
+  .node .sub { display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; padding: 2px 7px; border-radius: 3px; color: var(--blue); background: var(--blue-soft); }
+  .arrow { align-self: center; color: var(--blue); font-family: var(--mono); font-size: 18px; }
+  @media (max-width: 760px) { .arrow { display: none; } .node { flex-basis: 44%; } }
+
+  /* —— gate rules ————————————————————————————— */
+  .rules { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .rule { display: grid; grid-template-columns: 240px 1fr; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 20px; align-items: baseline; }
+  .rule b { font-family: var(--mono); font-size: 12px; color: var(--blue); letter-spacing: 0.02em; }
+  .rule span { font-size: 14px; color: var(--dim); }
+  @media (max-width: 640px) { .rule { grid-template-columns: 1fr; gap: 4px; } }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2c3850; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .o { color: var(--dim); }
+  .term .cm { color: var(--faint); }
+  .term .g { color: var(--ok); }
+  .term .r { color: var(--warn); }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--blue); font-weight: 600; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--blue); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--blue); }
+
+  /* —— run ledger bars ————————————————————————— */
+  .runs { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 26px; max-width: 720px; }
+  .run { display: grid; grid-template-columns: 110px 1fr 52px; gap: 14px; align-items: center; }
+  .run .g { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  .run .track { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; height: 26px; overflow: hidden; }
+  .run .fill { height: 100%; background: #33415e; }
+  .run.ok .fill { background: var(--ok); }
+  .run.bad .fill { background: var(--warn); }
+  .run .n { font-family: var(--mono); font-size: 13px; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .stack a { color: var(--blue); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--blue); }
+  a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 05</b> NINO CHAVEZ</p>
+    <h1>The product that files<br>its own tickets<span class="dot">.</span></h1>
+    <p class="title-sub">End users type free-form feedback into a live tournament platform. An LLM judge triages it on a cron, files GitHub Issues, and an agent implements the safe ones — with the autonomy boundary written in deterministic code, and a human holding the only merge key.</p>
+    <div class="issue" style="max-width: 620px; margin-bottom: 44px;">
+      <p class="t"><span class="no">#13</span>Fix typo in pricing FAQ cancellation answer: 'you' → 'your'</p>
+      <div class="labels"><span class="lb meta">bug</span><span class="lb meta">feedback</span><span class="lb agent">ready-for-agent</span><span class="lb meta">area:content</span><span class="lb meta">priority:P5</span></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE LOOP ————————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The loop">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE LOOP</p>
+    <h2>Four stages, each on its native substrate</h2>
+    <p class="lede">The design principle from the ADR: don't build a custom work queue when a better one exists. Each stage runs where that kind of work already lives.</p>
+    <div class="flow">
+      <div class="node"><div class="t">Capture</div><div class="s">feedback table + API + a widget in the product; reporter identity resolved server-side, never client-asserted</div><span class="sub">the product</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Judge</div><div class="s">LLM classifies each item on a cron — category, subtype, priority, disposition, dedupe</div><span class="sub">llm on cron</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Work queue</div><div class="s">GitHub Issues, labeled: lane + area + priority. PR linkage, CI, review, audit trail — free</div><span class="sub">github issues</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Implement</div><div class="s">a GitHub Action fires on the ready-for-agent label, implements, opens a PR</div><span class="sub">github action</span></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">And the rule that makes the whole thing tolerable in production: <strong>the Action never merges.</strong> PR review is the human gate, and it is load-bearing.</p>
+  </div>
+</section>
+
+<!-- 03 · THE GATE IS CODE ————————————————————————— -->
+<section class="slide" id="s3" aria-label="The gate is code">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE GATE</p>
+    <h2>The model's opinion is advisory</h2>
+    <p class="lede">The judge proposes a disposition — but what actually reaches the autonomous lane is decided by <span style="font-family: var(--mono); font-size: 15px;">applyAutonomyGate</span>, a plain function. Its rules, from the source:</p>
+    <div class="rules">
+      <div class="rule"><b>questions &amp; kudos</b><span>never become actionable issues — forced out regardless of what the model said</span></div>
+      <div class="rule"><b>enhancements</b><span>always human-gated. New behavior is never built unattended</span></div>
+      <div class="rule"><b>bugs</b><span>auto-PR only when the subtype is on a two-item allowlist: <strong>ui, content</strong>. Logic, data, auth, billing — human lane, always</span></div>
+      <div class="rule"><b>duplicates</b><span>must point at a real open item, or they're demoted to needs-info</span></div>
+      <div class="rule"><b>priority</b><span>clamped to range in code — even the model's numbers aren't trusted raw</span></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">The gate is also <strong>pinned by an invariant test</strong> — its behavior asserted per subtype, so a refactor can't silently widen what auto-PRs. The gate guards the product; a test guards the gate. That's <a href="/enforced-forever/">demo 03's discipline</a> applied to autonomy itself.</p>
+  </div>
+</section>
+
+<!-- 04 · TWO LANES ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Two lanes, not one">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE DESIGN FIX</p>
+    <h2>Deciding and coding are different gates</h2>
+    <p class="lede">Version 1 had one gate — "does a human need to code this?" — and force-routed every change request to the human lane. The ADR records the correction verbatim: <strong>"a real team separates 'a human must DECIDE/DESIGN this' from 'a human must CODE this.'"</strong></p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag" style="color: var(--violet);">needs-info</p>
+        <p>The reporter must clarify before anything can happen. The loop asks instead of guessing.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag" style="color: var(--violet);">needs-product</p>
+        <p>Is this worth building? Does it fit? Product answers <strong>whether</strong>.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag" style="color: var(--violet);">needs-design</p>
+        <p>How should it look and work? Design answers <strong>how</strong>. Kept distinct from product even when one person wears both hats — different inputs, different next action.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Decision-lane items file a tracked issue so a human picks them up — but they are <strong>never</strong> labeled for the agent. Nothing undecided or undesigned gets implemented unattended.</p>
+  </div>
+</section>
+
+<!-- 05 · IN THE WILD ————————————————————————————— -->
+<section class="slide" id="s5" aria-label="The state machine in the wild">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> IN THE WILD</p>
+    <h2>Six real tickets, every lane represented</h2>
+    <p class="lede">The loop's actual output — real issues from the production repo, titles verbatim. Watch the gate sort them exactly as coded:</p>
+    <div class="issues">
+      <div class="issue"><p class="t"><span class="no">#13</span>Fix typo in pricing FAQ: 'you' → 'your'</p><div class="labels"><span class="lb meta">bug · content · P5</span><span class="lb agent">ready-for-agent</span></div></div>
+      <div class="issue"><p class="t"><span class="no">#9</span>Footer copyright year shows 2024 instead of current year</p><div class="labels"><span class="lb meta">bug · content · P5</span><span class="lb agent">ready-for-agent</span></div></div>
+      <div class="issue"><p class="t"><span class="no">#10</span>Pool standings tiebreaker ignores head-to-head results</p><div class="labels"><span class="lb meta">bug · logic · P3</span><span class="lb human">ready-for-human</span></div></div>
+      <div class="issue"><p class="t"><span class="no">#25</span>TypeError: standings page blank — undefined 'wins' in derivation</p><div class="labels"><span class="lb meta">bug · logic · P3</span><span class="lb human">ready-for-human</span></div></div>
+      <div class="issue"><p class="t"><span class="no">#20</span>Live scoreboard: low-contrast score text on mobile</p><div class="labels"><span class="lb meta">bug · ui · P3</span><span class="lb decide">needs-design</span></div></div>
+      <div class="issue"><p class="t"><span class="no">#11</span>Live win-probability display during matches</p><div class="labels"><span class="lb meta">enhancement · P5</span><span class="lb decide">needs-product</span></div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Content typos went to the agent. Scoring logic went to a human. The contrast issue went to design — a fix exists, but <em>which</em> fix is a taste call. The feature request went to product. <strong>Nobody hand-sorted these.</strong></p>
+  </div>
+</section>
+
+<!-- 06 · THE RUN LEDGER ——————————————————————————— -->
+<section class="slide" id="s6" aria-label="The run ledger">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE RUN LEDGER</p>
+    <h2>The best thing it ever did was nothing</h2>
+    <p class="lede">One hundred runs of the agent workflow, straight from CI history:</p>
+    <div class="runs">
+      <div class="run"><span class="g">skipped</span><div class="track"><div class="fill" style="width: 100%;"></div></div><span class="n">96</span></div>
+      <div class="run bad"><span class="g">failure</span><div class="track"><div class="fill" style="width: 3%;"></div></div><span class="n">2</span></div>
+      <div class="run"><span class="g">cancelled</span><div class="track"><div class="fill" style="width: 2%;"></div></div><span class="n">1</span></div>
+      <div class="run ok"><span class="g">success</span><div class="track"><div class="fill" style="width: 2%;"></div></div><span class="n">1</span></div>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">96 skips are the gate working</p>
+        <p>The workflow wakes on every issue event and declines everything without the agent label. The skip column is what "the autonomy boundary holds" looks like in CI history — boring, by design.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The one success fixed nothing</p>
+        <p>The single successful run investigated the pipeline-test typo — and found the described typo didn't exist. The closing comment, verbatim: <strong>"the agent correctly declined to fabricate a fix. Pipeline verified end-to-end."</strong></p>
+        <p class="lesson"><b>The lesson:</b> an autonomous lane you can trust is one that can conclude there is nothing to do.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s7" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HONEST LIMITS</p>
+    <h2>Pilot-scale, and honest about it</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The volume is small</p>
+        <p>Six issues, a pilot-stage product. The value demonstrated here is the <strong>shape</strong> — the lanes, the gate, the substrates — not throughput. The shape is what transfers; the throughput comes with users.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It took three tries</p>
+        <p>Two failed runs preceded the one success, and the rollout hit real deployment friction — platform secrets that only apply on rebuild, a cron pointed at a stale deployment. Unattended loops multiply the cost of wiring mistakes.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Trust is scoped, not earned-then-total</p>
+        <p>The allowlist is two subtypes wide after a month in production. Widening it is a code change with an invariant test watching — a deliberate decision with a diff and a reviewer, never a drift.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> YOUR VERSION OF THIS</p>
+    <h2>Write the boundary before the automation</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>The question for any AI automation is not "is it smart enough?" but "what is it <em>allowed</em> to do, where is that written, and who reviews the output?" If the answer is "the AI decides," walk away.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Let the model classify; never let it authorize. The autonomy boundary is an allowlist in code — small, testable, reviewed — and the model's output is advisory input to it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Separate the decision lane from the execution lane. Use substrates that already exist — an issue tracker gives you linkage, CI, review, and audit for free. And keep the merge key human.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>product DB + API · LLM judge on cron · GitHub Issues · GitHub Action</span>
+      <span>allowlist: ui, content — nothing else auto-PRs</span>
+      <span>the Action never merges</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> All artifacts verified against source on publication day: gate rules read from the live service code, issue titles and labels pulled from the production repo, the run ledger counted from 100 real workflow runs, the ADR and closing comments quoted verbatim. No user-submitted feedback text or reporter identity appears anywhere on this page. Demo 05 in the <a href="/">ways-of-working series</a> — the enforcement discipline underneath it is <a href="/enforced-forever/">demo 03</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

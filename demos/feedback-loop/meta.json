@@ -1,0 +1,11 @@
+{
+  "number": "05",
+  "title": "The Product That Files Its Own Tickets",
+  "hook": "End users file feedback, an LLM judge triages it into GitHub Issues, an agent implements the safe ones — with the autonomy boundary in deterministic code and a human holding the only merge key.",
+  "date": "2026-07",
+  "for": "Anyone deciding how much of an incoming-work queue to hand to an agent.",
+  "get": "The four-stage loop, the allowlist gate read from live source, six real tickets sorted by lane, and a run ledger whose best result was declining to fabricate a fix.",
+  "do": "Let the model classify, never authorize: write the autonomy boundary as a small tested allowlist, and keep merging human.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 05 title slide with a real agent-lane ticket and its labels"
+}

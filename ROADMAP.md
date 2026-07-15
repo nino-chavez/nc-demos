@@ -3,7 +3,8 @@
 Shipped: **01 Twelve Messages** (delegation split), **02 The Browser Is a Shell
 Command** (tool token-economics), **03 Taught Once, Enforced Forever**
 (corrections → helpers/hooks/ratchets), **04 Your Sessions Are a Corpus**
-(transcript mining → audits/priors/grades). Candidates below were selected by a two-track
+(transcript mining → audits/priors/grades), **05 The Product That Files Its Own
+Tickets** (autonomy gate in code). Candidates below were selected by a two-track
 research pass: a workspace survey (apps/wip/tools) and a session-corpus mining
 run over 2,747 transcripts via claude-recall-cli — the series' own method,
 applied to choosing its next subjects.
@@ -13,15 +14,6 @@ anchored to real sessions/artifacts with honest failure material → sanitizable
 for permanent public hosting.
 
 ## Queue
-
-### 05 · The Product That Files Its Own Tickets
-**Thesis:** an autonomous feedback loop — in-product capture → LLM triage on a
-cron → GitHub Issues → agent-authored PRs — where the autonomy boundary lives
-in deterministic code, not in the model's judgment, and merging stays human.
-**Evidence:** the ADR, the named services, the GitHub Action, live in
-production.
-**Sanitization:** medium — real feedback rows carry user text and emails;
-mechanics are clean.
 
 ### 06 · The Registry of Landmines
 **Thesis:** convert tribal knowledge grep can't surface (columns written but
