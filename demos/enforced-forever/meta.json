@@ -7,5 +7,7 @@
   "get": "Four real guards with their origin audits, verbatim deny messages, and the five properties that keep guardrails from getting ripped out.",
   "do": "Count your repeated corrections, then promote them up the ladder: wrapper, hook, CI gate — stopping at the lowest level that holds.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 03 title slide, featuring a real read-guard denial of an oversized screenshot"
+  "previewAlt": "Demo 03 title slide, featuring a real read-guard denial of an oversized screenshot",
+  "theme": "enforcement",
+  "accent": "#c2382f"
 }

@@ -7,5 +7,7 @@
   "get": "The deterministic-core/agentic-shell shape, the migration-sweep incident and the inverted check it left behind, and a methodology versioned like a product.",
   "do": "Make artifacts declare what they are; gate every hand-off mechanically; version your process with a changelog.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 08 title slide: the staged pipeline with gate posts between every stage"
+  "previewAlt": "Demo 08 title slide: the staged pipeline with gate posts between every stage",
+  "theme": "process",
+  "accent": "#7dd3fc"
 }

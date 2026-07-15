@@ -7,5 +7,7 @@
   "get": "The verbatim conversation, a five-principle method, the pipeline that runs it, and two honest failures.",
   "do": "Steal the shape: templates over outputs, constraints in the repo, judgment kept human.",
   "preview": "img/gritty.jpg",
-  "previewAlt": "Published Instagram story rendered by the demo's pipeline"
+  "previewAlt": "Published Instagram story rendered by the demo's pipeline",
+  "theme": "delegation",
+  "accent": "#f97316"
 }

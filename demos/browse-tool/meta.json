@@ -6,6 +6,8 @@
   "for": "Agent users paying token tax for tools they barely touch; builders choosing between MCP and CLIs.",
   "get": "The cost math, four design choices that make a tool agent-friendly, live transcripts, and where MCP still wins.",
   "do": "Audit your always-loaded schemas, then wrap the five operations you actually use as small composable commands.",
-  "preview": "img/shot-demos.jpg",
-  "previewAlt": "The demo series index, screenshotted by browse-tool itself"
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 02 title slide: the browser is a shell command, with a real browse-shot transcript",
+  "theme": "tools",
+  "accent": "#f2b13d"
 }

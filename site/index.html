@@ -6,11 +6,12 @@
 <title>ways of working — AI demos by Nino Chavez</title>
 <meta name="description" content="Real working sessions with an AI agent, published as teaching demos. Verbatim messages, real production systems, honest failures.">
 <meta property="og:title" content="ways of working — AI demos">
-<meta property="og:description" content="Real sessions with an AI agent, published as teaching demos. The method, not a highlight reel.">
+<meta property="og:description" content="Eight real sessions with an AI agent, published as teaching demos. The method, not a highlight reel.">
 <style>
   /* The index is the gallery wall; the demos are the work. Light, quiet,
-     mono-led — verbatim-transcript aesthetic on paper. Demos carry their own
-     identities. */
+     mono-led. With eight demos the arc is the organizing principle: cards run
+     01 → 08, and each carries its demo's own accent as a spine — the gallery
+     shows the identities without wearing any of them. */
   :root {
     color-scheme: light dark;
     --paper: #f6f4ef;
@@ -37,7 +38,7 @@
     margin: 0; background: var(--paper); color: var(--ink);
     font-family: var(--body); font-size: 16px; line-height: 1.6;
   }
-  main { width: min(880px, 100% - 48px); margin: 0 auto; padding: clamp(56px, 10vh, 120px) 0 64px; }
+  main { width: min(1080px, 100% - 48px); margin: 0 auto; padding: clamp(56px, 9vh, 110px) 0 64px; }
 
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin: 0 0 20px; }
   h1 {
@@ -49,37 +50,53 @@
   @media (prefers-reduced-motion: reduce) { h1 .cursor { animation: none; } }
   .thesis { font-size: clamp(16px, 2vw, 19px); color: var(--dim); max-width: 58ch; margin: 0 0 12px; }
   .thesis strong { color: var(--ink); font-weight: 600; }
-  .honesty { font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin: 0 0 56px; }
+  .honesty { font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin: 0 0 34px; }
 
-  .demos { display: flex; flex-direction: column; gap: 24px; }
+  /* —— the arc: eight themes, one line each ——————————— */
+  .arc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 44px; }
+  .arc-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;
+    color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px 6px 10px;
+    background: var(--card); transition: border-color 0.15s ease;
+  }
+  .arc-item i { width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
+  .arc-item b { color: var(--ink); font-weight: 600; }
+  .arc-item:hover, .arc-item:focus-visible { border-color: var(--acc); color: var(--ink); }
+  .arc-item:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+  /* —— the gallery ————————————————————————————— */
+  .demos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr)); gap: 22px; }
   .card {
-    display: grid; grid-template-columns: 240px 1fr; gap: 0;
-    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-    text-decoration: none; color: inherit; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--acc);
+    border-radius: 10px; text-decoration: none; color: inherit; overflow: hidden;
     transition: border-color 0.15s ease;
   }
-  .card:hover, .card:focus-visible { border-color: var(--accent); }
-  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card-preview { display: block; background: #101010; }
+  .card:hover, .card:focus-visible { border-color: var(--acc); }
+  .card:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .card-preview { display: block; background: #101010; aspect-ratio: 16 / 7; overflow: hidden; }
   .card-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .card-body { display: flex; flex-direction: column; gap: 10px; padding: 26px 28px; }
-  .card-label { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
-  .card-title { font-family: var(--mono); font-weight: 600; font-size: 26px; letter-spacing: -0.01em; line-height: 1.15; }
-  .card-hook { color: var(--dim); font-size: 15px; }
+  .card-body { display: flex; flex-direction: column; gap: 10px; padding: 22px 24px 24px; }
+  .card-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim);
+  }
+  .card-label i { width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
+  .card-title { font-family: var(--mono); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; line-height: 1.2; }
+  .card-hook { color: var(--dim); font-size: 14.5px; }
   .card-rows { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
-  .row { display: grid; grid-template-columns: 42px 1fr; gap: 10px; font-size: 13.5px; color: var(--dim); }
+  .row { display: grid; grid-template-columns: 42px 1fr; gap: 10px; font-size: 13px; color: var(--dim); }
   .row b { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); font-weight: 600; padding-top: 2px; }
   .card-cta { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-top: 6px; }
-  @media (max-width: 680px) {
-    .card { grid-template-columns: 1fr; }
-    .card-preview img { max-height: 300px; object-position: top; }
-  }
 
   footer {
     border-top: 1px solid var(--line); margin-top: 72px; padding-top: 22px;
     display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
     font-family: var(--mono); font-size: 12.5px; color: var(--dim);
   }
+  footer .links { display: flex; gap: 18px; }
   a { color: var(--accent); }
   a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
@@ -91,13 +108,17 @@
   <p class="thesis">Real working sessions with an AI agent, published as teaching demos. <strong>Verbatim messages, real production systems, honest failures</strong> — the method, not a highlight reel.</p>
   <p class="honesty">nothing staged · personal names and private links redacted · every demo is one real session</p>
 
+  <nav class="arc" aria-label="The series arc">
+<!--ARC-->
+  </nav>
+
   <div class="demos">
 <!--DEMOS-->
   </div>
 
   <footer>
     <span>© 2026 Nino Chavez</span>
-    <span><a href="https://ninochavez.co">ninochavez.co</a></span>
+    <span class="links"><a href="https://github.com/nino-chavez/nc-demos">view source</a><a href="https://ninochavez.co">ninochavez.co</a></span>
   </footer>
 </main>
 </body>
