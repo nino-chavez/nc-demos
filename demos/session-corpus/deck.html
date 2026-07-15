@@ -1,0 +1,415 @@
+<title>Your Sessions Are a Corpus — mining agent history for method</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 04 identity: the archive. Dark green-cast ground, jade accent —
+     data-forward, mono-heavy, because the subject is transcripts as a dataset.
+     Rust appears only as the semantic color for failing grades. Single-theme
+     by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0f1513;
+    --panel: #161e1a;
+    --panel2: #121917;
+    --line: #273631;
+    --text: #e7ede9;
+    --dim: #97a79f;
+    --faint: #5f7369;
+    --jade: #46c395;
+    --jade-soft: rgba(70, 195, 149, 0.12);
+    --rust: #c96f4f;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #1d5943, var(--jade)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--jade); }
+  .rail a:focus-visible { outline: 2px solid var(--jade); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--jade); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--jade); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(58px, 11vw, 132px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--jade); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— terminal ————————————————————————————————— */
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2c3b35; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .p { color: var(--jade); }
+  .term .o { color: var(--dim); }
+  .term .cm { color: var(--faint); }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--jade); font-weight: 600; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--jade); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--jade); }
+
+  /* —— data readouts ————————————————————————————— */
+  .readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .rd { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+  .rd b { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+  .rd span { font-family: var(--mono); font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rd span em { font-style: normal; color: var(--jade); }
+
+  /* —— grade chart ————————————————————————————— */
+  .grades { display: flex; flex-direction: column; gap: 12px; margin: 6px 0 26px; max-width: 720px; }
+  .grade { display: grid; grid-template-columns: 34px 1fr 64px; gap: 14px; align-items: center; }
+  .grade .g { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+  .grade .track { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; height: 26px; overflow: hidden; }
+  .grade .fill { height: 100%; background: var(--jade); }
+  .grade.mid .fill { background: #3d574d; }
+  .grade.low .fill { background: var(--rust); }
+  .grade .n { font-family: var(--mono); font-size: 13px; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* —— prior quotes (poe exhibit) ————————————————— */
+  .prior { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--jade); border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; }
+  .prior .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin: 0 0 8px; }
+  .prior .q { font-family: var(--mono); font-size: 13.5px; line-height: 1.5; margin: 0 0 8px; color: var(--text); }
+  .prior .a { font-size: 13px; color: var(--dim); margin: 0; }
+  .prior .a b { color: var(--jade); font-weight: 600; }
+
+  /* —— loop diagram ————————————————————————————— */
+  .loop { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin-bottom: 26px; }
+  .lnode { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; flex: 1 1 140px; min-width: 130px; max-width: 240px; }
+  .lnode .t { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .lnode .s { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 6px; letter-spacing: 0.04em; }
+  .larrow { align-self: center; color: var(--jade); font-family: var(--mono); font-size: 18px; }
+  @media (max-width: 760px) { .larrow { display: none; } .lnode { flex-basis: 44%; } }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .stack a { color: var(--jade); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--jade); }
+  a:focus-visible { outline: 2px solid var(--jade); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 04</b> NINO CHAVEZ</p>
+    <h1>Your sessions<br>are a corpus<span class="dot">.</span></h1>
+    <p class="title-sub">Every agent session leaves a transcript. Mine them, and your own history becomes training data for how you work: reusable prompts, your correction patterns as standing priors, and an honest ledger of what the agent built that actually survived.</p>
+    <div class="term" style="max-width: 640px; margin-bottom: 44px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>agent — zsh</span></div>
+      <pre><span class="p">$</span> python3 artifact-miner.py --out artifact-mine.json
+<span class="p">$</span> jq '.corpus' artifact-mine.json
+<span class="o">{ "files": 2747, "lines": 527394 }</span></pre>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE EXHAUST ————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The exhaust">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE EXHAUST</p>
+    <h2>The dataset you already have</h2>
+    <p class="lede">Coding agents log everything: every command, every file read, every correction you typed at them. Across one machine's history that's a real dataset — and it accumulates whether or not you ever look at it.</p>
+    <div class="readout">
+      <div class="rd"><b>Transcripts</b><span><em>2,747</em> sessions</span></div>
+      <div class="rd"><b>Volume</b><span><em>527,394</em> transcript lines</span></div>
+      <div class="rd"><b>Shell commands</b><span><em>62,312</em> Bash calls</span></div>
+      <div class="rd"><b>File activity</b><span><em>30,914</em> reads · <em>17,284</em> edits</span></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">The survival ledger inside it is the honest part: of the workspace artifacts agents created, <strong>2,013 are gone and 961 still exist</strong>. Most of what an agent builds is scaffolding — knowing which parts survived is where the signal is.</p>
+  </div>
+</section>
+
+<!-- 03 · THE CONFESSION ——————————————————————————— -->
+<section class="slide" id="s3" aria-label="The confession">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE CONFESSION</p>
+    <h2>The miner was rebuilt at least 12 times first</h2>
+    <p class="lede">The mining tool's own docstring tells the origin story better than any slide could — quoted verbatim:</p>
+    <div class="term" style="margin-bottom: 24px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>artifact-miner.py — docstring</span></div>
+      <pre><span class="o">Before this script existed, one-off variants of it were rebuilt in throwaway
+sessions at least 12 times (mine_sessions.py, mine_failures_v3.py,
+friction_mining_v2.py, ...) — hence the durable home.</span></pre>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The evidence, from its own output</p>
+        <p>A fresh mining run finds its own ancestors in the ephemeral graveyard: <span style="font-family: var(--mono); font-size: 13px;">mine_sessions.py, mine_transcripts.py, mine_corrections.py, mine_failures.py, _v2, _v3, friction_mining.py, _v2, deep_friction_scan.py, detailed_analysis.py</span> — all written once, used once, gone.</p>
+        <p>Across all sessions: <strong>313 ephemeral scripts gone, 12 kept.</strong></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The promotion</p>
+        <p>The twelfth rebuild became the durable one — with the rule written into the tool itself: if you're about to write a new session miner, <strong>extend this one instead</strong>.</p>
+        <p class="lesson"><b>The method:</b> notice the throwaway you keep re-forking. Promote it once. Encode "extend, don't re-fork" where the next session will read it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · YIELD 1 ————————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Yield 1: waste audits">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> YIELD 1 · AUDITS</p>
+    <h2>Every guard started as a query</h2>
+    <p class="lede">The mechanical guards in <a href="/enforced-forever/">demo 03</a> weren't designed from intuition. Each one's origin audit was a mining pass over this corpus:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">122 pkills</p>
+        <p>Mined from Bash-call signatures across 16 projects → the <span style="font-family: var(--mono); font-size: 13px;">preview</span> and <span style="font-family: var(--mono); font-size: 13px;">q</span> helpers.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">50% re-reads</p>
+        <p>A 60-day Read-pattern audit (worst case: one file read 184×) → the read-guard hook.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">553 hesitations</p>
+        <p>Ask-then-told-"go" exchanges mined from user turns → the three-layer anti-hesitation fold.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;"><strong>You can't build guards from vibes.</strong> The corpus turns "I feel like the agent wastes context" into a number you can act on — and a baseline you can re-measure against.</p>
+  </div>
+</section>
+
+<!-- 05 · YIELD 2 ————————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Yield 2: your voice as priors">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> YIELD 2 · PRIORS</p>
+    <h2>Your corrections become standing context</h2>
+    <p class="lede">User turns get mined into a character stack — <strong>1,411 signals across 74 projects</strong>, regenerated after each ingest — and injected as priors when a new prompt matches an old pattern. Two priors that fired in the session that built this very deck:</p>
+    <div class="prior">
+      <p class="tag">correction / over-engineered · injected as prior</p>
+      <p class="q">"the playbook and deck have too much fluff. consider what are appropriate comms approach"</p>
+      <p class="a"><b>Effect:</b> this deck shipped without a stat-card scoreboard — the correction resurfaced before the mistake recurred.</p>
+    </div>
+    <div class="prior">
+      <p class="tag">preference / i-prefer · injected as prior</p>
+      <p class="q">"no. i want interactive html demos, not mp4s, for all use cases."</p>
+      <p class="a"><b>Effect:</b> the series' whole format — interactive HTML decks, not videos — matches a preference stated months earlier in a different project.</p>
+    </div>
+    <p class="lede" style="margin: 24px 0 0;">The stack also carries a quantitative voice card — median sentence length 12 words, hedge rate 11.9%, cheerleading rate 1.4% — so "write it the way I would" is a <strong>measured target, not a vibe</strong>. The standing rule: priors, never commands. The live conversation always wins.</p>
+  </div>
+</section>
+
+<!-- 06 · YIELD 3 ————————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Yield 3: graded sessions">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> YIELD 3 · GRADES</p>
+    <h2>838 sessions, graded like anything else you'd improve</h2>
+    <p class="lede">Each ingested session gets scored — instruction compliance, thrash ratio, session shape, commits produced. The distribution, straight from the database:</p>
+    <div class="grades">
+      <div class="grade"><span class="g">A</span><div class="track"><div class="fill" style="width: 100%;"></div></div><span class="n">361</span></div>
+      <div class="grade"><span class="g">B</span><div class="track"><div class="fill" style="width: 57%;"></div></div><span class="n">206</span></div>
+      <div class="grade mid"><span class="g">C</span><div class="track"><div class="fill" style="width: 40%;"></div></div><span class="n">145</span></div>
+      <div class="grade low"><span class="g">D</span><div class="track"><div class="fill" style="width: 31%;"></div></div><span class="n">113</span></div>
+      <div class="grade low"><span class="g">F</span><div class="track"><div class="fill" style="width: 4%;"></div></div><span class="n">13</span></div>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">What the shapes say</p>
+        <p>The most common productive shape is <strong>research-then-build</strong> (382 sessions, 5.4 commits on average). But the data resists a tidy story: <strong>extended-discussion sessions average more commits (6.1)</strong> — long conversations aren't waste when they're converging on something.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Where the lessons live</p>
+        <p>The 126 D and F sessions are the valuable ones — high-thrash transcripts are where corrections, tool misuse, and abandoned work concentrate. Grading isn't a report card; it's an index into which transcripts to mine next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · THE LOOP CLOSES ————————————————————————— -->
+<section class="slide" id="s7" aria-label="The loop closes">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE LOOP</p>
+    <h2>The corpus improves the sessions that feed it</h2>
+    <div class="loop">
+      <div class="lnode"><div class="t">Session</div><div class="s">real work, real corrections</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Transcript</div><div class="s">logged automatically</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Mine</div><div class="s">one durable tool, extended</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Yields</div><div class="s">audits · priors · grades</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Environment</div><div class="s">helpers, hooks, rules (demo 03)</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Better session</div><div class="s">which feeds the corpus</div></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">This isn't hypothetical — the loop produced the thing you're reading. <strong>This demo series' roadmap was selected by mining this corpus.</strong> Demo 03's numbers were re-derived by a fresh mining run during authoring. The voice stack regenerated the same day. The corpus is upstream of everything on this site.</p>
+  </div>
+</section>
+
+<!-- 08 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s8" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> HONEST LIMITS</p>
+    <h2>Transcripts remember everything — that cuts both ways</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The scrub gate is mandatory</p>
+        <p>Sessions contain everything ever typed: client names, private paths, the occasional secret pasted in error. Nothing mined goes public without a sanitization pass. This deck went through one — some of the corpus's best stories stayed behind because of it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Mined signals are hypotheses</p>
+        <p>Regex over transcripts is crude. During this series' research, one suggested pattern — a supposedly recurring creative workflow — turned out to be mostly false positives on closer verification. Mined claims get re-derived before they're repeated. Same discipline as any other source.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The stack is frozen in time</p>
+        <p>A prior distilled from last month can contradict what you want today. The rule baked into the stack's own preamble: if the live conversation contradicts a stored signal, <strong>trust the conversation</strong>. Preferences evolve; the corpus lags.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> YOUR VERSION OF THIS</p>
+    <h2>Start with one query, not a platform</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Your correction history is the most valuable thing you produce with an AI. When you correct the same thing twice, save the correction somewhere the next session will see it — that's the whole loop, manually.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Your agent's transcripts are on disk right now. Grep them for your own name-brand waste — repeated commands, re-reads, re-built scripts — before building anything. One counted number beats a platform.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Mine user turns and agent actions separately — corrections become priors, actions become audits. Make the miner durable with an extend-don't-re-fork rule, and gate every public output behind a scrub pass.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <a href="https://github.com/nino-chavez/claude-recall-cli">github.com/nino-chavez/claude-recall-cli</a>
+      <span>SQLite + FTS5 · /recall commands</span>
+      <span>poe-extract · artifact-miner · session grades</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every number re-derived for this page on publication day: corpus size and survival from a fresh artifact-miner run, grades and session shapes queried from the live database, the docstring and priors quoted verbatim (client names and private paths scrubbed). Demo 04 in the <a href="/">ways-of-working series</a> — the guards this corpus produced are <a href="/enforced-forever/">demo 03</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

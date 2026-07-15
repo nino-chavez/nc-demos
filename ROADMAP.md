@@ -2,7 +2,8 @@
 
 Shipped: **01 Twelve Messages** (delegation split), **02 The Browser Is a Shell
 Command** (tool token-economics), **03 Taught Once, Enforced Forever**
-(corrections → helpers/hooks/ratchets). Candidates below were selected by a two-track
+(corrections → helpers/hooks/ratchets), **04 Your Sessions Are a Corpus**
+(transcript mining → audits/priors/grades). Candidates below were selected by a two-track
 research pass: a workspace survey (apps/wip/tools) and a session-corpus mining
 run over 2,747 transcripts via claude-recall-cli — the series' own method,
 applied to choosing its next subjects.
@@ -12,18 +13,6 @@ anchored to real sessions/artifacts with honest failure material → sanitizable
 for permanent public hosting.
 
 ## Queue
-
-### 04 · Your Sessions Are a Corpus
-**Thesis:** agent-session history is data — mine it for reusable prompts, your
-own correction patterns, and survival rates of what the agent built. The
-session-mining tool itself was rebuilt as eleven separate throwaway scripts
-before being codified once with an "extend, don't re-fork" rule; the mined
-survival ledger (313 ephemeral artifacts gone, 12 survived) is the argument for
-codifying. Meta-proof: this roadmap was produced by that tooling.
-**Evidence:** miner run artifacts, the Poe voice stack (1,400+ signals), 838
-auto-graded sessions.
-**Sanitization:** needs a scrub pass — mined recipes carry client names and
-private paths.
 
 ### 05 · The Product That Files Its Own Tickets
 **Thesis:** an autonomous feedback loop — in-product capture → LLM triage on a
