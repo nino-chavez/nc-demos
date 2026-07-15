@@ -1,0 +1,11 @@
+{
+  "number": "07",
+  "title": "The Agent Said It Checked",
+  "hook": "\"Verified\" is a sentence, not a fact. A security migration passed its audit while production was broken — and the discipline that came out of it caught three more false claims building this very series.",
+  "date": "2026-07",
+  "for": "Anyone who has accepted an AI's (or a doc's, or their own) claim that something was checked.",
+  "get": "The circular-audit failure mode, a prod-broke-twice case study peeled layer by layer, and the re-derivation discipline with its real budget.",
+  "do": "Ask \"checked how?\" — then run that check yourself: grep the file, run the command, end at the runtime.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 07 title slide with a claim-versus-runtime-check exhibit"
+}

@@ -1,0 +1,372 @@
+<title>The Agent Said It Checked — self-attestation is not verification</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 07 identity: the forensics lab. Violet-cast dark ground; the
+     signature device is the claim/check pair — a quoted assertion, then the
+     mechanical check that tested it, with green/red carrying only the verdict.
+     Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #14101f;
+    --panel: #1c1630;
+    --panel2: #171228;
+    --line: #302650;
+    --text: #ece8f5;
+    --dim: #a89fc4;
+    --faint: #6e6394;
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, 0.12);
+    --pass: #4ade80;
+    --fail: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #4c3b8f, var(--violet)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--violet); }
+  .rail a:focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--violet); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--violet); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 122px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--violet); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— claim / check pairs ————————————————————————— */
+  .cc { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .cc .claim { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--violet); }
+  .cc .claim .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--violet); margin: 0 0 7px; }
+  .cc .claim p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .cc .check { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .cc .check b { font-weight: 600; }
+  .cc .check .ok { color: var(--pass); }
+  .cc .check .bad { color: var(--fail); }
+  .ccs { display: flex; flex-direction: column; gap: 16px; }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #34295c; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .p { color: var(--violet); }
+  .term .o { color: var(--dim); }
+  .term .g { color: var(--pass); }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--violet); font-weight: 600; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--violet); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--violet); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--violet); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--violet); }
+  a:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 07</b> NINO CHAVEZ</p>
+    <h1>The agent said<br>it checked<span class="dot">.</span></h1>
+    <p class="title-sub">"Verified" is a sentence, not a fact. The most expensive failures in agent-assisted work share one shape: an artifact claimed something was checked, a charitable reader believed the sentence, and nobody re-derived the claim from source.</p>
+    <div class="cc" style="max-width: 660px; margin-bottom: 44px;">
+      <div class="claim"><p class="tag">The claim</p><p>"Migration applied and verified — ACL diff confirms every revocation landed as specified."</p></div>
+      <div class="check"><b class="bad">✗ runtime:</b> organizer dashboard down · daily email cron silently dead. <b>The audit passed while prod was broken.</b></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE CIRCULAR AUDIT ——————————————————————— -->
+<section class="slide" id="s2" aria-label="The circular audit">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE FAILURE MODE</p>
+    <h2>Checking that the claim exists, not that it's true</h2>
+    <blockquote>
+      "An artifact can assert that something 'was verified against canonical source X.' Reading that assertion and treating it as evidence is a <strong>circular audit</strong> — you are verifying the artifact's verification, not verifying the claim itself. This fails when the artifact's self-check was wrong, incomplete, or misread."
+      <cite>audit-discipline.md — a standing methodology rule, promoted after this failure shape recurred</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">The rule applies to every artifact that describes itself: code comments, a prior session's summary, another agent's report, a document's own "last verified" line. LLMs raise the stakes — <strong>"verified" is a token pattern an agent can produce without the act ever happening</strong> — and a reviewer inclined to be charitable will accept it. The fix is mechanical: grep the file, run the command, query the system. <strong>Checks beat assertions about having checked.</strong></p>
+  </div>
+</section>
+
+<!-- 03 · CASE STUDY ——————————————————————————————— -->
+<section class="slide" id="s3" aria-label="Case study: the audit passed">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> CASE STUDY</p>
+    <h2>The audit passed while prod was broken</h2>
+    <p class="lede">A security cleanup: revoke public execute rights on privileged database functions the linter flagged. The migration ran, the ACL diff came back exactly as specified — <strong>and production broke twice</strong>.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">False assumption 1</p>
+        <p>"Server jobs run with server privileges." They didn't — the cron routes and billing checks ran through the <strong>request-scoped client</strong>, exactly the roles the revocation stripped. The organizer dashboard and a daily email job died quietly.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">False assumption 2</p>
+        <p>"The ACL diff verifies the change." It verifies <strong>the migration did what it said</strong> — not that the application still works. Two different claims; only one was checked.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The durable rule</p>
+        <p>A privileged function is safe to revoke only if unreachable through <strong>every</strong> path — direct calls, policy predicates, view definitions, other functions' bodies — and the final check is runtime, not inventory.</p>
+        <p class="lesson"><b>The runtime</b> is the one witness that can't be quoted out of context.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · EVERY CLAIM HID ANOTHER ————————————————— -->
+<section class="slide" id="s4" aria-label="Every claim hid another">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE ONION</p>
+    <h2>Each check exposed the next false claim</h2>
+    <p class="lede">The remediation that followed is a tour of self-descriptions diverging from reality — every layer caught by one more mechanical check:</p>
+    <div class="ccs">
+      <div class="cc">
+        <div class="claim"><p class="tag">The grep said</p><p>"This function is called via RPC from the app — keep it granted."</p></div>
+        <div class="check"><b class="bad">✗ second check:</b> the only call site was a wrapper <b>imported nowhere</b> — dead code. The function was internal-only and wrongly left exposed. A call site is not a caller.</div>
+      </div>
+      <div class="cc">
+        <div class="claim"><p class="tag">The decision doc said</p><p>"Seven functions classified: revoke anonymous access, keep authenticated."</p></div>
+        <div class="check"><b class="bad">✗ re-scan, three weeks later:</b> the follow-up migration implemented it for <b>4 of the 7</b>. The doc kept promising enforcement the database didn't have.</div>
+      </div>
+      <div class="cc">
+        <div class="claim"><p class="tag">The new code's own comment said</p><p>"Authenticated callers only."</p></div>
+        <div class="check"><b class="bad">✗ grant inspection:</b> it used the wrong revoke form — the platform's schema-level default grant for anonymous survived. <b>Stated intent, unimplemented.</b></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The closing check was live: anonymous requests fired against all six functions, each answering <span style="font-family: var(--mono); font-size: 14px; color: var(--pass);">permission denied</span> — with untouched controls confirmed unaffected. <strong>Inventory opens the investigation; runtime closes it.</strong></p>
+  </div>
+</section>
+
+<!-- 05 · IT HAPPENED BUILDING THIS SERIES ——————————— -->
+<section class="slide" id="s5" aria-label="It happened building this series">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> RECURSION</p>
+    <h2>Three claims in this series didn't survive re-derivation</h2>
+    <p class="lede">The research agents that scoped this demo series produced findings. Before any number reached a page, it was re-derived from source — and three didn't survive contact:</p>
+    <div class="ccs">
+      <div class="cc">
+        <div class="claim"><p class="tag">The project docs said</p><p>"113 pkill invocations chasing stray servers."</p></div>
+        <div class="check"><b class="ok">✓ fresh mine:</b> 122 — the documented number was a stale snapshot. The deck shipped with the re-derived figure.</div>
+      </div>
+      <div class="cc">
+        <div class="claim"><p class="tag">The research agent said</p><p>"The mining tool was rebuilt as eleven throwaway scripts."</p></div>
+        <div class="check"><b class="ok">✓ canonical source:</b> the tool's own docstring says "at least 12." The primary source outranked the derived report.</div>
+      </div>
+      <div class="cc">
+        <div class="claim"><p class="tag">A quick query said</p><p>"Four agent-authored PRs in the production repo."</p></div>
+        <div class="check"><b class="ok">✓ second look:</b> all four were dependency-bot PRs matching a sloppy author filter. The real story — 96 gate-skips and one deliberate non-fix — was better and true.</div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">That's why every deck in this series ends with a colophon stating its numbers were <strong>re-derived on publication day</strong>. The discipline isn't decoration — it changed the content each time.</p>
+  </div>
+</section>
+
+<!-- 06 · THE DISCIPLINE ——————————————————————————— -->
+<section class="slide" id="s6" aria-label="The discipline">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE DISCIPLINE</p>
+    <h2>Re-derive what's load-bearing</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Pull the canonical source</p>
+        <p>When a claim matters, go where the truth mechanically lives: grep the actual file, run the actual command, query the actual database. Never settle for the sentence about it — including sentences you wrote yourself, last session.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Compare independent derivations</p>
+        <p>The adversarial version, one operator's real practice: ask the same question to two independent agent sessions and compare answers. Divergence is a free audit — agreement earned the cheap way is worth little, but disagreement always points at something.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Tier your trust</p>
+        <p>Test-backed claims can be trusted outright — that's what enforcement buys (<a href="/landmine-registry/">demo 06</a>). Everything else carries provenance: verified-against-what, as-of-when. No provenance, no trust.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Agents make confident prose cheap — but they make re-derivation cheap too. One grep costs seconds. <strong>The economics favor checking; only habit favors believing.</strong></p>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s7" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HONEST LIMITS</p>
+    <h2>You can't re-derive everything</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Checking has a budget</p>
+        <p>Re-deriving every claim would consume the session. The discipline is scoped: claims that gate a decision, touch production, or will be repeated publicly get re-derived. The rest carries its provenance and waits.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Canonical sources lag too</p>
+        <p>The "canonical" doc can be a stale snapshot — that's exactly what the 113-vs-122 miss was. Prefer sources that regenerate (a live query, a fresh mine, the runtime) over sources that were once written.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The rule was learned by failing</p>
+        <p>This discipline wasn't designed in advance. It was promoted into standing methodology after the charitable-reviewer failure recurred across projects — including by the operator, including by the agent. Nobody is exempt, which is why it's written down.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> YOUR VERSION OF THIS</p>
+    <h2>Ask "checked how?" — then check that</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>When an AI (or a report, or a vendor) says "verified," ask what the verification physically was. If the answer is a restatement of the claim, you have a sentence, not a check.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>End every risky change at the runtime: a smoke-test against the live behavior, not a diff of the intended state. Diffs verify intentions; only execution verifies systems.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Make provenance a first-class field — verified-against-what, as-of-which-commit — and let the untiered claim be visibly untrusted. Where claims recur, promote the check into CI so belief stops being part of the loop.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>grep the file · run the command · query the system</span>
+      <span>diffs verify intentions · execution verifies systems</span>
+      <span>no provenance, no trust</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> The case study was reconstructed from the project's own post-incident notes, decision record, and remediation pull requests, read on publication day; the methodology rule and its rationale are quoted verbatim from the promoted rule file; the three series-recursion examples are from this series' own build sessions. Demo 07 in the <a href="/">ways-of-working series</a> — the registry that holds such lessons is <a href="/landmine-registry/">demo 06</a>; the corpus they're mined from is <a href="/session-corpus/">demo 04</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
