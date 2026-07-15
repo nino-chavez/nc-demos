@@ -1,0 +1,450 @@
+<title>browse-tool — The Browser Is a Shell Command</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 02 identity: cool terminal charcoal + amber phosphor. The signature
+     device is the pairing — terminal window on one side, browser viewport on
+     the other — because "the terminal drives a real browser" IS the thesis.
+     Single-theme by design (a terminal is a committed dark world).
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0f1317;
+    --panel: #151b21;
+    --panel2: #10151a;
+    --line: #27313b;
+    --text: #e6edf3;
+    --dim: #93a4b3;
+    --faint: #5d6c79;
+    --amber: #f2b13d;
+    --amber-soft: rgba(242, 177, 61, 0.12);
+    --ok: #7ee787;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+  img { max-width: 100%; display: block; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #6d4f16, var(--amber));
+    z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--amber); }
+  .rail a:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--amber); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--amber); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(58px, 10.5vw, 126px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--amber); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— terminal + viewport frames ————————————————— */
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar, .vp-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #33404c; }
+  .term-bar span, .vp-bar .url { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; overflow-x: auto; }
+  .term .p { color: var(--ok); }
+  .term .c { color: var(--text); }
+  .term .o { color: var(--dim); }
+  .term .cm { color: var(--faint); }
+  .viewport { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel2); }
+  .vp-bar .url {
+    margin-left: 4px; background: var(--panel2); border: 1px solid var(--line);
+    border-radius: 99px; padding: 3px 12px; flex: 1; color: var(--dim);
+  }
+  .viewport img { width: 100%; height: auto; }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--amber); font-weight: 600; }
+
+  .pair { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 820px) { .pair { grid-template-columns: 1fr; } }
+  .runs { display: flex; flex-direction: column; gap: 28px; }
+
+  /* —— tax bars ————————————————————————————————— */
+  .bars { display: flex; flex-direction: column; gap: 16px; margin: 6px 0 30px; }
+  .bar { display: grid; grid-template-columns: 220px 1fr; gap: 14px; align-items: center; }
+  .bar .l { font-family: var(--mono); font-size: 12.5px; color: var(--dim); text-align: right; }
+  .bar .track { display: flex; align-items: center; gap: 12px; }
+  .bar .fill { height: 26px; border-radius: 4px; background: #33404c; }
+  .bar.hot .fill { background: var(--amber); }
+  .bar .n { font-family: var(--mono); font-size: 12.5px; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) { .bar { grid-template-columns: 1fr; } .bar .l { text-align: left; } }
+
+  /* —— generic blocks (shared scaffold vocabulary) ————— */
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--amber); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--amber); }
+
+  /* —— command table ———————————————————————————— */
+  .cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .cmd-row { background: var(--panel); padding: 13px 18px; display: grid; grid-template-columns: 152px 1fr; gap: 12px; align-items: baseline; }
+  .cmd-row b { font-family: var(--mono); font-size: 12.5px; color: var(--amber); font-weight: 600; }
+  .cmd-row span { font-size: 13.5px; color: var(--dim); }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .stack a { color: var(--amber); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--amber); }
+  a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 02</b> NINO CHAVEZ</p>
+    <h1>The browser is<br>a shell command<span class="dot">.</span></h1>
+    <p class="title-sub">My coding agent drives a real, logged-in Chrome — navigating, scraping, screenshotting — through ten tiny shell commands instead of an MCP server. This is the cost math, the design, and what broke.</p>
+    <div class="term" style="max-width: 640px; margin-bottom: 44px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>agent — zsh</span></div>
+      <pre><span class="p">$</span> <span class="c">browse-shot https://demos.ninochavez.co --out /tmp/demos.png</span>
+<span class="o">/tmp/demos.png</span></pre>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE TAX ——————————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The tax">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE TAX</p>
+    <h2>Every conversation pays for the manual up front</h2>
+    <p class="lede">MCP browser tools ship their entire instruction manual — every command's schema — into the agent's context <strong>before any work happens</strong>, in every conversation, whether or not the browser is ever touched. Measured against this tool's README:</p>
+    <div class="bars">
+      <div class="bar"><div class="l">Chrome DevTools MCP</div><div class="track"><div class="fill" style="width: 100%;"></div><span class="n">≈ 18,000 tokens, always loaded</span></div></div>
+      <div class="bar"><div class="l">Playwright MCP</div><div class="track"><div class="fill" style="width: 76%;"></div><span class="n">≈ 13,700 tokens, always loaded</span></div></div>
+      <div class="bar hot"><div class="l">browse-tool README</div><div class="track"><div class="fill" style="width: 2%;"></div><span class="n">a few hundred — read only when needed</span></div></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">Context an agent spends on schemas is context it can't spend on your problem. The tax isn't just money — it's <strong>attention</strong>: the more boilerplate in the window, the worse the reasoning at the margins.</p>
+  </div>
+</section>
+
+<!-- 03 · THE INSIGHT ————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The insight">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE INSIGHT</p>
+    <h2>Agents already speak bash and the DOM</h2>
+    <p class="lede">The idea comes from Mario Zechner's <a href="https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/">"What if you don't need MCP at all?"</a> — and it inverts the tooling assumption. An agent doesn't need a protocol and a schema for every browser action. It already has two deep skills: <strong>running shell commands</strong> and <strong>writing JavaScript against the DOM</strong>.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">MCP's bet</p>
+        <p>Define every capability as a typed tool. The agent learns your schema, calls your protocol, gets your output format.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">This bet</p>
+        <p>Give the agent ten small commands and let its existing knowledge be the API. <span style="font-family: var(--mono); font-size: 13px;">browse-eval</span> takes arbitrary JS — every DOM skill the model already has just works.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Why it compounds</p>
+        <p>Shell output pipes, saves, and composes. A screenshot is a path. Markdown goes to a file. The whole Unix toolbox becomes browser tooling for free.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · THE TOOL ————————————————————————————————— -->
+<section class="slide" id="s4" aria-label="The tool">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE TOOL</p>
+    <h2>Ten commands, 724 lines, four dependencies</h2>
+    <p class="lede">Small enough to rebuild in an afternoon, which is the point — this is a <strong>pattern you can own</strong>, not a product you adopt. One long-lived Chrome, started once; every command connects to it.</p>
+    <div class="cmds">
+      <div class="cmd-row"><b>browse-start</b><span>launch the managed Chrome; persistent per-project profiles</span></div>
+      <div class="cmd-row"><b>browse-stop</b><span>kill it, clear state</span></div>
+      <div class="cmd-row"><b>browse-nav</b><span>navigate the active tab</span></div>
+      <div class="cmd-row"><b>browse-eval</b><span>run any JavaScript in the page, JSON out</span></div>
+      <div class="cmd-row"><b>browse-screenshot</b><span>viewport or full page → a PNG path</span></div>
+      <div class="cmd-row"><b>browse-shot</b><span>navigate + wait + screenshot, one command</span></div>
+      <div class="cmd-row"><b>browse-markdown</b><span>page → clean, LLM-ready markdown</span></div>
+      <div class="cmd-row"><b>browse-crawl</b><span>depth-limited crawl → markdown + manifest</span></div>
+      <div class="cmd-row"><b>browse-tabs</b><span>list or close tabs</span></div>
+      <div class="cmd-row"><b>browse-pick</b><span>human clicks elements; agent gets selectors</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · SEE IT RUN ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="See it run">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> SEE IT RUN</p>
+    <h2>Real transcripts, captured while building this page</h2>
+    <div class="runs">
+      <div class="pair">
+        <div>
+          <div class="term">
+            <div class="term-bar"><i></i><i></i><i></i><span>agent — zsh</span></div>
+            <pre><span class="cm"># one command: navigate, wait, screenshot</span>
+<span class="p">$</span> <span class="c">browse-shot https://demos.ninochavez.co --out /tmp/demos.png</span>
+<span class="o">/tmp/demos.png</span></pre>
+          </div>
+          <p class="cap"><b>→</b> the agent Reads that path only if it needs to look — a screenshot costs nothing until opened</p>
+        </div>
+        <div>
+          <div class="viewport">
+            <div class="vp-bar"><span class="url">demos.ninochavez.co</span></div>
+            <img src="img/shot-demos.jpg" width="876" height="900" alt="browse-shot capture of this demo series' index page">
+          </div>
+          <p class="cap">what Chrome saw — this site, shot by the tool, embedded in the deck about the tool</p>
+        </div>
+      </div>
+      <div>
+        <div class="term">
+          <div class="term-bar"><i></i><i></i><i></i><span>agent — zsh</span></div>
+          <pre><span class="cm"># arbitrary JS against the live DOM — no schema, just the platform</span>
+<span class="p">$</span> <span class="c">browse-eval 'return [...document.querySelectorAll(".card-title")].map(e =&gt; e.innerText)'</span>
+<span class="o">[
+  "Twelve Messages"
+]</span>
+<span class="cm"># page → clean markdown (Readability + Turndown) — here, this tool's own origin story</span>
+<span class="p">$</span> <span class="c">browse-markdown https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/ | head -3</span>
+<span class="o"># What if you don't need MCP at all?
+
+2025-11-02</span></pre>
+        </div>
+        <p class="cap">captured 2026-07-15 — the eval output will drift as demos get added, which is exactly the point of live data</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · DESIGNED FOR AGENTS ————————————————————— -->
+<section class="slide" id="s6" aria-label="Designed for agents">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> DESIGNED FOR AGENTS</p>
+    <h2>Four choices that make a tool agent-friendly</h2>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Persistent profiles</p>
+        <p>Each project gets a Chrome profile under <span style="font-family: var(--mono); font-size: 13px;">~/.browse-tool/profiles/</span>, seeded once from your real Chrome (never modifying it). Logins survive across sessions — the agent works <strong>authenticated</strong> without ever seeing a credential.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Paths and pipes, not blobs</p>
+        <p>Screenshots print a file path. Markdown goes to stdout. Nothing dumps kilobytes into the context window uninvited — the agent chooses what to read, when.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">One browser, stateless commands</p>
+        <p>A single long-lived Chrome holds all the state; every command is a quick connect-act-exit. Any command composes with any other, in scripts, loops, or pipelines.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Grows one need at a time</p>
+        <p>Adding a command is one file — no protocol, no rebuild. The git history is the proof: shot, markdown, and crawl each landed the week a real session needed them.</p>
+        <p class="lesson"><b>The pattern:</b> build the verb when the work demands it, never speculatively.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · HUMAN IN THE LOOP ——————————————————————— -->
+<section class="slide" id="s7" aria-label="Human in the loop">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HUMAN IN THE LOOP</p>
+    <h2>Some walls should stay human</h2>
+    <p class="lede">Two of the tool's most useful moves are the ones where it <strong>hands control to a person</strong> instead of automating past them.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">browse-pick</p>
+        <p>The agent enables a picker; the human clicks the element in the real Chrome window; the agent gets back a selector, text, and geometry. No guessing at brittle selectors — the person points, the machine proceeds.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Login walls</p>
+        <p>OTP prompts and CAPTCHAs are deliberately not automated — they exist to verify a human. The human logs in once in the tool's window; the persistent profile keeps that session; the agent does the analytical work after the door is open.</p>
+        <p class="lesson"><b>Same principle as demo 01:</b> judgment — and identity — stays human.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · IN THE WILD ————————————————————————————— -->
+<section class="slide" id="s8" aria-label="In the wild">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> IN THE WILD</p>
+    <h2>Where it earned its keep</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Demo 01's pipeline</p>
+        <p>The <a href="/twelve-messages/">Twelve Messages</a> session opened by reading two auth-gated Google Sheets through a seeded profile — no export, no API setup, no credential handling. That roster became the production database.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Design verification</p>
+        <p>Every render in that session — and every page of this site before deploy — was screenshotted and visually inspected by the agent. Three real layout bugs died in that loop before any human saw them.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Research</p>
+        <p><span style="font-family: var(--mono); font-size: 13px;">browse-markdown</span> and <span style="font-family: var(--mono); font-size: 13px;">browse-crawl</span> turn articles and small docs sites into clean markdown for the agent to work from — no copy-paste, no HTML noise.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s9" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> HONEST LIMITS</p>
+    <h2>What broke, and what stays true</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The agent misused it — today</p>
+        <p>While building this very site, the agent recalled a command's shape from memory and passed an output path where the URL goes. Instant failure.</p>
+        <p class="lesson"><b>The standing rule exists for a reason:</b> read the README fresh — the tool changes, memory doesn't.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Where MCP still wins</p>
+        <p>Hosted or remote agents where you can't put binaries on a PATH, teams that need managed auth and central policy, tools that stream rich structured events. The CLI bet assumes you own the machine.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Local quirks are real</p>
+        <p>macOS merges the managed Chrome with your real one in the Dock. A stale state file means "Cannot connect" until you restart it. Small tools mean owning small sharp edges.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s10" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> YOUR VERSION OF THIS</p>
+    <h2>Audit the tax, then build the verbs</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Know that your AI tools have a fixed cost before any work starts. When an assistant feels dumber with more integrations enabled, this is often why.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>List the five operations you actually use from that always-loaded server. Wrap them as small CLIs that print paths and pipe cleanly. Keep a README the agent reads on demand.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Design agent tools like Unix tools: one job, composable output, state in one place, growth by need. The agent's existing knowledge is the interface — stop re-teaching it the world through schemas.</p>
+      </div>
+    </div>
+    <div class="stack" style="margin-top: 30px;">
+      <a href="https://github.com/nino-chavez/browse-tool">github.com/nino-chavez/browse-tool</a>
+      <span>puppeteer-core · @mozilla/readability · jsdom · turndown</span>
+      <span>10 commands · 724 lines · one README</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> All transcripts on this page are real command output, captured 2026-07-15 while this demo was being built — including the screenshot of this site taken by the tool itself. Demo 02 in the <a href="/">ways-of-working series</a>; the tool's production debut is <a href="/twelve-messages/">demo 01</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

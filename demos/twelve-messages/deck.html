@@ -204,10 +204,11 @@
 
   /* —— appendix ————————————————————————————— */
   .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
-  .stack span {
-    font-family: var(--mono); font-size: 12px; color: var(--dim);
+  .stack span, .stack a {
+    font-family: var(--mono); font-size: 12px; color: var(--dim); text-decoration: none;
     border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
   }
+  .stack a { color: var(--heat); }
   .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
   .colophon b { color: var(--dim); font-weight: 600; }
 
@@ -437,7 +438,7 @@
     <p class="eyebrow"><b>11</b> APPENDIX · UNDER THE HOOD</p>
     <h2>For the ones who'll ask</h2>
     <div class="stack">
-      <span>headless Chrome CLI → auth-gated sheets</span>
+      <a href="/browse-tool/">headless Chrome CLI → auth-gated sheets (demo 02)</a>
       <span>product REST API · bulk create · idempotency keys</span>
       <span>HTML/CSS → PNG via Playwright</span>
       <span>Cloudflare R2 + queue JSON ledger</span>

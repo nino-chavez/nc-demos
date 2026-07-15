@@ -1,0 +1,11 @@
+{
+  "number": "02",
+  "title": "The Browser Is a Shell Command",
+  "hook": "Replacing 18,000 tokens of always-loaded browser-automation schema with ten shell commands and a README — and why the agent gets sharper, not weaker.",
+  "date": "2026-07",
+  "for": "Agent users paying token tax for tools they barely touch; builders choosing between MCP and CLIs.",
+  "get": "The cost math, four design choices that make a tool agent-friendly, live transcripts, and where MCP still wins.",
+  "do": "Audit your always-loaded schemas, then wrap the five operations you actually use as small composable commands.",
+  "preview": "img/shot-demos.jpg",
+  "previewAlt": "The demo series index, screenshotted by browse-tool itself"
+}
