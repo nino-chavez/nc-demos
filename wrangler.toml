@@ -1,0 +1,6 @@
+# Cloudflare Pages — demos.ninochavez.co
+# pages_build_output_dir must stay committed: without it, git-integrated Pages
+# validates the repo root and fails on stray symlinks (broke ninochavez.co for
+# ~3 weeks once).
+name = "nc-demos"
+pages_build_output_dir = "dist"

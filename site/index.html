@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ways of working — AI demos by Nino Chavez</title>
+<meta name="description" content="Real working sessions with an AI agent, published as teaching demos. Verbatim messages, real production systems, honest failures.">
+<meta property="og:title" content="ways of working — AI demos">
+<meta property="og:description" content="Real sessions with an AI agent, published as teaching demos. The method, not a highlight reel.">
+<style>
+  /* The index is the gallery wall; the demos are the work. Light, quiet,
+     mono-led — verbatim-transcript aesthetic on paper. Demos carry their own
+     identities. */
+  :root {
+    color-scheme: light dark;
+    --paper: #f6f4ef;
+    --ink: #1c1e21;
+    --dim: #5f646c;
+    --line: #ddd9d0;
+    --card: #fffefb;
+    --accent: #2b55d4;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16181c;
+      --ink: #e8e6e0;
+      --dim: #9aa0a8;
+      --line: #2c2f35;
+      --card: #1d2025;
+      --accent: #7a97ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.6;
+  }
+  main { width: min(880px, 100% - 48px); margin: 0 auto; padding: clamp(56px, 10vh, 120px) 0 64px; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin: 0 0 20px; }
+  h1 {
+    font-family: var(--mono); font-weight: 600; font-size: clamp(34px, 6vw, 56px);
+    line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 22px;
+  }
+  h1 .cursor { color: var(--accent); animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { h1 .cursor { animation: none; } }
+  .thesis { font-size: clamp(16px, 2vw, 19px); color: var(--dim); max-width: 58ch; margin: 0 0 12px; }
+  .thesis strong { color: var(--ink); font-weight: 600; }
+  .honesty { font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin: 0 0 56px; }
+
+  .demos { display: flex; flex-direction: column; gap: 24px; }
+  .card {
+    display: grid; grid-template-columns: 240px 1fr; gap: 0;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    text-decoration: none; color: inherit; overflow: hidden;
+    transition: border-color 0.15s ease;
+  }
+  .card:hover, .card:focus-visible { border-color: var(--accent); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card-preview { display: block; background: #101010; }
+  .card-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-body { display: flex; flex-direction: column; gap: 10px; padding: 26px 28px; }
+  .card-label { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .card-title { font-family: var(--mono); font-weight: 600; font-size: 26px; letter-spacing: -0.01em; line-height: 1.15; }
+  .card-hook { color: var(--dim); font-size: 15px; }
+  .card-rows { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
+  .row { display: grid; grid-template-columns: 42px 1fr; gap: 10px; font-size: 13.5px; color: var(--dim); }
+  .row b { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); font-weight: 600; padding-top: 2px; }
+  .card-cta { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-top: 6px; }
+  @media (max-width: 680px) {
+    .card { grid-template-columns: 1fr; }
+    .card-preview img { max-height: 300px; object-position: top; }
+  }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 72px; padding-top: 22px;
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+    font-family: var(--mono); font-size: 12.5px; color: var(--dim);
+  }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Nino Chavez · demo series</p>
+  <h1>ways of working<span class="cursor">_</span></h1>
+  <p class="thesis">Real working sessions with an AI agent, published as teaching demos. <strong>Verbatim messages, real production systems, honest failures</strong> — the method, not a highlight reel.</p>
+  <p class="honesty">nothing staged · personal names and private links redacted · every demo is one real session</p>
+
+  <div class="demos">
+<!--DEMOS-->
+  </div>
+
+  <footer>
+    <span>© 2026 Nino Chavez</span>
+    <span><a href="https://ninochavez.co">ninochavez.co</a></span>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<title>Twelve Messages — Running a Media Pipeline with an AI Agent</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Single-theme by design: this is a stage/projection surface and the
+     embedded social graphics are built for a dark ground.
+     Palette: warm near-black w/ orange hue bias + the letspepper heat ladder
+     (green→yellow→orange→red) used only where it encodes meaning.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #171310;
+    --panel: #211a14;
+    --panel2: #2a2119;
+    --line: #3a2d21;
+    --text: #f2eadf;
+    --dim: #a5937e;
+    --faint: #7a6b58;
+    --heat: #f97316;
+    --heat-soft: rgba(249, 115, 22, 0.13);
+    --mild: #4ade80;
+    --medium: #facc15;
+    --extreme: #ef4444;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  img { max-width: 100%; display: block; }
+
+  /* —— chrome: heat progress bar + slide rail ——————————— */
+  .heatbar {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, var(--mild), var(--medium) 40%, var(--heat) 72%, var(--extreme));
+    z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line); display: block;
+  }
+  .rail a.on { background: var(--heat); }
+  .rail a:focus-visible { outline: 2px solid var(--heat); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  /* —— slide scaffold ————————————————————————————— */
+  .slide {
+    min-height: 100svh;
+    display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start;
+    border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--heat); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96;
+    letter-spacing: 0.005em; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 62ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  /* —— title slide ————————————————————————————— */
+  .title-slide { border-bottom-color: var(--heat); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(74px, 14.5vw, 168px); line-height: 0.88;
+    letter-spacing: 0.005em; margin: 18px 0 26px;
+  }
+  h1 .dot { color: var(--heat); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 56ch; margin: 0 0 40px; }
+  .heatstrip { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 48px; }
+  .heatstrip .h {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    padding: 4px 10px; border: 1px solid; border-radius: 3px;
+  }
+  .h.mild    { color: var(--mild);    border-color: color-mix(in srgb, var(--mild) 45%, transparent); }
+  .h.medium  { color: var(--medium);  border-color: color-mix(in srgb, var(--medium) 45%, transparent); }
+  .h.hot     { color: var(--heat);    border-color: color-mix(in srgb, var(--heat) 55%, transparent); background: var(--heat-soft); }
+  .h.extreme { color: var(--extreme); border-color: color-mix(in srgb, var(--extreme) 45%, transparent); }
+  .heatstrip .cue { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-left: 6px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— generic building blocks ————————————————————— */
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 22px 24px;
+  }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--heat); margin: 0 0 12px;
+  }
+
+  ul.tight { margin: 0; padding-left: 20px; color: var(--dim); }
+  ul.tight li { margin-bottom: 12px; padding-left: 4px; }
+  ul.tight li::marker { color: var(--heat); }
+
+  /* —— asset imagery ————————————————————————————— */
+  .shots { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .shot { flex: 1 1 180px; max-width: 250px; }
+  .shot.wide { max-width: 320px; }
+  .shot img { border-radius: 6px; border: 1px solid var(--line); width: 100%; height: auto; }
+  .shot figcaption { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--dim); margin-top: 9px; }
+  .shot figcaption b { color: var(--heat); font-weight: 600; }
+  figure { margin: 0; }
+
+  /* —— message log ————————————————————————————— */
+  .log { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .msg {
+    display: grid; grid-template-columns: 44px 108px 1fr; gap: 14px;
+    padding: 12px 18px; border-bottom: 1px solid var(--line); align-items: baseline;
+    background: var(--panel);
+  }
+  .msg:nth-child(even) { background: var(--bg); }
+  .msg:last-child { border-bottom: 0; }
+  .msg .no { font-family: var(--mono); font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .kind {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 3px; border: 1px solid; justify-self: start; white-space: nowrap;
+  }
+  .kind.steer { color: var(--heat);    border-color: color-mix(in srgb, var(--heat) 50%, transparent);    background: color-mix(in srgb, var(--heat) 10%, transparent); }
+  .kind.qual  { color: var(--medium);  border-color: color-mix(in srgb, var(--medium) 45%, transparent);  background: color-mix(in srgb, var(--medium) 8%, transparent); }
+  .kind.judge { color: var(--mild);    border-color: color-mix(in srgb, var(--mild) 45%, transparent);    background: color-mix(in srgb, var(--mild) 8%, transparent); }
+  .kind.go    { color: var(--extreme); border-color: color-mix(in srgb, var(--extreme) 50%, transparent); background: color-mix(in srgb, var(--extreme) 10%, transparent); }
+  .msg .q { font-family: var(--mono); font-size: 13px; line-height: 1.45; margin: 0; }
+  .msg .a { font-size: 12.5px; color: var(--faint); margin: 4px 0 0; }
+  @media (max-width: 640px) {
+    .msg { grid-template-columns: 34px 1fr; }
+    .msg .kind { grid-column: 2; margin-bottom: 2px; }
+    .msg .body { grid-column: 2; }
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 16px 2px 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--dim); }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 7px; }
+  .redact { color: var(--faint); }
+  .fnote { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 14px; }
+
+  /* —— principles ————————————————————————————— */
+  .prin { display: flex; flex-direction: column; gap: 14px; }
+  .prin .p { display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding: 20px 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; align-items: start; }
+  .prin .n { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; color: var(--heat); font-variant-numeric: tabular-nums; }
+  .prin h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 21px; margin: 2px 0 6px; letter-spacing: 0.02em; }
+  .prin p { margin: 0; font-size: 15px; color: var(--dim); max-width: 74ch; }
+
+  /* —— pipeline ————————————————————————————— */
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin-bottom: 26px; }
+  .node {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 13px; flex: 1 1 116px; min-width: 110px; max-width: 260px;
+  }
+  .node .t { font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; }
+  .node .s { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 6px; letter-spacing: 0.04em; }
+  .node .who { display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; padding: 2px 7px; border-radius: 3px; }
+  .who.human { color: var(--mild); background: color-mix(in srgb, var(--mild) 10%, transparent); }
+  .who.agent { color: var(--heat); background: var(--heat-soft); }
+  .who.script { color: var(--dim); background: color-mix(in srgb, var(--dim) 12%, transparent); }
+  .arrow { align-self: center; color: var(--heat); font-family: var(--mono); font-size: 18px; }
+  @media (max-width: 760px) { .arrow { display: none; } .node { flex-basis: 44%; } }
+
+  /* —— failure / escalation cards use .panel; accent variants —— */
+  .panel.warn { border-color: color-mix(in srgb, var(--extreme) 40%, var(--line)); }
+  .panel.warn .ptag { color: var(--extreme); }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--heat); }
+
+  /* —— mapping table ————————————————————————————— */
+  .map { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 30px; }
+  .maprow { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .maprow:nth-child(even) { background: var(--bg); }
+  .maprow:last-child { border-bottom: 0; }
+  .maprow .k { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 18px; letter-spacing: 0.02em; line-height: 1.2; }
+  .maprow .v { font-size: 14.5px; color: var(--dim); }
+
+  /* —— appendix ————————————————————————————— */
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--heat); }
+  a:focus-visible { outline: 2px solid var(--heat); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  @media print {
+    .heatbar, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="heatbar" id="heatbar" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 01</b> NINO CHAVEZ</p>
+    <h1>Twelve<br>Messages<span class="dot">.</span></h1>
+    <p class="title-sub">Everything I typed to take a live event from spreadsheet chaos to published social content. An AI agent did the production — this is the split, and the method behind it.</p>
+    <div class="heatstrip">
+      <span class="h mild">Mild</span><span class="h medium">Medium</span><span class="h hot">Hot ← we are here</span><span class="h extreme">Extreme</span>
+      <span class="cue">a case study from the Jalapeño Open — a real grass volleyball tournament</span>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE JOB ——————————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The job">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE JOB</p>
+    <h2>Four days out, nothing agrees with anything</h2>
+    <p class="lede">A real tournament, four days from first serve. The state of the world that afternoon:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The data</p>
+        <p>Team signups split across a Google Form response sheet and a hand-curated tab. Spelling variants of the same captain. One player's name filed in the team-name column.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The system</p>
+        <p>The tournament platform's production database still held five stale test teams from an earlier dry run. The graphics pipeline's roster file held placeholder names.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The channel</p>
+        <p>Instagram needed a countdown and a team announcement — and the existing countdown template had gone stale, reusing the same visual DNA as everything already posted.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:30px; margin-bottom:0;">One working session. <strong>Twelve typed messages.</strong> Everything else was delegated.</p>
+  </div>
+</section>
+
+<!-- 03 · WHAT SHIPPED ————————————————————————————— -->
+<section class="slide" id="s3" aria-label="What shipped">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> WHAT SHIPPED</p>
+    <h2>The outcome first</h2>
+    <p class="lede">The session's output: production roster reconciled, three countdown directions built as working templates, two published to the live account. <strong>Nothing on these graphics was hand-set</strong> — every number and name was read from data at render time.</p>
+    <div class="shots">
+      <figure class="shot"><img src="img/gritty.jpg" width="405" height="720" alt="Published Instagram story: gritty field-photography countdown, 4 days out"><figcaption><b>STORY · LIVE</b> gritty-field — the human taste call, one of three directions</figcaption></figure>
+      <figure class="shot wide"><img src="img/feed-published.jpg" width="560" height="700" alt="Published Instagram feed post: stat-board countdown, 10 teams in"><figcaption><b>FEED · LIVE</b> stat-board — days-out and team count computed at render</figcaption></figure>
+      <figure class="shot"><img src="img/team-card.jpg" width="394" height="700" alt="Team announcement card rendered from roster data"><figcaption><b>ROSTER ×10</b> one template, ten rows of roster data</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · THE CONVERSATION ————————————————————————— -->
+<section class="slide" id="s4" aria-label="The whole conversation">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE WHOLE CONVERSATION</p>
+    <h2>Every message, verbatim</h2>
+    <div class="log">
+      <div class="msg"><span class="no">01</span><span class="kind steer">direction</span><div class="body"><p class="q">reconcile the teams list in <span class="redact">[sheet: "mens team list"]</span> and <span class="redact">[sheet: signup form]</span> for the event <span class="redact">[tournament admin URL]</span> so that we have the correct teams setup in our rally-hq db</p><p class="a">Read both sheets through an authenticated browser, resolved spelling conflicts and a misfiled name, deleted five stale test teams, wrote ten real ones through the product API.</p></div></div>
+      <div class="msg"><span class="no">02</span><span class="kind qual">correction</span><div class="body"><p class="q">remove <span class="redact">[captain]</span> - that team dropped out</p><p class="a">One team out; roster renumbered in the database and in the file the graphics read.</p></div></div>
+      <div class="msg"><span class="no">03</span><span class="kind steer">direction</span><div class="body"><p class="q">build a story and post to announce countdown and team numbers/list</p><p class="a">The agent researched its own pipeline first — precedent templates, brand rules, posting cadence — then drafted.</p></div></div>
+      <div class="msg"><span class="no">04</span><span class="kind judge">review</span><div class="body"><p class="q">open in finder</p><p class="a">Human eyeballs on the renders. Cheap, fast, decisive.</p></div></div>
+      <div class="msg"><span class="no">05</span><span class="kind qual">correction</span><div class="body"><p class="q">the countdown is too derivative of the previous assets. let's switch it up. brainstorm and get more creative within the brand</p><p class="a">A creative rejection with the constraint attached: new directions, same brand system.</p></div></div>
+      <div class="msg"><span class="no">06</span><span class="kind steer">scope</span><div class="body"><p class="q">why choose? do all three</p><p class="a">Three brainstormed concepts became three working templates in one pass.</p></div></div>
+      <div class="msg"><span class="no">07</span><span class="kind steer">direction</span><div class="body"><p class="q">these work. we now have three separate folders of assets. reorg and cleanup</p><p class="a">Approval and a hygiene order in one line.</p></div></div>
+      <div class="msg"><span class="no">08</span><span class="kind qual">challenge</span><div class="body"><p class="q">but why three folders at all?</p><p class="a">The agent had justified the structure from an unverified assumption. The question forced a real check — the repo's actual convention was one folder per event.</p></div></div>
+      <div class="msg"><span class="no">09</span><span class="kind judge">taste</span><div class="body"><p class="q">pick gritty-field for the story, stat-board for the feed</p><p class="a">The one call only a human should make.</p></div></div>
+      <div class="msg"><span class="no">10</span><span class="kind go">go</span><div class="body"><p class="q">go</p><p class="a">Publish authorization. Feed post and story went live through the API.</p></div></div>
+      <div class="msg"><span class="no">11</span><span class="kind steer">direction</span><div class="body"><p class="q">tag nino.chavez.photo and flickday.media on all</p><p class="a">Arrived mid-publish — and surfaced a hard API constraint. Slide 09 tells that story.</p></div></div>
+      <div class="msg"><span class="no">12</span><span class="kind judge">clarify</span><div class="body"><p class="q">the cross tag is for collaboration as me as the content capture and flickday media as the media studio across the event</p><p class="a">Intent, not mechanics. The credit became a standing element baked into every template.</p></div></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--heat)"></i>steering</span>
+      <span><i style="background:var(--medium)"></i>quality control</span>
+      <span><i style="background:var(--mild)"></i>judgment</span>
+      <span><i style="background:var(--extreme)"></i>authorization</span>
+    </div>
+    <p class="fnote">Messages verbatim from the session transcript. Links and personal names redacted; annotations added.</p>
+    <p class="lede" style="margin:26px 0 0;">Not one of these is production work. <strong>The judgment stayed human; the keystrokes didn't.</strong></p>
+  </div>
+</section>
+
+<!-- 05 · THE METHOD ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="The method">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE METHOD</p>
+    <h2>Five things that make this repeatable</h2>
+    <div class="prin">
+      <div class="p"><div class="n">1</div><div><h3>The agent writes tools, not outputs</h3><p>The deliverable is a parameterized template; every graphic is a compiled artifact. Change the data, re-render in seconds. This is the whole distance between this method and "I asked a chatbot for an image."</p></div></div>
+      <div class="p"><div class="n">2</div><div><h3>Constraints live in the repo, not the prompt</h3><p>Brand palette, voice rules, and layout conventions are versioned files the agent reads every session. "Get creative within the brand" works because the brand is written down.</p></div></div>
+      <div class="p"><div class="n">3</div><div><h3>Data flows from the source of truth</h3><p>Roster changes happen in the product database, through its API. The graphics read from that. Nobody edits a PNG when a team drops out.</p></div></div>
+      <div class="p"><div class="n">4</div><div><h3>Judgment stays human</h3><p>Direction, taste, and authorization were typed by a person. Genuine ambiguity came back as a question with the constraint attached — never a silent guess.</p></div></div>
+      <div class="p"><div class="n">5</div><div><h3>Durable ledgers make it recoverable</h3><p>Every publish is recorded in a queue ledger, with the asset in object storage. When files got deleted by mistake, the record rebuilt them.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · THE PIPELINE ————————————————————————————— -->
+<section class="slide" id="s6" aria-label="The pipeline">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE PIPELINE</p>
+    <h2>What actually runs</h2>
+    <p class="lede">Every hop is ordinary, boring infrastructure. The agent's job is writing and operating the middle — humans own the ends.</p>
+    <div class="flow">
+      <div class="node"><div class="t">Google Sheets</div><div class="s">messy human signups</div><span class="who human">humans type here</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Product API</div><div class="s">reconciled writes, bulk create</div><span class="who agent">agent, on rails</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Roster CSV</div><div class="s">one data file in the repo</div><span class="who agent">agent</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">HTML/CSS templates</div><div class="s">the real deliverable</div><span class="who agent">agent writes</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Headless render</div><div class="s">Playwright → PNG</div><span class="who script">script</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Object storage</div><div class="s">R2 + queue ledger</div><span class="who script">script</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Instagram API</div><div class="s">publish on "go"</div><span class="who human">human authorizes</span></div>
+    </div>
+    <p class="lede" style="margin-bottom:0;">Why HTML/CSS instead of image generation: <strong>exact numbers, real brand fonts, deterministic re-renders.</strong> A countdown that says "4 days" must say 4 — data-driven graphics need templates, not samples from a model.</p>
+  </div>
+</section>
+
+<!-- 07 · TEMPLATES, NOT OUTPUTS ————————————————————— -->
+<section class="slide" id="s7" aria-label="Templates, not outputs">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> TEMPLATES, NOT OUTPUTS</p>
+    <h2>"Too derivative" cost one message</h2>
+    <p class="lede">The rejected countdown reused the visual DNA of everything already posted. One correction produced three genuinely different directions — each a working, parameterized template, not a one-off image.</p>
+    <div class="shots">
+      <figure class="shot"><img src="img/before-reminder.jpg" width="405" height="720" alt="The rejected countdown: same radial-burst and mascot layout as prior posts"><figcaption><b>BEFORE</b> the derivative one</figcaption></figure>
+      <figure class="shot"><img src="img/gritty.jpg" width="405" height="720" alt="Concept A: gritty field photography treatment with camera-readout captions"><figcaption><b>A</b> gritty-field</figcaption></figure>
+      <figure class="shot"><img src="img/statboard.jpg" width="405" height="720" alt="Concept B: broadcast stat-board treatment with tabular numbers"><figcaption><b>B</b> stat-board</figcaption></figure>
+      <figure class="shot"><img src="img/heatindex.jpg" width="405" height="720" alt="Concept C: heat-index gauge treatment showing the event on a heat ladder"><figcaption><b>C</b> heat-index</figcaption></figure>
+    </div>
+    <p class="lede" style="margin:28px 0 0;">Same reason the roster cards were free: ten cards rendered from the same data file, zero hand layout. <strong>When the output is compiled, iteration is cheap and corrections are absorbed by the template — permanently.</strong></p>
+  </div>
+</section>
+
+<!-- 08 · JUDGMENT STAYS HUMAN ————————————————————— -->
+<section class="slide" id="s8" aria-label="Judgment stays human">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> JUDGMENT STAYS HUMAN</p>
+    <h2>What the agent refused to guess</h2>
+    <p class="lede">Three moments where the right move was a question — each surfaced with the constraint attached, so the human decision took seconds.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Ambiguous data</p>
+        <p>A team appeared in the raw form responses but not the curated list. Signal or noise?</p>
+        <p class="lesson">Asked, with both sources cited. <b>Human: include it.</b></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Ambiguous intent</p>
+        <p>"Tag both accounts on all" — but these graphics contain no photography. Photo credit on a stat board would misattribute.</p>
+        <p class="lesson">Asked what the tag means. <b>Human: it's a standing collaboration credit</b> — which changed where it lives: baked into every template.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Irreversible action</p>
+        <p>The tag request arrived after the feed post was live — and published captions can't be edited through the API.</p>
+        <p class="lesson">Options presented with the constraint. <b>Human: fix manually in-app.</b></p>
+      </div>
+    </div>
+    <p class="lede" style="margin:28px 0 0;"><strong>Escalation is a feature, not a failure.</strong> The skill is surfacing the decision with its constraint — not answering it.</p>
+  </div>
+</section>
+
+<!-- 09 · WHEN IT BROKE ——————————————————————————— -->
+<section class="slide" id="s9" aria-label="When it broke">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> WHEN IT BROKE</p>
+    <h2>Two failures worth more than the demo</h2>
+    <div class="cols c2">
+      <div class="panel warn">
+        <p class="ptag">The wildcard delete</p>
+        <p>During cleanup, a wildcard <span style="font-family:var(--mono); font-size:13px;">rm</span> wiped output folders — including two already-published assets. The publish ledger pointed at object storage, and both files came back <strong>byte-for-byte identical</strong>.</p>
+        <p>One never-published render fell outside every safety net. It's gone, and the loss was reported as exactly that — not glossed.</p>
+        <p class="lesson"><b>Lesson:</b> design for recovery, not perfection. Ledgers beat memory. And honest failure reports are part of the method.</p>
+      </div>
+      <div class="panel warn">
+        <p class="ptag">The API said no</p>
+        <p>Instagram Stories accept bare media only — no captions, no tags, no stickers through the API. "Credit both studios on everything" was impossible at publish time.</p>
+        <p>So the requirement moved up a layer: the credit is now rendered into every template's pixels. Every future asset carries it automatically.</p>
+        <p class="lesson"><b>Lesson:</b> when a constraint is hard, don't fight it — change the layer where you solve the problem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · YOUR VERSION OF THIS ————————————————————— -->
+<section class="slide" id="s10" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> YOUR VERSION OF THIS</p>
+    <h2>The same shape, in your work</h2>
+    <div class="map">
+      <div class="maprow"><div class="k">Recurring decks &amp; reports</div><div class="v">Template once. Each cycle: data in, render, review, ship. The QBR deck becomes a compiled artifact of this quarter's numbers.</div></div>
+      <div class="maprow"><div class="k">Data cleanup between systems</div><div class="v">Reconcile through the target system's API — never by hand-editing exports. Ambiguity escalates as questions, not silent judgment calls.</div></div>
+      <div class="maprow"><div class="k">Campaign &amp; brand assets</div><div class="v">Write the brand down as files. Then "brainstorm within the brand" is a real instruction, variants are cheap, and taste is the only thing you still type.</div></div>
+    </div>
+    <div class="cols c3">
+      <div class="panel"><p class="ptag">If you never touch code</p><p>The twelve messages are the skill: direct, correct, challenge, decide, authorize. Delegation quality is what you're actually practicing.</p></div>
+      <div class="panel"><p class="ptag">If you're technical</p><p>Make the agent produce templates and scripts, not final files. Reproducibility is the difference between a trick and a pipeline.</p></div>
+      <div class="panel"><p class="ptag">If you build systems</p><p>Give agents APIs and ledgers. Keep source-of-truth writes on rails, and recovery becomes a property of the design, not a heroic effort.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · UNDER THE HOOD ——————————————————————————— -->
+<section class="slide" id="s11" aria-label="Appendix: under the hood">
+  <div class="wrap">
+    <p class="eyebrow"><b>11</b> APPENDIX · UNDER THE HOOD</p>
+    <h2>For the ones who'll ask</h2>
+    <div class="stack">
+      <span>headless Chrome CLI → auth-gated sheets</span>
+      <span>product REST API · bulk create · idempotency keys</span>
+      <span>HTML/CSS → PNG via Playwright</span>
+      <span>Cloudflare R2 + queue JSON ledger</span>
+      <span>Instagram Graph API</span>
+      <span>secrets via 1Password CLI — never in files</span>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The agent checks its own work</p>
+        <p>Before any human review, the agent rendered each template and visually inspected the output — and fixed three real layout bugs it found: a string-split bug duplicating a location line, a flexbox gap eating the vertical middle of a card, and a gauge marker aligned to the wrong rung.</p>
+        <p>Verification against the artifact, not the code. "It compiled" is not "it looks right."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The repo is the memory</p>
+        <p>Project conventions, the brand system, and known landmines live as versioned docs in the repository. Every session starts by reading them — nothing is re-briefed, and corrections outlive the conversation they happened in.</p>
+        <p>That's why message 05 could say "within the brand" and mean something enforceable.</p>
+      </div>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> This deck is itself a product of the method it describes: an HTML template compiled by a build script, styled from the same heat-ladder brand system, published and hosted by the agent. Messages quoted verbatim from the session transcript; links and personal names redacted. Demo 01 in the <a href="/">ways-of-working series</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('heatbar');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
