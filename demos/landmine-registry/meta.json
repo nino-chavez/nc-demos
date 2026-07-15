@@ -1,0 +1,11 @@
+{
+  "number": "06",
+  "title": "The Registry of Landmines",
+  "hook": "Some load-bearing facts are invisible to search — the code compiles and the behavior is still wrong. One registry file holds them, a derive catalog enforces them in CI, and a meta-test keeps the registry from lying about itself.",
+  "date": "2026-07",
+  "for": "Anyone whose agent (or teammate) keeps re-learning the same expensive lesson.",
+  "get": "The bug that shipped twice, the token economics of pre-paid conclusions, the why/decided/currently-true split, and the registry-about-the-registry.",
+  "do": "Start the file the second time something breaks for the same reason; derive the status, never hand-edit it.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 06 title slide with the shipped-twice landmine exhibit"
+}

@@ -1,0 +1,393 @@
+<title>The Registry of Landmines — facts grep cannot surface</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 06 identity: the field manual. Warm cream ground, dark-goldenrod
+     hazard accent, hazard-stripe motif on landmine exhibits. Second light deck
+     in the series, yellower and warmer than demo 03's incident-report paper.
+     Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: light;
+    --paper: #f7f4e9;
+    --card: #fefdf7;
+    --ink: #211e14;
+    --dim: #635d4b;
+    --faint: #948b70;
+    --line: #e0d9c2;
+    --gold: #9a7b0a;
+    --gold-soft: rgba(154, 123, 10, 0.08);
+    --term-bg: #191711;
+    --term-line: #322e20;
+    --term-text: #ece7d4;
+    --term-dim: #a49b7d;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: var(--gold); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--gold); }
+  .rail a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--gold); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--ink); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--gold); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(56px, 10.5vw, 128px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--gold); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); background: var(--card);
+  }
+
+  /* —— landmine cards (hazard stripe) ————————————— */
+  .mine {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden;
+  }
+  .mine::before {
+    content: ""; display: block; height: 6px;
+    background: repeating-linear-gradient(-45deg, var(--gold) 0 9px, var(--ink) 9px 18px);
+    opacity: 0.75;
+  }
+  .mine .inner { padding: 18px 22px; }
+  .mine .no { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 0 0 10px; }
+  .mine p { margin: 0; font-size: 14.5px; color: var(--dim); line-height: 1.55; }
+  .mine p strong { color: var(--ink); }
+  .mine .code { font-family: var(--mono); font-size: 13px; }
+  .mines { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+
+  /* —— terminal / status exhibits ————————————————— */
+  .term { background: var(--term-bg); border: 1px solid var(--term-line); border-radius: 8px; overflow: hidden; }
+  .term-bar {
+    display: flex; align-items: center; gap: 6px; padding: 9px 12px;
+    background: #201d13; border-bottom: 1px solid var(--term-line);
+  }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #3a3524; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--term-dim); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--term-text); }
+  .term .g { color: #8fbf4d; }
+  .term .o { color: var(--term-dim); }
+  .term .y { color: #d4af37; }
+  .cap { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--dim); margin: 10px 2px 0; }
+  .cap b { color: var(--gold); font-weight: 600; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--gold); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--gold); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--card);
+    border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--ink); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--card);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--gold); }
+  a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 06</b> NINO CHAVEZ</p>
+    <h1>The registry<br>of landmines<span class="dot">.</span></h1>
+    <p class="title-sub">Some load-bearing facts are invisible to search: the code compiles, the types pass, and the behavior is still wrong. This is the file that holds them — and the machinery that keeps the file honest.</p>
+    <div class="mine" style="max-width: 680px; margin-bottom: 44px;">
+      <div class="inner">
+        <p class="no">Invariant #10 · shipped twice before it was written down</p>
+        <p>A direct <span class="code">.from('auth.users')</span> silently returns nothing — no error, no throw, just an empty result. <strong>Invisible to the typechecker.</strong> Once it zeroed every captain email app-wide.</p>
+      </div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · INVISIBLE TO GREP ————————————————————————— -->
+<section class="slide" id="s2" aria-label="Invisible to grep">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROBLEM</p>
+    <h2>The facts search can't find</h2>
+    <p class="lede">Search answers "where is X?" It cannot answer "does X matter?" — and the costliest facts in a codebase are exactly the ones where existence and meaning diverge. The registry's own opening taxonomy:</p>
+    <div class="mines">
+      <div class="mine"><div class="inner"><p class="no">Looks alive, is dead</p><p>A column that is <strong>written but never read</strong>. Every grep finds it; nothing consumes it. Agents keep it in sync with reality forever, for nothing.</p></div></div>
+      <div class="mine"><div class="inner"><p class="no">Looks meaningful, isn't</p><p>A flag whose two values are <strong>indistinguishable to the runtime</strong>. Code branches on it; both branches behave the same.</p></div></div>
+      <div class="mine"><div class="inner"><p class="no">Looks safe, is prod</p><p>An environment where <strong>"local" silently means "production."</strong> On this project: dev writes an isolated database — but every script, build, and un-overridden machine still writes prod.</p></div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Each of these makes an agent — or a human — <strong>confidently wrong</strong>. The code compiles. The tests that exist pass. The damage is quiet.</p>
+  </div>
+</section>
+
+<!-- 03 · THE SHIPPED-TWICE LANDMINE ————————————————— -->
+<section class="slide" id="s3" aria-label="The shipped-twice landmine">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> CASE STUDY</p>
+    <h2>The bug that shipped twice</h2>
+    <p class="lede">Invariant #10, quoted from the registry: the platform's auth schema isn't exposed to the query layer, so a direct query resolves against a table that doesn't exist — and returns <strong>an empty result instead of an error</strong>.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">First shipping</p>
+        <p>The captains service queried it directly — and <strong>zeroed every captain email app-wide</strong>. No exception, no failed request. Just empty data, everywhere.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Second shipping</p>
+        <p>Months apart, the retention service made the same move — and silently fell through to a weaker fallback path. Same landmine, different crater.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Why twice</p>
+        <p>Because nothing could catch it: <strong>invisible to the typechecker</strong>, no runtime throw, and the first fix lived only in one file's history. Knowledge that lives in a diff is knowledge the next session doesn't have.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The second shipping is the argument for the registry: <strong>a lesson that isn't written somewhere durable will be re-learned at full price.</strong></p>
+  </div>
+</section>
+
+<!-- 04 · THE REGISTRY ————————————————————————————— -->
+<section class="slide" id="s4" aria-label="The registry">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE MECHANISM</p>
+    <h2>Conclusions, pre-paid once</h2>
+    <p class="lede">One file. One line per landmine in an index read at session start; a detailed entry read before touching the named subsystem. The economics are written into the file's own header:</p>
+    <blockquote>
+      "Re-deriving these facts from source costs context budget every session — a grep returns 60 lines of matches you then read 300 lines of source to interpret, to extract 4 facts. An entry here is the <strong>conclusion, pre-paid once</strong>. [...] this registry is the only artifact that lets session N+1 spend three lines of context where session N spent three hundred."
+      <cite>docs/INVARIANTS.md, verbatim</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">This is the same token-economics argument as <a href="/session-corpus/">demo 04</a>, applied to knowledge instead of behavior: an agent's context window is a budget, and re-derivation is the most expensive way to spend it. Topology stays out — search finds <em>where things are</em> just fine. The registry holds only what search gets <strong>wrong</strong>.</p>
+  </div>
+</section>
+
+<!-- 05 · THREE HOMES FOR TRUTH ————————————————————— -->
+<section class="slide" id="s5" aria-label="Three homes for truth">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE SPLIT</p>
+    <h2>Why, decided, and currently-true live apart</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The narrative why</p>
+        <p>The registry itself: what the landmine is, why it's dangerous, what it cost. Prose, amendable, human-written.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The immutable why-we-decided</p>
+        <p>Architecture decision records. Frozen at decision time — the registry cites them, never restates them.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The generated currently-true</p>
+        <p>A derived status page: each checkable invariant reported COMPLIANT or NON-COMPLIANT, with evidence and the commit it was checked at. <strong>Never hand-edited.</strong></p>
+      </div>
+    </div>
+    <div class="term" style="margin-top: 26px;">
+      <div class="term-bar"><i></i><i></i><i></i><span>docs/state/_state.md — generated, verbatim</span></div>
+      <pre><span class="o">| </span><span class="y">inv-auth-guard-build-skip</span><span class="o"> | </span><span class="g">[OK] COMPLIANT</span><span class="o"> | INVARIANT #2 — auth guards in
+hooks.server.ts must short-circuit on `building` before auth logic, or the
+prerender crawler bakes a 303 that breaks POSTs at runtime. |</span></pre>
+    </div>
+    <p class="cap">the check patterns live only in the derive catalog — <b>never duplicated into prose</b>, so they can't drift apart</p>
+  </div>
+</section>
+
+<!-- 06 · THE SAME CATALOG RUNS IN CI ————————————————— -->
+<section class="slide" id="s6" aria-label="Enforced in CI">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> ENFORCEMENT</p>
+    <h2>The registry has a registry watching it</h2>
+    <p class="lede">Mechanically-checkable invariants are declared once in a catalog. A derive run generates the status page from it — and <strong>the same catalog runs as a CI test</strong>, so breaking an invariant fails the build immediately, not at the next manual audit. That's <a href="/enforced-forever/">demo 03's Level 3</a> applied to knowledge.</p>
+    <p class="lede">And then it goes one turtle deeper. A meta-test guards the registry itself — its docstring, verbatim:</p>
+    <blockquote>
+      "The registry must be honest about itself. [The registry] <em>claims</em> enforcement [...] if a catalog entry is renamed/deleted or a referenced test is removed, the doc keeps asserting enforcement that no longer exists. <strong>That is the one way the registry can still lie.</strong> This meta-guard closes it: it is the registry-about-the-registry."
+      <cite>invariants-registry-integrity.test.ts, verbatim</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">The same discipline pinned <a href="/feedback-loop/">demo 05's autonomy gate</a> — invariant #13 asserts the gate's behavior per subtype, so a refactor can't silently widen what an agent is allowed to build.</p>
+  </div>
+</section>
+
+<!-- 07 · A LIVING DOCUMENT ——————————————————————— -->
+<section class="slide" id="s7" aria-label="A living document">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> IN PRACTICE</p>
+    <h2>25 entries, 30 amendments</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The trigger is discovery</p>
+        <p>When a session steps on a new landmine, adding the entry is part of the fix — not a documentation chore for later. The file has been amended thirty times; it grows at the speed mistakes are made.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Entries get amended, not stale</p>
+        <p>When the dev environment split off its own database, the "local means prod" entry was amended the same day — the fact changed shape, so the registry did. An entry that no longer matches reality is worse than no entry.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Trust is tiered</p>
+        <p>Test-backed entries are trusted without re-verifying — that's the point of enforcement. Prose-only entries are marked <span style="font-family: var(--mono); font-size: 12.5px;">verified-against</span> a commit, and re-confirmed against current source before anything relies on them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s8" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> HONEST LIMITS</p>
+    <h2>Prose entries still depend on being read</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Only the mechanical subset is law</p>
+        <p>The CI catalog covers what a check can express. The rest is prose — durable, cited, but ultimately advisory. A rule that can't be checked is a rule that can be skipped under pressure.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It lags uncommitted work</p>
+        <p>The registry describes the repo as of its last amendment. Mid-flight changes can contradict it — which is why entries carry the commit they were verified against, and why "confirm the cited artifacts" is part of the reading protocol.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It runs on discipline</p>
+        <p>Nothing forces a session to add the landmine it just discovered. The habit is held up by the project's standing instructions — prose again, one level up. Turtles eventually end at a human keeping the habit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> YOUR VERSION OF THIS</p>
+    <h2>Write down what almost burned you</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Every team has landmines — the report that's "current" but hand-edited, the field two systems interpret differently. Keep one page of them, one line each, and read it before touching anything named on it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Start the file the second time something ships broken for the same reason. Separate the why (prose) from the currently-true (derived) — and never hand-edit the derived part.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Make the checkable subset a CI test from the same declaration the docs are generated from. Then guard the guard: a meta-test that fails when the registry claims enforcement that no longer exists.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>one registry file · one line per landmine</span>
+      <span>derive catalog → status page + CI test, same source</span>
+      <span>meta-test: the registry-about-the-registry</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> All quotes verbatim from the registry, the generated status page, and the integrity test's docstring, read on publication day; entry and amendment counts from the live file and its git history. Demo 06 in the <a href="/">ways-of-working series</a> — the enforcement ladder is <a href="/enforced-forever/">demo 03</a>, the token economics of agent memory start in <a href="/session-corpus/">demo 04</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
