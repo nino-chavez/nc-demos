@@ -96,18 +96,13 @@ const arcHtml = cards
   .map(({ slug, meta }) => `      <a class="arc-item" href="/${slug}/" style="--acc: ${meta.accent}"><i></i><b>${meta.number}</b>${meta.theme}</a>`)
   .join('\n')
 
-const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
-  .replace('<!--ARC-->', arcHtml)
-  .replace('<!--DEMOS-->', cardHtml)
-writeFileSync(join(DIST, 'index.html'), index)
-
-// Applied strand — technique companions to the session receipts. Served at
-// /applied/<slug>/ with a URL, but deliberately NOT in the 01→08 arc or the
-// index (the strand's homepage presence waits for a second entry).
+// Applied strand — technique companions to the session receipts. Each gets a
+// page at /applied/<slug>/ and a card in the labeled homepage "Applied"
+// section, kept distinct from the numbered session arc.
 const APPLIED = join(HERE, 'applied')
-let appliedCount = 0
+const appliedCards = []
 if (existsSync(APPLIED)) {
-  for (const slug of readdirSync(APPLIED).filter((s) => statSync(join(APPLIED, s)).isDirectory())) {
+  for (const slug of readdirSync(APPLIED).filter((s) => statSync(join(APPLIED, s)).isDirectory()).sort()) {
     const dir = join(APPLIED, slug)
     const meta = JSON.parse(readFileSync(join(dir, 'meta.json'), 'utf8'))
     const raw = readFileSync(join(dir, 'deck.html'), 'utf8')
@@ -130,7 +125,18 @@ ${content}
 </html>
 `)
     if (existsSync(join(dir, 'img'))) cpSync(join(dir, 'img'), join(DIST, 'applied', slug, 'img'), { recursive: true })
-    appliedCount++
+    appliedCards.push(`      <a class="applied-card" href="/applied/${slug}/" style="--acc: ${meta.accent || '#6ea8fe'}">
+        <span class="at">applied · technique</span>
+        <span class="an">${meta.title}</span>
+        <span class="ad">${meta.cardDesc || meta.description}</span>
+        <span class="card-cta">open →</span>
+      </a>`)
   }
 }
-console.log(`dist/ — ${slugs.length} demo(s) + index${appliedCount ? ` + ${appliedCount} applied` : ''}`)
+
+const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
+  .replace('<!--ARC-->', arcHtml)
+  .replace('<!--DEMOS-->', cardHtml)
+  .replace('<!--APPLIED-->', appliedCards.join('\n'))
+writeFileSync(join(DIST, 'index.html'), index)
+console.log(`dist/ — ${slugs.length} demo(s) + index${appliedCards.length ? ` + ${appliedCards.length} applied` : ''}`)
