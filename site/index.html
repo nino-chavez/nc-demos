@@ -105,7 +105,9 @@
   .applied-head { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin: 0 0 6px; }
   .applied-head b { color: var(--accent); font-weight: 600; }
   .applied-note { color: var(--dim); font-size: 14.5px; margin: 0 0 22px; max-width: 60ch; }
-  .applied-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 18px; }
+  .applied-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  @media (max-width: 860px) { .applied-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .applied-grid { grid-template-columns: 1fr; } }
   .applied-card { display: flex; flex-direction: column; gap: 8px; background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--acc); border-radius: 10px; padding: 20px 22px; text-decoration: none; color: inherit; transition: border-color 0.15s ease; }
   .applied-card:hover, .applied-card:focus-visible { border-color: var(--acc); }
   .applied-card:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
