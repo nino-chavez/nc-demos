@@ -67,7 +67,9 @@
   .arc-item:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
   /* —— the gallery ————————————————————————————— */
-  .demos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr)); gap: 22px; }
+  .demos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  @media (max-width: 1000px) { .demos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .demos { grid-template-columns: 1fr; } }
   .card {
     display: flex; flex-direction: column;
     background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--acc);
