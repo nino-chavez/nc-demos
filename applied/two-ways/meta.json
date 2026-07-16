@@ -1,0 +1,5 @@
+{
+  "title": "Two Ways to Draw a System",
+  "description": "How an AI agent draws a technical diagram that looks like your project and doesn't go stale — hand-authored SVG vs themed Mermaid, chosen per diagram. The first Applied technique companion to the ways-of-working session demos.",
+  "strand": "applied"
+}

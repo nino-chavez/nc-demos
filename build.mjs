@@ -8,7 +8,7 @@
 //
 // Each demos/<slug>/ holds deck.html (page content only — no <html>/<head>/
 // <body>; this script wraps it), meta.json (index-card fields), and img/.
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, cpSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, cpSync, rmSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -100,4 +100,37 @@ const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
   .replace('<!--ARC-->', arcHtml)
   .replace('<!--DEMOS-->', cardHtml)
 writeFileSync(join(DIST, 'index.html'), index)
-console.log(`dist/ — ${slugs.length} demo(s) + index`)
+
+// Applied strand — technique companions to the session receipts. Served at
+// /applied/<slug>/ with a URL, but deliberately NOT in the 01→08 arc or the
+// index (the strand's homepage presence waits for a second entry).
+const APPLIED = join(HERE, 'applied')
+let appliedCount = 0
+if (existsSync(APPLIED)) {
+  for (const slug of readdirSync(APPLIED).filter((s) => statSync(join(APPLIED, s)).isDirectory())) {
+    const dir = join(APPLIED, slug)
+    const meta = JSON.parse(readFileSync(join(dir, 'meta.json'), 'utf8'))
+    const raw = readFileSync(join(dir, 'deck.html'), 'utf8')
+    const title = (raw.match(/<title>(.*?)<\/title>/s) || [, meta.title])[1]
+    const content = raw.replace(/<title>.*?<\/title>\s*/s, '')
+    mkdirSync(join(DIST, 'applied', slug), { recursive: true })
+    writeFileSync(join(DIST, 'applied', slug, 'index.html'), `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title}</title>
+<meta name="description" content="${meta.description}">
+<meta property="og:title" content="${meta.title} — ways of working, applied">
+<meta property="og:description" content="${meta.description}">
+</head>
+<body>
+${content}
+</body>
+</html>
+`)
+    if (existsSync(join(dir, 'img'))) cpSync(join(dir, 'img'), join(DIST, 'applied', slug, 'img'), { recursive: true })
+    appliedCount++
+  }
+}
+console.log(`dist/ — ${slugs.length} demo(s) + index${appliedCount ? ` + ${appliedCount} applied` : ''}`)

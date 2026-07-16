@@ -1,0 +1,326 @@
+<title>The Beautifier Was an Auditor — a polish pass that read the code</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 09 identity: the redline. Rose-cast dark ground; the signature
+     device is the drift pair — what a doc SAID, over what the code SHOWED,
+     with green carrying only the ground truth. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #180f14;
+    --panel: #241620;
+    --panel2: #1d1219;
+    --line: #43293a;
+    --text: #f4e9ee;
+    --dim: #cba6b7;
+    --faint: #966b7e;
+    --rose: #fb7185;
+    --rose-soft: rgba(251, 113, 133, 0.12);
+    --pass: #4ade80;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #7a2f45, var(--rose)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--rose); }
+  .rail a:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--rose); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--rose); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 122px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--rose); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— drift pairs: what the doc said / what the code showed ——— */
+  .drift { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .drift .said { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--rose); }
+  .drift .said .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rose); margin: 0 0 7px; }
+  .drift .said p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .drift .found { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .drift .found b { font-weight: 600; }
+  .drift .found .ok { color: var(--pass); }
+  .drifts { display: flex; flex-direction: column; gap: 16px; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--rose); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--rose); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--rose); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--rose); }
+  a:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 09</b> NINO CHAVEZ</p>
+    <h1>The beautifier<br>was an auditor<span class="dot">.</span></h1>
+    <p class="title-sub">I installed a skill to make my READMEs prettier and pointed it at five repos. It barely touched the design. What it did instead was read the code — and start contradicting the docs.</p>
+    <div class="drift" style="max-width: 680px; margin-bottom: 44px;">
+      <div class="said"><p class="tag">photography/README.md said</p><p>"Deployment platform: Vercel · Adapter: @sveltejs/adapter-vercel by default."</p></div>
+      <div class="found"><b class="ok">✓ svelte.config.js:</b> <b>adapter-cloudflare</b> — no Vercel adapter installed. The project moved to Cloudflare months ago; the README never got the memo.</div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE SETUP ————————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The setup">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE SETUP</p>
+    <h2>I asked for polish. It went reading.</h2>
+    <p class="lede">The skill is <strong>beautify-github-readme</strong> — a small agent skill that redesigns a repo's README: a hero image, cleaner hierarchy, a diagram or two. I expected a paint job. The instructions had one line I underweighted: <em>read the real repository first</em>.</p>
+    <p class="lede" style="margin-bottom: 0;">So on the first repo it didn't reach for a color. It listed the actual commands, opened <span style="font-family: var(--mono); font-size: 14px; color: var(--rose);">package.json</span>, read the config — and the mismatch started immediately. By the fifth repo the pattern was undeniable: <strong>the design was the smallest thing the tool did.</strong> The valuable part was the part that looked at what was true.</p>
+  </div>
+</section>
+
+<!-- 03 · THE DRIFT ————————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The drift it found">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE DRIFT</p>
+    <h2>What the polish pass actually surfaced</h2>
+    <p class="lede">Three contradictions, each one the README asserting a fact the repository disproves in a single grep. None of them are cosmetic. All of them would waste a real person's afternoon.</p>
+    <div class="drifts">
+      <div class="drift">
+        <div class="said"><p class="tag">photography/README.md said</p><p>"Install with pnpm (recommended)" — and every command in the guide is a <span style="font-family: var(--mono);">pnpm</span> command.</p></div>
+        <div class="found"><b class="ok">✓ the lockfile:</b> <b>package-lock.json</b>. This project has only ever run on npm. Every copy-pasted command in the doc would send a newcomer down the wrong path.</div>
+      </div>
+      <div class="drift">
+        <div class="said"><p class="tag">browse-tool/README.md said</p><p>"Nine small CLI scripts."</p></div>
+        <div class="found"><b class="ok">✓ the bin/ directory:</b> <b>ten</b>. And the tenth — <span style="font-family: var(--mono);">browse-shot</span> — isn't registered in <span style="font-family: var(--mono);">package.json</span>'s <span style="font-family: var(--mono);">bin</span>, so a global install wouldn't expose it. The wrong count was hiding a real packaging bug.</div>
+      </div>
+      <div class="drift">
+        <div class="said"><p class="tag">photography/README.md said</p><p>Features and tech stack — a gallery, filtering, performance notes.</p></div>
+        <div class="found"><b class="ok">✓ the dependencies:</b> AI photo enrichment (Google Gemini), SmugMug ingest over OAuth&nbsp;1.0a, a Cloudflare Worker that streams album ZIPs — <b>whole capabilities the code had grown that the doc never mentioned.</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · WHY IT WORKS ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Why it works">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> WHY IT WORKS</p>
+    <h2>The payload was the inspect step</h2>
+    <p class="lede">A tool named for decoration did its most valuable work as a diagnostic. Three things made the difference — and none of them are visual:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">It read ground truth, not the doc</p>
+        <p>The drift only surfaces if you check the claim against the thing it describes — the config for a deploy line, the lockfile for a package manager, the deps for a feature list. The skill's first move is the audit-discipline rule I already keep: <a href="/said-it-checked/">demo 07</a>, applied to a README.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It stayed native to each project</p>
+        <p>Where it did add a visual, it pulled the palette and type from the repo itself — terminal green for a CLI, midnight-and-gold for the tournament app. The rule that kept five heroes from looking like one template: <strong>native to the project, not to the tool.</strong></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The audience set the effort</p>
+        <p>A maintainers-only README got left plain; the flagship product's got a full masthead. Same tool, opposite intensity — decided by <strong>who lands on the page and what they're judging</strong>, not by where the file sits.</p>
+        <p class="lesson"><b>Polish</b> is the finish. The diagnosis is the substance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · THE DESIGNED CHOICES ——————————————————————— -->
+<section class="slide" id="s5" aria-label="The designed choices">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE DESIGNED CHOICES</p>
+    <h2>Two ways to draw a system — no default</h2>
+    <p class="lede">The one place the tool did real design was a diagram: browse-tool's architecture, hand-drawn as an SVG that used the project's own colors. It looked good enough to want more of. But "make more diagrams" splits into two tools, and the honest answer is to keep both and choose at the moment you invoke them.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Hand-authored SVG</p>
+        <p>Bespoke layout, exact tokens, a real motif. Reserved for the one or two diagrams on a surface a non-engineer judges — a README's first screen. It doesn't scale: every coordinate is placed by hand.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Themed Mermaid</p>
+        <p>Written from reading the code, rendered by GitHub from a text fence, themed to the project's colors, edited as a diff. The right call for anything engineers read that changes with the code.</p>
+        <p class="lesson">The choice is <b>audience &times; change-rate</b> — decided per diagram, never defaulted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · HONEST LIMITS ——————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> HONEST LIMITS</p>
+    <h2>I said checked. The check was partial.</h2>
+    <p class="lede">This is a demo about a tool that inspects — so the failure it produced is almost too on the nose. Demo 07's whole lesson happened again, this time to me, on this session.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The claim I didn't earn</p>
+        <p>I wrote that the hand-drawn SVG banners would "render fine" on GitHub's image proxy in dark mode. I had only ever looked at them <strong>locally</strong>, rendered by a Mac preview tool — never once on an actual GitHub page. I asserted the render and skipped the render.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The check that got blocked</p>
+        <p>When I tried to verify the published comparison artifact in a real browser, the browser profile wasn't logged in and hit a sign-in wall. I fell back to rendering the diagrams through the Mermaid engine directly — real evidence, but of the diagrams, <strong>not of the page I claimed to have checked.</strong></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The scope I can't wave away</p>
+        <p>Five repos, all mine, all one stack family. The "it's an auditor" conclusion is drawn from a small, homogeneous sample. A large repo with many contributors might drift in ways this pass would miss entirely.</p>
+        <p class="lesson"><b>Verify where it ships</b> — not where it's easy to look.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · YOUR VERSION ————————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> YOUR VERSION OF THIS</p>
+    <h2>Run the audit before the paint</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Before you accept a cleaned-up document, ask what it was checked against. A tidy README, deck, or spec can be confidently, beautifully wrong — the polish makes the stale facts look more trustworthy, not less.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Point your "polish" tools at ground truth first. The highest-value output of a formatting pass is the diff it can't reconcile — the deploy line the config contradicts, the command the CLI no longer has. Fix what's wrong before styling what's fine.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Treat any cosmetic tool as a diagnostic one, and give it the ground truth to check against. A README linter that greps the config for drift is worth more than a hero image — and the two can ship in the same pass.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>the drift is the payload · the polish is the finish</span>
+      <span>native to the project, not the tool</span>
+      <span>verify where it ships, not where it's easy</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every drift in this demo is from real work: five of my own repositories — browse-tool, nc-demos, photography, rally-hq, and the Blueprint methodology repo — beautified in one session on publication day, each claim re-checked against the live config, lockfile, and dependencies it names. The honest-limits failure is this session's, not a reconstruction. Demo 09 in the <a href="/">ways-of-working series</a> — the "said it checked" discipline it leans on is <a href="/said-it-checked/">demo 07</a>; the CLI whose diagram opens the design question is <a href="/browse-tool/">demo 02</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

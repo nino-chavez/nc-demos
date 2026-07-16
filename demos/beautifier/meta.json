@@ -1,0 +1,13 @@
+{
+  "number": "09",
+  "title": "The Beautifier Was an Auditor",
+  "hook": "A skill built to make a README prettier turned out to be a drift detector. Across five repos it flagged a deploy doc still pointing at a platform the project left months ago, a command list that no longer matched the actual commands, and capabilities the code had grown that nobody had written down. The visual polish was the smallest thing it did.",
+  "date": "2026-07",
+  "for": "Anyone about to run a 'polish' or 'cleanup' pass on their docs — and anyone who trusts a cosmetic tool to stay in its lane.",
+  "get": "Why a beautifier's real payload is its inspect step, five repos' worth of drift it surfaced, and one honest failure — claiming checked when the check was only partial.",
+  "do": "Run the audit pass first: fix what's wrong before polishing what's already fine — and verify the render where it actually ships, not just locally.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 09 title slide: a README claim beside the code fact that contradicts it",
+  "theme": "documentation",
+  "accent": "#fb7185"
+}
