@@ -1,0 +1,7 @@
+{
+  "title": "Promote a Correction to a Guardrail",
+  "description": "A correction you give an AI in chat dies with the session. The fix is changing its environment — a wrapper, a deny-hook, or a CI ratchet — so the rule holds forever. The three-rung ladder, with real deny-hooks firing.",
+  "cardDesc": "Wrapper → deny-hook → CI ratchet: promote a repeated correction to the lowest rung that holds.",
+  "accent": "#6ea8fe",
+  "strand": "applied"
+}

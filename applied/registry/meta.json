@@ -1,0 +1,7 @@
+{
+  "title": "A Registry for What Grep Can't Find",
+  "description": "Some load-bearing facts are invisible to search — the code compiles and the behavior is still wrong. Hold them in one registry, enforce the mechanical ones in CI, and split why / decided / currently-true. The technique, quoted from a real 25-entry registry.",
+  "cardDesc": "Facts grep can't surface, held in one registry and enforced in CI — the conclusion, pre-paid once.",
+  "accent": "#6ea8fe",
+  "strand": "applied"
+}

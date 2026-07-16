@@ -1,0 +1,276 @@
+<title>Mine Your Own Transcripts — applied: your agent sessions are a searchable corpus</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks. Signature device is the mine — a query over the
+     transcript corpus, and the prior it pulls out. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d;
+    --accent: #6ea8fe; --accent-soft: rgba(110, 168, 254, 0.12); --ok: #4ade80;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 112px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 38px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+  .stat { display: flex; gap: 26px; flex-wrap: wrap; margin: 0 0 4px; }
+  .stat .s { display: flex; flex-direction: column; }
+  .stat .s b { font-family: var(--display); font-weight: 700; font-size: 40px; color: var(--accent); line-height: 1; }
+  .stat .s span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2a3444; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .p { color: var(--accent); }
+  .term .o { color: var(--dim); }
+  .term .g { color: var(--ok); }
+
+  /* prior card — a mined correction, as it re-surfaces */
+  .prior { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--panel); padding: 16px 20px; }
+  .prior .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .prior .q { font-size: 15.5px; color: var(--text); margin: 8px 0 0; line-height: 1.5; }
+  .prior .src { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 10px; }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Mine your own<br>transcripts<span class="dot">.</span></h1>
+    <p class="title-sub">Every session with an AI agent is a transcript you usually close and forget. Kept and mined instead, the pile becomes a corpus — reusable prompts, your corrections as standing priors, and counted waste you can act on.</p>
+    <div class="prior" style="max-width:700px; margin-bottom:38px;">
+      <p class="tag">[ preference · i-prefer ]</p>
+      <p class="q">"i want interactive html demos, not mp4s, for all use cases."</p>
+      <p class="src">mined from a past session — and surfaced into this one, which is how these interactive decks got built instead of a video.</p>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE PROBLEM ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROBLEM</p>
+    <h2>The best prompt you wrote scrolled away</h2>
+    <p class="lede">A correction you gave the agent, a prompt that finally worked, a waste you noticed and meant to fix — all of it lives in the transcript, and the transcript ends. The next session starts blank, and you re-derive what you already learned. The raw material is just sitting there, unsearched.</p>
+    <div class="stat">
+      <div class="s"><b>614</b><span>session transcripts on disk</span></div>
+      <div class="s"><b>74</b><span>projects</span></div>
+      <div class="s"><b>1,419</b><span>signals once mined</span></div>
+    </div>
+    <p class="lede" style="margin:22px 0 0;">Those aren't a backup you'll never open. Mined, they're the one thing that lets an agent with no memory start where the last one left off.</p>
+  </div>
+</section>
+
+<!-- 03 · THE MINE ————————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The mine">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE MINE</p>
+    <h2>Read the corpus, extract the reusable</h2>
+    <p class="lede">A small tool walks the transcripts and pulls three kinds of thing back out: prompts worth reusing, corrections worth keeping as priors, and waste worth counting. SQLite and full-text search make the pile queryable.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>claude-recall-cli — mine the sessions</span></div>
+      <pre><span class="p">$</span> recall-scan --since 30d        <span class="o"># walk transcripts, classify entries</span>
+<span class="g">✓</span> 585 user messages · 2,034 sentences scanned
+<span class="g">✓</span> 1,419 signals extracted → SQLite + FTS5
+
+<span class="p">$</span> recall "how did we set up turnstile"
+<span class="o">→ 3 past sessions · the working incantation, ranked by recency</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">The point isn't the tool — it's the move: <strong>your own past sessions are the highest-signal reference you have</strong>, and they're already written. You just have to read them.</p>
+  </div>
+</section>
+
+<!-- 04 · CORRECTIONS AS PRIORS ————————————————————— -->
+<section class="slide" id="s4" aria-label="Corrections as priors">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> CORRECTIONS AS PRIORS</p>
+    <h2>Your "no, do it this way" becomes a standing rule</h2>
+    <p class="lede">The richest vein is your corrections. Extracted and distilled into a character stack, they load as context so the next agent vets an idea the way you would — recognizing the shapes you routinely reject before you have to reject them again.</p>
+    <blockquote>
+      "A character stack extracted from prior sessions — the same red lines, rationale, and taste. Treat it as a lens, not a script: recognize the question shapes Nino routinely overrides with 'go', and skip asking them."
+      <cite>~/.claude/poe/stack.md — 1,419 signals across 74 projects, regenerated from the corpus</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom:0;">This deck is a live example: the "interactive, not video" prior on the title slide, and the bias to <strong>act rather than ask permission</strong>, both came from the stack — and both shaped what got built here, before you had to say either out loud.</p>
+  </div>
+</section>
+
+<!-- 05 · WASTE AUDITS ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Waste audits">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> WASTE AUDITS</p>
+    <h2>Turn an annoyance into a counted number</h2>
+    <p class="lede">"The agent keeps leaving stray servers running" is a shrug. <strong>A hundred-plus times, across the corpus</strong> is a mandate. Mining converts a vague irritation into a number big enough to justify building the fix — which is exactly where the wrapper on the guardrails deck came from.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>a waste audit over the corpus</span></div>
+      <pre><span class="p">$</span> recall-scan --waste pkill
+<span class="o"># stray http.server processes killed by hand, counted across sessions</span>
+<span class="g">→ 122</span>  <span class="o"># the annoyance, quantified — build `preview` and stop chasing them</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">One discipline carries over from the verification demo: <strong>re-derive the number on use.</strong> A counted figure in an old note is a stale snapshot; mine it fresh before you quote it, or it becomes the next thing that lies.</p>
+  </div>
+</section>
+
+<!-- 06 · THE HONEST LEDGER ————————————————————————— -->
+<section class="slide" id="s6" aria-label="The honest ledger">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE HONEST LEDGER</p>
+    <h2>Mine what got ripped out, too</h2>
+    <p class="lede">A corpus that only remembers wins lies by omission. The valuable ledger grades what the agent built against what <em>survived</em> — the features quietly deleted, the abstractions reverted, the tool rebuilt until it finally held.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The confession is the signal</p>
+        <p>The mining tool's own honest entry is that it was rebuilt several times before it was made durable. That failure is worth more than any success it logged — it tells you which shape actually lasts.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Survival, not activity</p>
+        <p>Count what's still in the codebase months later, not what got committed. The corpus makes "did this last?" answerable — and answering it honestly is what keeps the priors trustworthy.<span class="lesson">A prior earns its place by <b>surviving</b>, not by being said.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HONEST LIMITS</p>
+    <h2>A lens, frozen in time</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The stack is a snapshot</p>
+        <p>It reflects what was true when it was generated. When the current conversation contradicts a mined signal, the live conversation wins — a prior is a prior, not a law. Preferences move; the corpus lags.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Regex misses nuance</p>
+        <p>Signals pulled by pattern-match from CLI prompts capture the shape of a preference, not its full texture. The stack is explicitly a lens for terminal cadence, not a voice for prose — treat missing guidance as missing, not as permission.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Local, and only yours</p>
+        <p>The corpus is machine-local and personal — it encodes one operator's taste, not a team standard. That's the point and the ceiling: it makes <em>your</em> agent sharper, and it doesn't transfer without re-mining.<span class="lesson">Trust the conversation over the corpus <b>every time they disagree</b>.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · USE IT ———————————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Use it">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> USE IT</p>
+    <h2>Read your own history first</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Before starting something you've done before, go find the last time you did it. Your old threads, emails, and notes are a corpus too — the reusable version of you is already written down, if you search it instead of redoing it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Keep your agent transcripts and make them searchable. Grep for one counted waste number before you build anything; save the corrections where the next session will read them — a prompt file, a memory, a loaded stack.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Treat the session log as a data source, not exhaust. Mine prompts, priors, and survival — and re-derive the numbers on use. The corpus is only worth trusting if it's cheaper to search than the work is to repeat.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>your past sessions are your best reference</span>
+      <span>corrections → priors the next session reads</span>
+      <span>re-derive the number on use</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> An <b>Applied</b> technique companion to session demo 04, <a href="/session-corpus/">Your Sessions Are a Corpus</a>. The tooling is real and on this machine — <span style="color:var(--dim)">claude-recall-cli</span> (artifact-miner + poe-extract, SQLite/FTS5) and the generated stack at <span style="color:var(--dim)">~/.claude/poe/stack.md</span>; the counts (614 transcripts · 74 projects · 1,419 signals · 585 messages) are its current numbers, not an older snapshot. The priors quoted actually surfaced while these demos were built. The "re-derive on use" rule is the verification demo, <a href="/said-it-checked/">demo 07</a>, applied to your own memory.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id; a.setAttribute('aria-label', 'Slide ' + (i + 1)); rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) { if (slides[i].offsetTop <= mid) return i; }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current(); dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) { if (i < 0 || i >= slides.length) return; slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint); paint();
+  })();
+</script>

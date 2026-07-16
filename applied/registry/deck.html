@@ -1,0 +1,274 @@
+<title>A Registry for What Grep Can't Find — applied: hold the facts search can't surface</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks. Signature device is the registry entry — the
+     fact, why grep misses it, how it's enforced. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d;
+    --accent: #6ea8fe; --accent-soft: rgba(110, 168, 254, 0.12);
+    --ok: #4ade80; --bad: #f87171; --bad-soft: rgba(248, 113, 113, 0.07);
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 112px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 38px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+
+  /* registry entry: the fact · why grep misses it · how it's enforced */
+  .entry { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .entry .fact { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--accent); }
+  .entry .fact .n { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 7px; }
+  .entry .fact p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.55; }
+  .entry .fact code, .entry .why code, .entry .enf code { font-family: var(--mono); font-size: 0.9em; color: var(--accent); }
+  .entry .why { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-size: 13.5px; color: var(--dim); line-height: 1.6; }
+  .entry .why b { color: var(--text); font-weight: 600; }
+  .entry .enf { padding: 11px 20px; background: var(--panel); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .entry .enf .ok { color: var(--ok); }
+
+  /* derive check — the mechanical status the catalog generates */
+  .derive { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 4px; }
+  .derive-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .derive-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2a3444; }
+  .derive-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .derive pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--dim); }
+  .derive .p { color: var(--accent); }
+  .derive .ok { color: var(--ok); }
+  .derive .bad { color: var(--bad); }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>A registry for what<br>grep can't find<span class="dot">.</span></h1>
+    <p class="title-sub">Some facts a codebase depends on are invisible to search — the code compiles, the tests pass, and the behavior is still wrong. The technique: write those facts down in one place, once, and enforce the mechanical ones so they can't rot.</p>
+    <div class="entry" style="max-width:720px; margin-bottom:38px;">
+      <div class="fact"><p class="n">invariant #22 · scoring</p><p><code>matches.team1_score</code> is a rally-point total (the sum of set scores) — <b style="color:var(--text)">not set wins</b>.</p></div>
+      <div class="why">Imported tournaments stored set wins there: a <code>2</code> where <code>42</code> belongs. <b>Invisible in the match display</b> — it renders the same — but it silently turns every standings +/− into a set differential. Grep the column and you find a healthy integer. Nothing looks wrong.</div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE PROBLEM ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROBLEM</p>
+    <h2>Search finds topology, not truth</h2>
+    <p class="lede">Grep is great at "where does X live" — routes, tables, functions. It's blind to the facts that make you confidently wrong: a column written but never read, a flag whose two values are identical to the runtime, a boolean that only means something in one mode, an environment where "local" silently means production.</p>
+    <p class="lede" style="margin-bottom:0;">These don't announce themselves. An agent (or a teammate, or you next month) reads the code, finds nothing amiss, and ships the bug — often the <strong>same</strong> bug, because the correction from last time evaporated. The fix is to stop re-deriving the fact and start <strong>recording the conclusion</strong>.</p>
+  </div>
+</section>
+
+<!-- 03 · THE ENTRY ————————————————————————————————— -->
+<section class="slide" id="s3" aria-label="A registry entry">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE ENTRY</p>
+    <h2>Write the fact, the trap, and the guard</h2>
+    <p class="lede">A good entry is three things: the load-bearing fact, why it's a landmine, and what enforces it. Here's the archetype — a column that read healthy and lied:</p>
+    <div class="entry">
+      <div class="fact"><p class="n">invariant #1 · registration</p><p>A tournament accepts public self-registration <b style="color:var(--text)">iff</b> <code>registration_mode === 'open'</code> AND <code>registration_open === true</code>. The mode is authoritative; the boolean only pauses within open mode.</p></div>
+      <div class="why"><b>Why it's a landmine:</b> <code>registration_mode</code> was originally write-only — set at creation, derived once into the boolean, then never read again. Grepping the column showed a healthy NOT-NULL column with a CHECK constraint; the runtime ignored it and gated solely on the independently-toggleable boolean. An <code>invitation</code> tournament whose boolean drifted <code>true</code> would <b>silently accept public registrations</b>.</div>
+      <div class="enf"><span class="ok">enforced ▸</span> state-derive <code style="color:var(--faint)">inv-registration-mode-source-of-truth</code> · ADR-0001</div>
+    </div>
+    <p class="lede" style="margin:22px 0 0;">Same shape, other traps: types edited in the gitignored generated file that never reach the client; <code>teams.captain_user_id</code> that also holds steward placeholders; the tournament <code>status</code> field that's deprecated for conditionals. None findable by grepping for a problem.</p>
+  </div>
+</section>
+
+<!-- 04 · WHY IT PAYS ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Why it pays">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> WHY IT PAYS</p>
+    <h2>The conclusion, pre-paid once</h2>
+    <blockquote>
+      "Re-deriving these facts from source costs context budget every session — a grep returns 60 lines of matches you then read 300 lines of source to interpret, to extract 4 facts. An entry here is the <strong>conclusion, pre-paid once</strong>. On a long-lived project where sessions drift and compact, this registry is the only artifact that lets session N+1 spend three lines of context where session N spent three hundred."
+      <cite>rally-hq/docs/INVARIANTS.md — the registry's own rationale, verbatim</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom:0;">This is the case for writing it down even when the fact is already "in the code." The code is the source; the registry is the <strong>index of what's dangerous</strong> about it — read at session start in one line each, instead of re-mined from scratch every time an agent wakes up with no memory.</p>
+  </div>
+</section>
+
+<!-- 05 · ENFORCE THE MECHANICAL ONES ————————————————— -->
+<section class="slide" id="s5" aria-label="Enforce the mechanical ones">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> ENFORCE IT</p>
+    <h2>Derive the status; never hand-edit it</h2>
+    <p class="lede">Prose rots. So the mechanically-checkable invariants are declared once as checks in a catalog; a derive step runs them to generate live status, and the <strong>same catalog runs in CI</strong> so a broken invariant fails the build — not at the next manual check.</p>
+    <div class="derive">
+      <div class="derive-bar"><i></i><i></i><i></i><span>npm run state:derive  ·  catalog/invariants.ts → docs/state/_state.md</span></div>
+      <pre><span class="p">inv-registration-mode-source-of-truth</span>   <span class="ok">COMPLIANT</span>   as_of 5adc2f4
+<span class="p">inv-db-type-authority</span>                   <span class="ok">COMPLIANT</span>   as_of 5adc2f4
+<span class="p">inv-no-component-dark-mode-override</span>     <span class="ok">COMPLIANT</span>   as_of 5adc2f4
+<span class="p">inv-auth-guard-build-skip</span>               <span class="bad">NON-COMPLIANT</span> ← a new route dropped the build-skip
+                                        <span style="color:var(--faint)">↳ CI test fails · the push is stopped</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">Now trust changes shape: a <strong>test-backed</strong> entry can be relied on outright — that's what enforcement buys. Everything else carries provenance — <code style="font-family:var(--mono);font-size:0.9em;color:var(--accent)">verified-against</code> a commit — and gets re-confirmed before you lean on it.</p>
+  </div>
+</section>
+
+<!-- 06 · THE SPLIT ————————————————————————————————— -->
+<section class="slide" id="s6" aria-label="The split">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE SPLIT</p>
+    <h2>Three surfaces, no duplication</h2>
+    <p class="lede">The registry only stays honest because each kind of truth lives in exactly one place — and the grep patterns live in the catalog, never copied into prose that could drift from them.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Why it's dangerous</p>
+        <p>The narrative landmine — this registry. One line in the index, a paragraph in the entry. Read at session start; the human-facing "here's the trap."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Why we decided</p>
+        <p>The immutable rationale — the ADRs in <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">docs/decisions/</code>. Written once, never edited; the entry links to it rather than restating it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Currently true</p>
+        <p>The generated status — <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">docs/state/_state.md</code>, COMPLIANT / NON-COMPLIANT + evidence + as-of-commit. Never hand-written; the derive owns it.<span class="lesson">Add a fact only when it <b>repeats</b> — and verify it against source that session.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HONEST LIMITS</p>
+    <h2>The registry can lie too</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Prose entries lag</p>
+        <p>A <code style="font-family:var(--mono);font-size:0.85em">verified-against</code> entry is only as fresh as its commit. It can quietly diverge from current source — which is exactly why the mechanical ones are pushed into CI and the rest carry a re-confirm-before-you-rely rule.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Most facts don't belong</p>
+        <p>The bar is high on purpose: true, non-obvious from one file, and costly to get wrong. Topology stays out — grep finds it fine. A registry that holds everything is just a second codebase to keep in sync.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It needs a registry about itself</p>
+        <p>The "how to add an entry" rules — number sequentially, never renumber, prefer a test to prose, verify in-session — are the meta-guard that keeps the registry from becoming the next thing that lies.<span class="lesson">A fact you can't check in CI carries a <b>date, not a promise</b>.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · USE IT ———————————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Use it">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> USE IT</p>
+    <h2>Start the file the second time</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>The pattern is just "write down the non-obvious thing that bit you, where the next person will look." A runbook line, a decision log, a 'why this is weird' note beats re-explaining it every quarter — and beats hoping everyone remembers.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Start the file the second time something breaks for the same reason. Record the fact, link the decision, and — if it's mechanically checkable — write the test and let CI hold it. Derive the status; never hand-edit "currently true."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Split the surfaces: narrative why, immutable decided, generated currently-true. Keep the check patterns in code, referenced from prose, never copied. The registry's whole value is being cheaper to trust than the source is to re-read.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>write the conclusion, not the search</span>
+      <span>test-backed = trust; verified-against = re-confirm</span>
+      <span>start the file the second time, not the first</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> An <b>Applied</b> technique companion to session demo 06, <a href="/landmine-registry/">The Registry of Landmines</a>. The entries, rationale, and enforcement model are quoted from a real 25-invariant registry — <span style="color:var(--dim)">rally-hq/docs/INVARIANTS.md</span> — with its catalog (<span style="color:var(--dim)">state-derive</span>) and CI test (<span style="color:var(--dim)">state-invariants.test.ts</span>); Blueprint ships the same register pattern to its consumers. The "re-confirm before you rely" discipline is the verification demo, <a href="/said-it-checked/">demo 07</a>, applied to the registry itself.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id; a.setAttribute('aria-label', 'Slide ' + (i + 1)); rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) { if (slides[i].offsetTop <= mid) return i; }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current(); dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) { if (i < 0 || i >= slides.length) return; slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint); paint();
+  })();
+</script>

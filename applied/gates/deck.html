@@ -1,0 +1,283 @@
+<title>Gate Every Hand-Off — applied: agents are strong inside a stage, unreliable at the boundaries</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks. Signature device is the flow — agentic stages
+     with a deterministic gate on every hand-off. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d;
+    --accent: #6ea8fe; --accent-soft: rgba(110, 168, 254, 0.12);
+    --ok: #4ade80; --bad: #f87171; --bad-soft: rgba(248, 113, 113, 0.07);
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 112px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 34px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+
+  /* flow: agentic stages with a deterministic gate on every hand-off */
+  .flow { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .flow .stage { flex: 1 1 0; min-width: 96px; padding: 18px 12px; text-align: center; background: var(--panel); }
+  .flow .stage .sl { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); display: block; }
+  .flow .stage .sn { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 16px; color: var(--text); margin-top: 5px; display: block; }
+  .flow .gate { flex: 0 0 auto; width: 30px; display: flex; align-items: center; justify-content: center; background: var(--panel2); color: var(--accent); font-size: 12px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .flowcap { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin: 12px 2px 0; }
+  .flowcap b { color: var(--dim); font-weight: 600; }
+  .flowcap .d { color: var(--accent); }
+  @media (max-width: 720px) { .flow { flex-wrap: wrap; } .flow .stage { flex: 1 1 40%; } .flow .gate { display: none; } }
+
+  .incident { border: 1px solid var(--line); border-left: 3px solid var(--bad); border-radius: 8px; background: var(--bad-soft); padding: 16px 20px; }
+  .incident .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bad); }
+  .incident p { margin: 8px 0 0; font-size: 15px; color: var(--text); line-height: 1.55; }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2a3444; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .o { color: var(--dim); }
+  .term .bad { color: var(--bad); }
+  .term .g { color: var(--ok); }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Gate every<br>hand-off<span class="dot">.</span></h1>
+    <p class="title-sub">An AI agent is strong inside a task and weak at the seams between them. So you don't gate the middle — you put a deterministic check on every hand-off, and nothing advances until it passes.</p>
+    <div class="flow" style="max-width:760px; margin-bottom:20px;">
+      <div class="stage"><span class="sl">stage</span><span class="sn">Research</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">stage</span><span class="sn">Prototype</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">stage</span><span class="sn">Fact-check</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">stage</span><span class="sn">Deploy</span></div>
+    </div>
+    <p class="flowcap" style="margin-bottom:36px;"><b>Agents work inside the boxes.</b> <span class="d">◆</span> is a deterministic gate — non-AI, mechanical, and the only way across.</p>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE PROBLEM ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROBLEM</p>
+    <h2>The failure is at the boundary, not the work</h2>
+    <p class="lede">Inside a single stage — writing the code, drafting the doc, building the prototype — an agent is genuinely good. The trouble is the hand-off: it passes work forward that <em>looks</em> finished, the next stage trusts it, and a small wrongness compounds into a shipped one. The seams are where confident output becomes confident error.</p>
+    <p class="lede" style="margin-bottom:0;">You can't fix that by making the agent more careful — carefulness doesn't survive a stage boundary any better than a correction survives a session. You fix it by putting a <strong>mechanical check between the stages</strong> that the agent cannot talk its way past.</p>
+  </div>
+</section>
+
+<!-- 03 · THE SHAPE ————————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The shape">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE SHAPE</p>
+    <h2>Agentic shell, deterministic core</h2>
+    <p class="lede">The pattern names two jobs and keeps them apart: agents do the open-ended work inside each stage; deterministic code owns the boundaries. The creativity is in the boxes; the guarantees are in the gates between them.</p>
+    <div class="flow">
+      <div class="stage"><span class="sl">agentic</span><span class="sn">Research</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">agentic</span><span class="sn">Design</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">agentic</span><span class="sn">Prototype</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">agentic</span><span class="sn">Fact-check</span></div>
+      <div class="gate">◆</div>
+      <div class="stage"><span class="sl">agentic</span><span class="sn">Deploy</span></div>
+    </div>
+    <p class="flowcap"><b>Each</b> <span class="d">◆</span> <b>is a check in code</b> — an artifact is verified against source, a schema, a rule — before the next agent is allowed to start. A stage's position is <em>derived from what's on disk</em>, not asserted by the agent that just ran.</p>
+  </div>
+</section>
+
+<!-- 04 · THE INCIDENT ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="The day production published fiction">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE INCIDENT</p>
+    <h2>The day production published fiction</h2>
+    <p class="lede">A hand-off with no gate, in a real repo. A migration sweep moved every prototype page into production routes — because nothing on those pages declared where they were allowed to go.</p>
+    <div class="incident">
+      <p class="tag">⚠ unguarded hand-off</p>
+      <p>Production rendered <b>fictional pilot integrations, unsigned partnership terms, and competitive claims</b> — at full, SEO-indexable status. Each page was fine inside its prototyping stage; the boundary to production is where the fiction shipped, because the sweep had no mechanical way to tell a real page from a prototype.</p>
+    </div>
+    <p class="lede" style="margin:22px 0 0;">No agent lied. The work was correct in context and catastrophic across the boundary — the exact failure the shell/core split exists to stop.</p>
+  </div>
+</section>
+
+<!-- 05 · THE GATE IT LEFT ————————————————————————— -->
+<section class="slide" id="s5" aria-label="The gate it left">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE INVERTED CHECK</p>
+    <h2>Make the artifact declare what it is</h2>
+    <p class="lede">The fix wasn't "be more careful next sweep." It was to give every artifact a field it must declare, and a gate that reads it — so the boundary is enforced by data, not vigilance.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>state-derive · destination gate</span></div>
+      <pre>every prototype page declares:  <span class="o">destination: product | blueprint | noindex-only</span>
+
+<span class="o"># the gate, run on every derive + in CI:</span>
+production route → maps to a <span class="o">blueprint</span>-destination page
+   <span class="bad">NON-COMPLIANT</span>  <span class="o">— the catalog fails; the page can't ship to production</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">Only <span style="font-family:var(--mono);font-size:0.9em;color:var(--accent)">product</span> pages reach the live routes. A gate born from the failure it now prevents — which is the honest way most good gates get built.</p>
+  </div>
+</section>
+
+<!-- 06 · GATE EVERY HAND-OFF ——————————————————————— -->
+<section class="slide" id="s6" aria-label="Gate every hand-off">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE PATTERN</p>
+    <h2>The gate is code, never a model</h2>
+    <p class="lede">The load-bearing rule: the check at the boundary must be deterministic. A second agent reviewing the first is not a gate — it's another stage that can be confidently wrong. Real gates are dumb and mechanical, and that's their strength.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>git push — a required-review ruleset (this session)</span></div>
+      <pre><span class="o">remote:</span> Bypassed rule violations for refs/heads/main:
+<span class="o">remote:</span>   - Changes must be made through a pull request.
+   3d3ffe9..1e39642  main -> main   <span class="o"># admin-bypass, solo phase — logged, not silent</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">Same family, every altitude: a pre-push design gate that fails on a raw color, a schema check between draft and publish, a required review before merge. <strong>Version the gates like a product</strong> — a changelog of what each boundary now enforces, so the process itself can't silently regress.</p>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Honest limits">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HONEST LIMITS</p>
+    <h2>A gate at the wrong seam is just friction</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Gates cost something</p>
+        <p>Every check is friction, and friction on the wrong boundary slows work without protecting anything. The admin-bypass above is deliberate — a solo operator can override during early phases. A gate with no bypass gets disabled; a gate on every trivial step gets resented.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">It must be genuinely deterministic</p>
+        <p>The moment the "gate" involves judgment, it's a stage wearing a gate's costume — and it fails the same way the work it's checking does. If you can't write the check as a test or a rule, you don't have a gate yet.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Boundaries, not brilliance</p>
+        <p>Gates make hand-offs safe; they do nothing for the quality of work inside a stage. A well-gated pipeline of mediocre stages ships reliable mediocrity. The shell still has to be good.<span class="lesson">Gate the seam the failure <b>actually crosses</b>.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · USE IT ———————————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Use it">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> USE IT</p>
+    <h2>Find the seam, put a check on it</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Wherever work passes from one hand to the next — a draft to a signer, an analysis to a decision — add a small, boring check that has to pass first. Most process failures are unguarded hand-offs, not bad work.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Let agents run free inside a stage; gate the boundaries in code. Make each artifact declare what it is, derive the stage from disk rather than trusting the agent's word, and put the deterministic check in CI so the boundary holds without you.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Design the shell and the core as two different things. The agentic shell is allowed to be creative and occasionally wrong; the deterministic core makes the wrongness un-shippable. Version the gates, and treat a boundary with no check as a bug.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>agents inside · deterministic gates between</span>
+      <span>derive the stage from disk, don't trust the claim</span>
+      <span>a second agent is not a gate</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> An <b>Applied</b> technique companion to session demo 08, <a href="/agentic-gates/">Gates Between Agentic Stages</a>. The shape and the incident are from a real methodology repo (Blueprint) and its ADRs — the migration-sweep that published fiction, and the <span style="color:var(--dim)">destination</span> taxonomy the state-derive catalog now enforces; the required-review bypass is an actual push from this session. The "derive, don't assert" and "run the check yourself" disciplines are the verification demo, <a href="/said-it-checked/">demo 07</a>, applied to the boundaries between stages.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id; a.setAttribute('aria-label', 'Slide ' + (i + 1)); rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) { if (slides[i].offsetTop <= mid) return i; }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current(); dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) { if (i < 0 || i >= slides.length) return; slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint); paint();
+  })();
+</script>
