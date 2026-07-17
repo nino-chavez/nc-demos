@@ -18,6 +18,7 @@ Ordered 01 → 08; each title links to the live session.
 - **[06 · The Registry of Landmines](https://demos.ninochavez.co/landmine-registry/)** — Some load-bearing facts are invisible to search — the code compiles and the behavior is still wrong. One registry file holds them, a derive catalog enforces them in CI, and a meta-test keeps the registry from lying about itself.
 - **[07 · The Agent Said It Checked](https://demos.ninochavez.co/said-it-checked/)** — "Verified" is a sentence, not a fact. A security migration passed its audit while production was broken — and the discipline that came out of it caught three more false claims building this very series.
 - **[08 · Gates Between Agentic Stages](https://demos.ninochavez.co/agentic-gates/)** — Agents are strong inside a stage and unreliable at the boundaries. A delivery methodology built on that: deterministic gates between agentic stages — 88 versioned revisions, 14 running initiatives, and the day production published fiction.
+- **[09 · The Chiropractor's Four Questions](https://demos.ninochavez.co/four-questions/)** — A sports chiropractor asked four plain questions about selling rehab programs online. The AI's answer was confident, tabulated, sourced — and its evidence was marketing all the way down. Twice. The series' first client-facing session, with the audit that fixed it.
 
 ## Layout
 

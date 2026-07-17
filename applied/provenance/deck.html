@@ -1,0 +1,296 @@
+<title>Put Provenance Labels on AI Research — applied: evidence a reader can trust</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks, so the strand reads as one thing. The signature
+     device is the label pair — a claim as the agent stated it, the probe that
+     tested it, and the label the evidence actually supported. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116;
+    --panel: #171b22;
+    --panel2: #12151b;
+    --line: #262c36;
+    --text: #e8ecf2;
+    --dim: #9aa5b4;
+    --faint: #5f6b7d;
+    --accent: #6ea8fe;
+    --accent-soft: rgba(110, 168, 254, 0.12);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --deny: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 108px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 38px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  /* —— the label tiers ——————————————————————————— */
+  .tag {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px;
+    white-space: nowrap; vertical-align: middle;
+  }
+  .tag.green { background: rgba(74, 222, 128, 0.14); color: var(--ok); }
+  .tag.amber { background: rgba(251, 191, 36, 0.13); color: var(--warn); }
+  .tag.dead { background: transparent; color: var(--faint); border: 1px solid var(--line); text-decoration: line-through; }
+  .arrow { color: var(--faint); margin: 0 8px; }
+
+  /* —— label pair: claim · probe · resulting label —— */
+  .lp { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .lp + .lp { margin-top: 16px; }
+  .lp .claim { padding: 14px 18px; background: var(--panel); border-left: 3px solid var(--accent); font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .lp .claim .ctag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+  .lp .probe { padding: 12px 18px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .lp .probe b { font-weight: 600; }
+  .lp .probe .ok { color: var(--ok); }
+  .lp .probe .bad { color: var(--deny); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .rung { display: flex; align-items: baseline; gap: 10px; }
+  .rung .num { font-family: var(--display); font-weight: 700; font-size: 30px; color: var(--accent); line-height: 1; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Put provenance labels<br>on AI research<span class="dot">.</span></h1>
+    <p class="title-sub">An agent's research report states everything with the same confidence — the number it read at the source and the number it absorbed from a search snippet look identical on the page. The technique: make every load-bearing claim wear a label that says how it was obtained, and audit the labels adversarially before anything ships.</p>
+    <div class="lp" style="max-width: 700px; margin-bottom: 38px;">
+      <div class="claim"><span class="ctag">as the agent stated it</span>Primary pick: <span class="tag green">verified directly — 4.8/5, 750 reviews</span></div>
+      <div class="probe"><b class="bad">✗ probe:</b> the review site returns 403 to direct reads — the number was a search snippet. Nobody read that page; nobody could. <span class="tag green">verified</span><span class="arrow">→</span><span class="tag amber">search-corroborated</span> <span style="color: var(--faint)">— a real downgrade from the session behind demo 09.</span></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE FAILURE THIS FIXES ——————————————————— -->
+<section class="slide" id="s2" aria-label="The failure this fixes">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE FAILURE THIS FIXES</p>
+    <h2>Search results flatten who is speaking</h2>
+    <p class="lede">Two things go wrong in agent research, and they compound. First: <strong>search summaries are hearsay</strong> — the tool's synthesis of a page is not the page, but the agent quotes it with page-level confidence. Second: <strong>the byline vanishes</strong> — a vendor ranking itself, a rival attacking its competitor, and a neutral review platform all arrive as identical-looking "results."</p>
+    <blockquote>
+      In the session behind <a href="/four-questions/">demo 09</a>, the first research pass compared e-commerce platforms using the recommended vendor's own comparison blog. When challenged, the "corrected" pass swapped in a damning statistic — sourced from a <strong>competing payment processor's</strong> marketing. Two rounds, two biases, one failure: nobody asked who wrote the page.
+      <cite>the originating case — confident, tabulated, and marketing all the way down</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">The reader of the final deliverable — a client, an exec, your future self — can't re-run the research. If the confidence isn't labeled, they inherit yours. <strong>Labels move the trust decision to where the evidence actually is.</strong></p>
+  </div>
+</section>
+
+<!-- 03 · THE LABEL SYSTEM ————————————————————————— -->
+<section class="slide" id="s3" aria-label="The label system">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE TECHNIQUE · PART 1</p>
+    <h2>Three tiers, visible to the reader</h2>
+    <p class="lede">Every load-bearing number — price, rating, statistic, anything that gates the decision — carries one of three labels. The legend ships with the deliverable, so the reader knows what each color promises:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag"><span class="tag green">fetched at source</span></p>
+        <p>The agent read the actual page, ran the actual query, hit the actual API — in this session, with the fetch in the transcript. The <em>only</em> tier allowed to carry "verified" language.</p>
+        <p class="lesson"><b>The bar:</b> a fetch you can point to, not a memory of one.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag"><span class="tag amber">search-derived</span></p>
+        <p>The number arrived in a search summary or a secondary page. Might be right — often is — but nobody read the source. The label tells the reader: confirm this yourself before you commit money to it.</p>
+        <p class="lesson"><b>Not a failure.</b> An honest amber beats a false green every time.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag"><span class="tag dead">blocked / unverifiable</span></p>
+        <p>The source refuses direct reads — many review platforms 403 automated fetches. Say so, in the deliverable, next to the number. Then check whether the recommendation survives without it. If it doesn't, it needs different footing.</p>
+        <p class="lesson"><b>The test:</b> would the advice still stand if this number vanished?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · THE AUDIT LOOP ——————————————————————————— -->
+<section class="slide" id="s4" aria-label="The audit loop">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE TECHNIQUE · PART 2</p>
+    <h2>Audit the labels adversarially, before it ships</h2>
+    <p class="lede">Labels the author assigns to their own draft inherit the author's blind spots — the drafting agent believed its green tags. The audit is a separate pass, fresh context, told to refute rather than confirm:</p>
+    <div class="cols c3">
+      <div class="panel">
+        <div class="rung"><span class="num">1</span><h3>Extract</h3></div>
+        <p>Pull every load-bearing claim: prices, ratings, statistics, and each instance of "verified / confirmed / checked directly." Mechanical work — a regex finds most of it.</p>
+      </div>
+      <div class="panel">
+        <div class="rung"><span class="num">2</span><h3>Trace</h3></div>
+        <p>For each claim, answer from the <em>transcript</em>, not from memory: was the source fetched, or did this arrive in a search result? Who owns the domain it came from?</p>
+      </div>
+      <div class="panel">
+        <div class="rung"><span class="num">3</span><h3>Re-derive</h3></div>
+        <p>Fetch what carries "verified" language. Confirms → keep. Contradicts → fix the claim. Blocked → downgrade the label and say why.</p>
+      </div>
+      <div class="panel">
+        <div class="rung"><span class="num">4</span><h3>Self-check</h3></div>
+        <p>Turn the deliverable's own confidence legend on itself: every green tag must trace to a fetch. A label system that lies on one row is worse than none.</p>
+      </div>
+      <div class="panel">
+        <div class="rung"><span class="num">5</span><h3>Hunt gaps</h3></div>
+        <p>What does the draft imply is free, complete, or settled that was never priced or checked? The originating case shipped "costs $0 to start" while the plan's only real recurring cost went unmentioned.</p>
+      </div>
+      <div class="panel">
+        <div class="rung"><span class="num">6</span><h3>Report, then fix</h3></div>
+        <p>Corrections first, with what changed and why. Keep the conclusions only if they survive on the downgraded evidence — "the labels were wrong but the advice holds" is a legitimate, common outcome.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">A fresh context refuses the draft's framing in a way its author can't — a different model, a different session, or just different instructions all work. <strong>What matters is that the auditor treats every "verified" as a hypothesis.</strong></p>
+  </div>
+</section>
+
+<!-- 05 · MAKE IT MECHANICAL ——————————————————————— -->
+<section class="slide" id="s5" aria-label="Make it mechanical">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> KEEPING IT</p>
+    <h2>Promote the discipline out of the conversation</h2>
+    <p class="lede">Run manually, this technique lasts exactly as long as you remember to invoke it. The session behind demo 09 needed three operator-prompted audit rounds — so the discipline got promoted into standing equipment the same afternoon (<a href="/enforced-forever/">demo 03</a>'s pattern):</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">A standing rule</p>
+        <p>One paragraph in the preferences document every agent session loads: snippets are hearsay, "verified" requires a fetch, vendor and competitor content are both marketing. Rules the agent reads every session outlive rules you say once.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">A deterministic checker</p>
+        <p>A pipeline stage that extracts claims from a draft and validates each against a provenance ledger — any "verified" without a fetched-at-source entry fails the build. No AI in the loop: regex, a ledger, an exit code.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">A named audit pass</p>
+        <p>The six-step loop as an invocable skill, run before anything client-facing ships. Naming it matters: "run the evidence audit" is a checklist item; "be more careful about sources" is a hope.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;"><strong>Honest limits:</strong> re-deriving everything would consume the session — scope the audit to claims that gate decisions, touch money, or ship to someone who can't check them. And some sources simply can't be read by an agent; the technique's answer isn't to work around the block, it's to <em>say so on the page</em>.</p>
+  </div>
+</section>
+
+<!-- 06 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> DO THIS TODAY</p>
+    <h2>Start with one question in your next research prompt</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you only prompt</p>
+        <p>Add one line to any research ask: <em>"label every number: did you read the source page, or a search result about it? Note who owns each domain you cite."</em> Then ask the follow-up on anything load-bearing: <em>"re-derive that one at the source."</em></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you review AI output</p>
+        <p>Run the audit as a second session: paste the draft, instruct it to extract every claim and refute the verified ones. Expect the common outcome — conclusions hold, labels don't — and treat a draft that survives unchanged with suspicion.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build the deliverables</p>
+        <p>Make the label a first-class field in your template — green, amber, blocked — with the legend printed for the reader. Let "this couldn't be verified, and here's why the advice stands anyway" be a sentence your format allows. That sentence is where trust comes from.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>source read, or search result about it?</span>
+      <span>who owns the domain?</span>
+      <span>honest amber beats false green</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Technique distilled from one real advisory session, July 2026 — the full story, including the two failed research rounds and the model-swap audit, is <a href="/four-questions/">demo 09</a>. The self-attestation failure mode it defends against is <a href="/said-it-checked/">demo 07</a>; the promote-to-environment pattern in slide 05 is <a href="/enforced-forever/">demo 03</a>. The label-pair exhibits are actual claims from that session, quoted with their real probes and outcomes.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

@@ -7,7 +7,10 @@ Command** (tool token-economics), **03 Taught Once, Enforced Forever**
 Tickets** (autonomy gate in code), **06 The Registry of Landmines** (facts grep
 can't surface, CI-enforced), **07 The Agent Said It Checked** (self-attestation
 is not verification), **08 Gates Between Agentic Stages** (deterministic core,
-agentic shell). Candidates were selected by a two-track
+agentic shell), **09 The Chiropractor's Four Questions** (applied advisory:
+provenance labels on research a non-engineer acts on; first entry mined from a
+new session rather than the backlog — with Applied companion "Put Provenance
+Labels on AI Research"). Candidates for 01-08 were selected by a two-track
 research pass: a workspace survey (apps/wip/tools) and a session-corpus mining
 run over 2,747 transcripts via claude-recall-cli — the series' own method,
 applied to choosing its next subjects.
