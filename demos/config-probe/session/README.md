@@ -1,4 +1,4 @@
-# Demo 10 probe evidence — raw outputs
+# Demo 11 probe evidence — raw outputs
 
 Twelve-run A/B config probe, 2026-07-20. Model: claude-fable-5, effort high,
 all arms. Prompt: `probe-prompt.txt` (tier 2 appended a stay-in-this-repo

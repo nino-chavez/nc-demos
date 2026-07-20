@@ -1,5 +1,5 @@
 {
-  "number": "09",
+  "number": "10",
   "title": "The Chiropractor's Four Questions",
   "hook": "A sports chiropractor asked four plain questions about selling rehab programs from his website. The AI's answer was confident, tabulated, sourced — and its evidence was marketing all the way down. Twice.",
   "date": "2026-07",
@@ -7,7 +7,7 @@
   "get": "A first pass built on vendors ranking themselves, a 'correction' that swapped in a competitor's stat, three refuted claims with the fetches that killed them, and the confidence-label system that came out the other side.",
   "do": "Ask \"did you read the source, or a search result about it?\" — then make the answer a visible label on every number that ships.",
   "preview": "img/preview.jpg",
-  "previewAlt": "Demo 09 title slide with a confidence tag being downgraded from verified to search-derived",
+  "previewAlt": "Demo 10 title slide with a confidence tag being downgraded from verified to search-derived",
   "theme": "applied-advisory",
   "accent": "#e8556b"
 }

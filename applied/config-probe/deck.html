@@ -99,7 +99,7 @@
   <div class="wrap">
     <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
     <h1>Bare-arm test<br>your agent config<span class="dot">.</span></h1>
-    <p class="title-sub">When two AI tools give different-quality answers, three suspects are tangled together: the models, the harnesses wrapped around them, and the seats they sat in — the reviewer's chair is easier than the author's. This is the method for untangling them: run your own model with its harness stripped off, as a control arm, before concluding anything. The technique behind <a href="/config-probe/">demo 10</a>.</p>
+    <p class="title-sub">When two AI tools give different-quality answers, three suspects are tangled together: the models, the harnesses wrapped around them, and the seats they sat in — the reviewer's chair is easier than the author's. This is the method for untangling them: run your own model with its harness stripped off, as a control arm, before concluding anything. The technique behind <a href="/config-probe/">demo 11</a>.</p>
     <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
   </div>
 </section>
@@ -159,14 +159,14 @@
       </div>
       <div class="panel">
         <p class="ptag">Fence the reads</p>
-        <p>The first full-config probe in demo 10 followed the workspace map in the preferences file straight to the live repo and found the completed answer. If your config gives the agent a map, add the same boundary sentence to every arm: work only from files inside this directory.</p>
+        <p>The first full-config probe in demo 11 followed the workspace map in the preferences file straight to the live repo and found the completed answer. If your config gives the agent a map, add the same boundary sentence to every arm: work only from files inside this directory.</p>
       </div>
       <div class="panel">
         <p class="ptag">Hold everything else equal</p>
         <p>Same model ID, same effort level, same prompt bytes, same working directory. If an arm needs a different auth path (bare mode refuses OAuth), verify the key works <em>before</em> the run — half the first batch died on an expired key and burned the replicate budget.</p>
       </div>
     </div>
-    <p class="lede" style="margin: 26px 0 0;">And read the failed runs. The dead keys, the self-contaminating probe, the CLI flag that swallowed a prompt — every probe defect in demo 10 turned into either a fix or a finding. <strong>An experiment's error log is part of its output.</strong></p>
+    <p class="lede" style="margin: 26px 0 0;">And read the failed runs. The dead keys, the self-contaminating probe, the CLI flag that swallowed a prompt — every probe defect in demo 11 turned into either a fix or a finding. <strong>An experiment's error log is part of its output.</strong></p>
   </div>
 </section>
 
@@ -186,7 +186,7 @@
       </div>
       <div class="panel">
         <p class="ptag">Amended arm flips it</p>
-        <p><strong>Validated fix.</strong> The candidate rule changed the behavior consistently (demo 10's was 2/2). Only now does it earn a place in config — promoted the same day, with the probe cited in the commit message.</p>
+        <p><strong>Validated fix.</strong> The candidate rule changed the behavior consistently (demo 11's was 2/2). Only now does it earn a place in config — promoted the same day, with the probe cited in the commit message.</p>
       </div>
     </div>
     <p class="lede" style="margin: 26px 0 0;">The promotion step is not optional decoration. A finding that lives in a chat summary is gone next session; a finding in the preferences file, the hook, and the commit history is standing equipment — the pattern <a href="/enforced-forever/">demo 03</a> is about. Every arm-C rule that validates should land in canonical config before the session ends.</p>
@@ -206,7 +206,7 @@
       </div>
       <div class="panel">
         <p class="ptag">If the pair reads differently</p>
-        <p>You found config-induced behavior — and the interesting question is which block. Feed suspect sections one at a time to bare arms. In demo 10 the convergence habit survived isolation (model default) but the missing pushback didn't: it was the stack, compounding.</p>
+        <p>You found config-induced behavior — and the interesting question is which block. Feed suspect sections one at a time to bare arms. In demo 11 the convergence habit survived isolation (model default) but the missing pushback didn't: it was the stack, compounding.</p>
       </div>
     </div>
     <div class="stack">
@@ -216,7 +216,7 @@
       <span>validated rule → config, same day</span>
     </div>
     <div class="colophon">
-      <b>Colophon.</b> Method extracted from the twelve-run probe in <a href="/config-probe/">demo 10</a>, July 2026 — the session where a rival model's sharper-looking review turned out to be partly the reviewer's chair and partly self-installed sycophancy. Command shapes are Claude Code's (<span style="color: var(--dim)">--bare, --append-system-prompt, -p</span>); the arms generalize to any agent CLI that can run with and without its configuration layer. Related: <a href="/enforced-forever/">demo 03</a> on promoting corrections to environment, <a href="/session-corpus/">demo 04</a> on the mined priors this method audits.
+      <b>Colophon.</b> Method extracted from the twelve-run probe in <a href="/config-probe/">demo 11</a>, July 2026 — the session where a rival model's sharper-looking review turned out to be partly the reviewer's chair and partly self-installed sycophancy. Command shapes are Claude Code's (<span style="color: var(--dim)">--bare, --append-system-prompt, -p</span>); the arms generalize to any agent CLI that can run with and without its configuration layer. Related: <a href="/enforced-forever/">demo 03</a> on promoting corrections to environment, <a href="/session-corpus/">demo 04</a> on the mined priors this method audits.
     </div>
   </div>
 </section>
