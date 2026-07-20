@@ -1,0 +1,31 @@
+Agreed — stop iterating. The IA keeps feeling off because it's patched symptomatically (the 2fa658a "surface orphaned pages, resolve Inspect overlap" commit is the tell: when your IA work is about finding homes for orphans, the taxonomy is wrong, not incomplete). Here's the first-principles pass.
+
+## The actual job to be done
+
+The portal's IA currently mirrors the methodology's pipeline — research, decisions, docs, prototype, validation. That's Conway's law shipped as navigation: it answers "what stages did Blueprint run" when every real visitor is asking a different question. Nobody lands on a portal wanting to browse artifact types.
+
+Who actually lands on a consumer-initiative portal, observed across the real cases:
+
+1. **You, returning after weeks.** Question: "where is this, what's decided, what's pending?" That's a state dashboard, and honestly it's closer to a CLI/status job than a designed page.
+2. **A stakeholder being shown the thing** (a coach for film-room, a prospect for rally-hq, Travis's client). Question: "what do I get, does it work, what's next?" They judge by the demo and the headline. They read almost nothing else.
+3. **A future agent/session.** But agents don't read portals — they read `blueprint.yml`, CLAUDE.md, handoffs, the repo itself. The portal's "engineer view" serves an audience that consumes through a different channel entirely.
+
+That third point is why the persona switcher is fluff: it assumes three human readerships, but only one-and-a-half exist. The switcher was the patch for not deciding who the page is for — it hands the IA decision to the visitor. And for film-room specifically the honest audience is narrower still: you said you don't even need it hosted, you want to see what Blueprint determined the app surface is locally. That's audience #1 only, with maybe a coach demo later.
+
+## The ADR problem is presentation, not the ADRs
+
+ADRs are the initiative's decision record — internal speak is fine *in the record*, and the promote-rationale rule says keep them. The mistake is rendering them raw on a judged surface. The portal needs a decision *narrative* — "we chose X because Y, which means the product does Z" — distilled from the ADRs, with the raw records linked as appendix. One rewrite layer, not a rewrite of the corpus.
+
+## Three candidate structures, tested against real cases
+
+**A. Brief (single question-led narrative).** One scrolling page answering in order: what is this / who's it for / here it working (demo embed or captures) / what we learned / what we decided in plain language / what's next. No tabs, no personas. Fits film-room and rally-hq cleanly. Strains for the self-app portal, whose job (methodology onboarding for new consumers) genuinely needs reference depth.
+
+**B. Operator console + generated stakeholder share.** Portal is primarily your pipeline dashboard (stage, gates, freshness, orphan detection); a separate flat share-page is generated per demo. Fits film-room's "local, for me" reality best. But it makes the stakeholder surface a second-class afterthought, and rally-hq's portal is prospect-judged — the audience-sets-the-bar rule says that surface can't be an export.
+
+**C. Job-declared surfaces.** `blueprint.yml portal:` declares which jobs this initiative needs — `status`, `brief`, `reference` — and the harness renders only those, each as its own surface with its own bar. Film-room declares `status` only. Rally-hq declares `status + brief`. The self-app declares all three. No initiative carries chrome for audiences it doesn't have.
+
+C wins because it explains why the current IA never converged: Pattern A tries to be dashboard, demo, and knowledge base simultaneously for every consumer, and the persona switcher was the compensating mechanism. The differences between initiatives are real, so the schema should carry them — not the reader. A is the right *shape for the brief surface inside C*; B's console is the right shape for the status surface. So the candidates compose rather than compete: C is the frame, A and B become its surfaces.
+
+The cost worth naming: C is a template/harness change, which means the methodology-freeze check and a restamp wave for Pattern A consumers, and it's more build than A. If you want the cheap probe first, hand-build film-room's portal as a bare status surface (structure A stripped to job #1) and see whether anything is missed — that's one initiative, no template edit, and it tests C's core claim that most consumers need far less portal than Pattern A ships.
+
+That's my read. The next concrete step when you say go: draft the `portal:` job taxonomy against all 13 registered consumers in `consumers.yml` — if the three jobs don't cleanly cover the fleet, the taxonomy is wrong before any template work starts.

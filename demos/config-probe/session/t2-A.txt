@@ -1,0 +1,22 @@
+Agreed — and the throw-out you're resisting toward already happened. `research/portal-ia-rederivation/` in the blueprint repo (dated today, 7 docs + specimens + an executed validator) ran exactly the first-principles rederivation you're describing, and the evidence is harsher than "feels off":
+
+**The 6-verb IA was already dead at its origin.** bc-subscriptions — the repo the contract was extracted from — replaced it within five weeks of meeting real readers: 2 of 5 named readers reached their goal, the CFO (the decision-maker) failed outright. It deleted the audience switcher on 2026-06-25 while the fleet conformance gate kept enforcing it everywhere else. Across the entire fleet, only Try and Operate ever carried real content, and no consumer ever had a reader whose job was "switch to the executive lens." The verbs organized the builder's content piles, not any reader's job.
+
+**Film-room's JTBD, answered concretely** (specimen `film-room.yml`): three real viewers, not three persona pills —
+
+- **You (maintainer)**: recover context after weeks away; run the next event from the console with no terminal fallback.
+- **The next agent session**: boot from canonical state without re-deriving it.
+- **The club director** — the only external reader, evidenced by `research/current-state/630-director-interest.md`: verify what was delivered. Served by the issued HTML report only.
+
+That resolves both of your complaints structurally. The switcher isn't fluff, it's a **hazard** — the corpus holds 630 negotiation prep, and a rendered surface with an audience toggle is a leak path to the one audience that must never see it. The ADRs read as internal speak because they *are* internal-clearance material; the club-facing artifact is an allowlisted projection with a hard-fail leakage lint, never a portal page that cites them.
+
+**Where it stands:** three candidates were compared (03), candidate B — a four-layer viewer-output contract: account → viewer contracts → outputs → receipts — won on convergence (bc-subs built those exact layers independently under real-reader pressure). Codex ran four external review rounds; the validator (`validator/validate.mjs`) executed against four real consumer repos (all pass, with honest PENDING warns) and six negative fixtures (all fail on the named rules, including a film-room clearance-leak fixture). Pattern A retires; Pattern B demotes to a `review-context` output type.
+
+**Blocked on your four ratification calls** (from `04-candidate-b-contract.md`) before any ADR or `template/` edit lands. My recommendations:
+
+1. **A vs B** — take B with C's restraint. The comparison isn't close; A needed patches on four of six consumers.
+2. **Terminology** (account / viewer contracts / outputs / receipts) — keep as-is; "viewers" over "readers" matters because agents are the most frequent consumer.
+3. **Ceremony floor** — the one real caution. The early "~6-line solo manifest" claim was wrong by ~9x: real specimens run 70–91 functional lines, intrinsic-only ~15–20. I'd ratify with intrinsic-only as the stamped default so a solo Tier-0 initiative pays ~20 lines, not 90; full manifests only when external viewers are evidenced.
+4. **First wave scope** — confirm the two-archetype wave (film-room + self-app) before template edits, per the specimen-falsification discipline.
+
+Say "ratified" (with any deltas) and the next session writes the ADR, the wave entry, and runs the `blueprint fleet` freeze check.

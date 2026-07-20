@@ -1,0 +1,38 @@
+Agreed — iterating on a structure that was never derived from user need just produces politer versions of the same confusion. Here's the first-principles take.
+
+## The actual job to be done
+
+A portal for a blueprint initiative exists to convert a skeptical stranger into a successful user. That's it. Every page either moves someone toward "I trust this and I know what to do next" or it's overhead. The current portal fails this because it's organized around **how the initiative was built** (waves, gates, ADRs, personas) rather than **what a visitor came to do**.
+
+## Who actually lands there
+
+Not three personas — two *modes*, and often the same person in both:
+
+1. **Evaluating** — "What is this? Is it alive? Is it credible? Should I invest time?" They need a 60-second pitch, proof it works (real output, live status, gate results as evidence not process), and a clear signal of maturity.
+2. **Doing** — "I've decided; get me to a working state." They need task-shaped guides: adopt it, run it, review with it, troubleshoot it.
+
+The persona switcher fails because visitors don't self-identify by role — they arrive with a task. A "coach vs. player vs. analyst" toggle forces a decision before they know enough to make it, and it triples your content maintenance for near-zero benefit. Kill it. Design nav around **intent**, not identity.
+
+## Why ADRs feel wrong on the portal
+
+ADRs are a maintainer artifact — they answer "why did we decide X" for future contributors. That's repo content, not portal content. On the portal, decisions should only surface as *digested rationale inside the page where the question naturally arises* ("why do gates block instead of warn? → two sentences, link to ADR-0009 for the archaeology"). Surfacing raw ADRs in nav is the initiative talking to itself in public.
+
+## The first-principles IA
+
+Four zones, ordered by visitor journey:
+
+1. **Understand** — one page. What it is, who it's for, what changes if you use it. No methodology vocabulary above the fold.
+2. **Evaluate** — proof and health. Live pipeline/gate status *as evidence of rigor*, real before/after examples, current maturity level. This is where blueprint's machinery earns its keep — shown as a trust signal, not explained as internal process.
+3. **Do** — task-titled guides: "Adopt film-room in your repo," "Run a review session," "Interpret a gate failure." Each page named for the verb, not the concept.
+4. **Reference** — specs, schemas, config, glossary. Flat, searchable, boring.
+
+Governance content (ADRs, wave logs, changelog) stays in the repo, linked from a single "Internals / Contributing" footer entry. Demoted, not deleted.
+
+## The framework-level fix
+
+The deeper smell you're pointing at: every blueprint initiative currently re-derives its portal IA and inherits blueprint's internal artifacts as if they were user content. So fix it once, at the methodology layer — **blueprint should ship a portal contract**: the four zones above as required pages, plus two invariants every page must satisfy:
+
+- Name the visitor and the task the page completes. Can't name them → cut or merge it.
+- No process vocabulary (waves, gates-as-process, ADR numbers) in nav labels or first paragraphs.
+
+Then the rebuild is mechanical: content-inventory the current portal, assign every page a zone + task, kill the orphans, write the missing "Do" guides (that's usually where the real gap is). Film-room becomes the reference implementation, and future initiatives inherit an IA that was designed for readers instead of accreted from the build process.

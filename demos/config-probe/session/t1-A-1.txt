@@ -1,0 +1,22 @@
+Agree with throwing it out — but the reason matters. The current IA is organized by what the methodology *produces* (research, decisions, feedback, ADRs, portal chrome), not by what a reader *needs to do*. Iterating on that skeleton just rearranges an artifact taxonomy. No amount of polish fixes an IA whose organizing principle is the pipeline's internal structure.
+
+First principles, starting from your own questions:
+
+**Who actually lands on the film-room portal?** Realistically two readers: you (resuming context, judging state) and maybe a 630 stakeholder deciding "does this do what I need for tomorrow's clips?" That's it. There is no exec/PM/engineer trio here. The three-persona switcher is inherited from the self-application portal, where multiple audiences were real because the methodology itself has consumers, contributors, and evaluators. Stamped onto a single-operator initiative, it's a costume with nobody inside it. Kill it. Write for the one primary reader; personas should be derived from who actually opens the link, not shipped as default chrome.
+
+**What's the job?** For a consumer initiative portal, the reader questions are:
+
+1. What is this and who is it for — one screen, no methodology vocabulary.
+2. What works today — the demo/output front and center. For film-room that's processed clips, not a stage ladder.
+3. What's decided and what it means for me — plain-language decision digest with consequences, not raw ADRs. ADRs are for the build team; link them below the fold for whoever digs. "Internal speak" is the correct register for the ADR file and the wrong register for the portal surface — the fix is a translation layer, not rewriting the ADRs.
+4. What's open / what I need from you — the asks.
+5. Evidence, for readers who want to verify — research lives here, last.
+
+Everything in the current IA either maps to one of those five or gets cut.
+
+**Two guardrails on the redesign:**
+
+- Apply your own design-bar rule first: if film-room's portal is only ever read by you, most of this is over-built regardless of IA. The tier ladder (`docs/portal-and-tier-ladder.md`) already exists for exactly this — film-room may be on the wrong tier more than the wrong IA. Check that before redesigning.
+- Don't redesign inside film-room as a one-off. Design the reader-question IA in film-room as the pilot, then promote it as a wave to `template/apps/portal/` — same dogfood-then-promote path every other methodology change has taken. A bespoke film-room portal that diverges from template recreates the leak the charter warns about, and the fourth initiative hits this same wall again.
+
+The concrete next step: write the five reader questions as the portal spec, audit film-room's current pages against them, and cut everything that doesn't answer one. That audit output becomes the wave brief for the template redesign.

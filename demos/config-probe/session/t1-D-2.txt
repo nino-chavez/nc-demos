@@ -1,0 +1,32 @@
+Agreed — the persona switcher is the tell. When a portal needs a mode toggle to make sense, it usually means the IA was organized around *who we imagine reading* instead of *what any reader actually came to do*. Three personas × N pages is a matrix you have to keep filled, and most cells end up as filler. Throw it out.
+
+## First principles
+
+**Who actually lands on the film-room portal?** Realistically two people, and they're often the same person ten minutes apart:
+
+1. **The skeptical evaluator.** Arrived from a link, a README, or the compare table. Their job: *decide in under 3 minutes whether this is real and worth their time.* They need: what is this, what problem does it kill, what does it look like running, why this over the alternative in the landscape table. They will not click a persona toggle. They will not read an ADR.
+2. **The adopter/operator.** Already convinced (or mandated). Their job: *get from zero to a working run, then not get stuck.* They need: install/setup, the happy-path walkthrough, what the gates mean when one blocks them, and reference material findable by search — not by browsing.
+
+There is no third persona whose needs aren't a subset of these two. "Contributor" or "methodology nerd" is just the operator who went deeper.
+
+**What is the ADR content, really?** It's your working memory — the *why* behind decisions. That's valuable, but it's provenance, not product. Surfacing raw ADRs as portal pages forces visitors to reverse-engineer your narrative from internal artifacts. The fix isn't rewriting ADRs to be public-friendly (that ruins them as ADRs); it's writing a thin "design rationale" layer that cites them, and demoting the ADRs themselves to an appendix/records section for the people who genuinely want the paper trail.
+
+## What the IA falls out to
+
+A shallow, job-ordered structure — one path, no modes:
+
+1. **Why / What** — the pitch, the proof, one honest demo or annotated run. This page *is* the evaluator experience. Success metric: can someone decide yes/no without navigating.
+2. **Do** — quickstart → first real run → the walkthrough. Ordered by the adopter's timeline, not by feature.
+3. **When it pushes back** — gates, failure modes, "a gate blocked me, now what." This is where blueprint methodology earns trust instead of feeling like ceremony.
+4. **Reference** — spec, config, CLI. Optimized for search/deep-linking, not reading order.
+5. **Records** — ADRs, changelogs, waves. Explicitly labeled as internal history, linked from rationale callouts elsewhere. No apology needed for it being internal-speak once it's framed as an archive.
+
+## The bigger point about the blueprint IA
+
+Your instinct to stop iterating is right, and here's the structural reason: the current IA mirrors *how the initiative is built* (personas, ADRs, waves, inspect surfaces) rather than *the reader's timeline* (evaluate → adopt → operate → dig into history). Every refresh so far has been rearranging pages within the wrong frame — that's why it keeps feeling off. Any IA that requires the reader to know your internal taxonomy before they can navigate has failed the evaluator, who is the highest-leverage reader you have.
+
+The redefinition also generalizes across initiatives: **evaluate / do / reference / records** is a template every blueprint portal can share, which gets you consistency across initiatives for free instead of per-portal bespoke IA debt. The film-room portal becomes the first instance of the template rather than another one-off.
+
+Concrete throwaways: the persona switcher, ADRs as first-class nav, any page whose title describes your process rather than the reader's task. Concrete keeps: the ADR content itself (relocated), the gates material (promoted — it's your differentiator), the compare/landscape framing (it belongs on the evaluator page).
+
+When you're ready to move on this, the first slice is a one-page IA spec for film-room under the four-section frame plus a page-by-page disposition list (keep/move/kill) for what's live now — that makes the rewrite mechanical instead of another open-ended refresh.

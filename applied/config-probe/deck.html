@@ -1,0 +1,268 @@
+<title>Bare-Arm Test Your Agent Config — applied: attribution before blame</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks, so the strand reads as one thing. The signature
+     device is the arm ladder — control, treatment, amendment — rendered as
+     labeled chips on runnable command shapes. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116;
+    --panel: #171b22;
+    --panel2: #12151b;
+    --line: #262c36;
+    --text: #e8ecf2;
+    --dim: #9aa5b4;
+    --faint: #5f6b7d;
+    --accent: #6ea8fe;
+    --accent-soft: rgba(110, 168, 254, 0.12);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --deny: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 108px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .chip { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px; white-space: nowrap; vertical-align: middle; }
+  .chip.control { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
+  .chip.treat { background: var(--accent-soft); color: var(--accent); }
+  .chip.amend { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+
+  .cmd { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 0; }
+  .cmd .label { padding: 11px 18px 9px; background: var(--panel2); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .cmd .label b { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+  .cmd pre { margin: 0; padding: 14px 18px; background: var(--panel); font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: var(--dim); overflow-x: auto; }
+  .cmd pre b { color: var(--text); font-weight: 600; }
+  .cmds { display: flex; flex-direction: column; gap: 14px; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Bare-arm test<br>your agent config<span class="dot">.</span></h1>
+    <p class="title-sub">When two AI tools give different-quality answers, three suspects are tangled together: the models, the harnesses wrapped around them, and the seats they sat in — the reviewer's chair is easier than the author's. This is the method for untangling them: run your own model with its harness stripped off, as a control arm, before concluding anything. The technique behind <a href="/config-probe/">demo 10</a>.</p>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE FAILURE THIS FIXES ——————————————————— -->
+<section class="slide" id="s2" aria-label="The failure this fixes">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE FAILURE THIS FIXES</p>
+    <h2>Config accretes. Its effects compound. You can't feel them.</h2>
+    <p class="lede">Agent configuration grows one reasonable rule at a time: don't ask permission mid-task, don't hedge, remember my corrections as standing priors. No single rule is wrong. But instructions interact — an anti-hesitation rule plus a no-hedging voice plus expansion-rewarding priors can add up to <strong>"treat the operator's framing as a directive"</strong> without any rule saying it. The behavior you lose is invisible by construction: you never see the pushback that didn't happen.</p>
+    <p class="lede" style="margin-bottom: 0;">The tell is usually external — another tool, another model, or a colleague's setup produces noticeably different behavior on the same problem. The wrong response is picking a winner. The right response is attribution: <strong>which differences come from the model, and which did you install?</strong></p>
+  </div>
+</section>
+
+<!-- 03 · THE ARM LADDER ——————————————————————————— -->
+<section class="slide" id="s3" aria-label="The arm ladder">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE METHOD</p>
+    <h2>Four arms: control, treatment, amendment, isolation</h2>
+    <p class="lede">One fixed prompt — a real decision moment from a real session, reconstructed — run through ladder rungs that differ only in harness. In Claude Code, bare mode is the control: no preference files, no hooks, no memory, no injected priors.</p>
+    <div class="cmds">
+      <div class="cmd">
+        <div class="label"><b>Arm B</b><span class="chip control">control</span></div>
+        <pre>claude -p <b>--bare</b> --model &lt;same-model&gt; --effort &lt;same&gt; "$PROMPT"
+<span style="color: var(--faint)"># --bare skips CLAUDE.md, hooks, memory; auth via ANTHROPIC_API_KEY or apiKeyHelper</span></pre>
+      </div>
+      <div class="cmd">
+        <div class="label"><b>Arm A</b><span class="chip treat">treatment</span></div>
+        <pre>claude -p --model &lt;same-model&gt; --effort &lt;same&gt; "$PROMPT"
+<span style="color: var(--faint)"># everything you run daily: prefs, hooks, priors — the harness under test</span></pre>
+      </div>
+      <div class="cmd">
+        <div class="label"><b>Arm C</b><span class="chip treat">treatment</span><span class="chip amend">+ candidate rule</span></div>
+        <pre>claude -p <b>--append-system-prompt "$CANDIDATE_RULE"</b> --model &lt;same&gt; "$PROMPT"
+<span style="color: var(--faint)"># the rule you're thinking of adopting, tested before it enters config</span></pre>
+      </div>
+      <div class="cmd">
+        <div class="label"><b>Arm D</b><span class="chip control">control</span><span class="chip amend">+ suspect block</span></div>
+        <pre>claude -p --bare <b>--append-system-prompt "$SUSPECT_EXCERPT"</b> --model &lt;same&gt; "$PROMPT"
+<span style="color: var(--faint)"># bare + one config block in isolation: does this block cause the behavior alone?</span></pre>
+      </div>
+    </div>
+    <p class="lede" style="margin: 24px 0 0;">Two runs per arm minimum. Score behaviors, not quality: did it compare alternatives? did it push back? did it end with a question? Behaviors are countable; "which answer is better" restarts the argument you're trying to end.</p>
+  </div>
+</section>
+
+<!-- 04 · THE CONTROLS ————————————————————————————— -->
+<section class="slide" id="s4" aria-label="The controls that make it valid">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> VALIDITY</p>
+    <h2>The probe will try to cheat. Fence it.</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Pin the world</p>
+        <p>Run every arm from a detached git worktree pinned to a commit <em>before</em> the original session's answer existed. Untracked files stay out automatically — the probe can't find the finished work and grade its own homework.</p>
+        <p class="lesson"><b>git worktree add --detach</b> is the whole trick.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Fence the reads</p>
+        <p>The first full-config probe in demo 10 followed the workspace map in the preferences file straight to the live repo and found the completed answer. If your config gives the agent a map, add the same boundary sentence to every arm: work only from files inside this directory.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Hold everything else equal</p>
+        <p>Same model ID, same effort level, same prompt bytes, same working directory. If an arm needs a different auth path (bare mode refuses OAuth), verify the key works <em>before</em> the run — half the first batch died on an expired key and burned the replicate budget.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">And read the failed runs. The dead keys, the self-contaminating probe, the CLI flag that swallowed a prompt — every probe defect in demo 10 turned into either a fix or a finding. <strong>An experiment's error log is part of its output.</strong></p>
+  </div>
+</section>
+
+<!-- 05 · READING THE GRID ————————————————————————— -->
+<section class="slide" id="s5" aria-label="Reading the grid">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> ATTRIBUTION</p>
+    <h2>Three verdicts, three different responses</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Bare arm shows it too</p>
+        <p><strong>Model-intrinsic.</strong> The habit exists with the harness stripped — your config didn't cause it, but it isn't counteracting it either. Fix by addition: draft a candidate rule and test it as an arm.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Only configured arms show it</p>
+        <p><strong>Config-induced.</strong> The behavior appears when your harness is on and vanishes when it's off — you installed it. Find the block responsible with isolation arms, then amend the block, not the symptom.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Amended arm flips it</p>
+        <p><strong>Validated fix.</strong> The candidate rule changed the behavior consistently (demo 10's was 2/2). Only now does it earn a place in config — promoted the same day, with the probe cited in the commit message.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The promotion step is not optional decoration. A finding that lives in a chat summary is gone next session; a finding in the preferences file, the hook, and the commit history is standing equipment — the pattern <a href="/enforced-forever/">demo 03</a> is about. Every arm-C rule that validates should land in canonical config before the session ends.</p>
+  </div>
+</section>
+
+<!-- 06 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Start here">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> START HERE</p>
+    <h2>One prompt, two arms, twenty minutes</h2>
+    <p class="lede">You don't need the full ladder to start. Take the last session where your agent's behavior bothered you — too agreeable, too hasty, too timid — reconstruct the pivotal message as a fixed prompt, and run just two arms: your daily setup and bare mode. Read the pair side by side.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">If the pair reads the same</p>
+        <p>The behavior is the model's default. Now write the one-sentence rule you wish it followed and re-run as an amendment arm. You're twenty minutes from a validated config change instead of a hopeful one.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If the pair reads differently</p>
+        <p>You found config-induced behavior — and the interesting question is which block. Feed suspect sections one at a time to bare arms. In demo 10 the convergence habit survived isolation (model default) but the missing pushback didn't: it was the stack, compounding.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>control arm before conclusions</span>
+      <span>score behaviors, not vibes</span>
+      <span>pin the worktree · fence the reads</span>
+      <span>validated rule → config, same day</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Method extracted from the twelve-run probe in <a href="/config-probe/">demo 10</a>, July 2026 — the session where a rival model's sharper-looking review turned out to be partly the reviewer's chair and partly self-installed sycophancy. Command shapes are Claude Code's (<span style="color: var(--dim)">--bare, --append-system-prompt, -p</span>); the arms generalize to any agent CLI that can run with and without its configuration layer. Related: <a href="/enforced-forever/">demo 03</a> on promoting corrections to environment, <a href="/session-corpus/">demo 04</a> on the mined priors this method audits.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

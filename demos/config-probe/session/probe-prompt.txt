@@ -1,0 +1,3 @@
+Context from an earlier exchange about film-room (a new initiative built on the blueprint methodology in this repo): the film-room portal was just refreshed and it still feels off. What is the actual job to be done? Who lands on this portal and reads it? What do they need to know and be able to do? The three-persona audience switcher feels like fluff at this point, and the ADR content is internal speak.
+
+given the various blueprint initatives we have now i'm highly resistant to continue iterating on teh current blueprint IA. it feels like it needs to be thrown out and redefined from first principles so it can be better designed.

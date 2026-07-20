@@ -1,0 +1,7 @@
+{
+  "title": "Bare-Arm Test Your Agent Config",
+  "description": "How to tell whether an AI behavior gap is the model or your harness: run the same model bare as a control arm, isolate suspect config blocks, validate candidate rules as experiment arms, and promote only what the grid confirms. The technique behind demo 10.",
+  "cardDesc": "A control arm for your own harness: bare mode, isolation arms, and rules validated before adoption.",
+  "accent": "#6ea8fe",
+  "strand": "applied"
+}

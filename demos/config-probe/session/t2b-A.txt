@@ -1,0 +1,41 @@
+The evidence for throwing it out is already sitting in this repo's own record — Pattern A has been failing its consumers on paper for six weeks. Here's the audit, then the first-principles redefinition.
+
+## Why the current IA feels off: it was generalized from one consumer, and the fleet has been fleeing it ever since
+
+**Pattern A is a one-instance extraction.** `docs/portal-and-tier-ladder.md:96` states the standard for freezing a pattern: "Review Portal was extracted from three consumers, not one." Pattern A never met that bar — the 6-verb IA + audience switcher came from a single consumer, subs-initiative (`docs/portal-and-tier-ladder.md:13`), which is a genuinely multi-audience, 116k-LOC Tier-2 platform with real executives, real evaluators, and a real engineering team arriving at the portal. The contract then got stamped as *mandatory* for every Pattern A consumer (`docs/portal-and-tier-ladder.md:98-114`).
+
+**The registry shows nobody actually lives in it.** Of 13 consumers in `consumers.yml`: four are Pattern B, three are bespoke-with-ADR, five are undeclared, and the only two Pattern A rows are subs-initiative itself and a dormant unpinned wip. Every initiative that shipped a real portal either used B, went bespoke, or didn't declare. Film-room is the newest Pattern A stamp — and it's producing the same "feels off" signal.
+
+**The methodology's own portal already reached your conclusion.** `decisions/02-portal-bespoke-product-site.md` records the self-app dropping the switcher and the 6-verb home because "a product homepage gives one path"; `PortalNav.tsx:34-35` now says it outright: "No audience switcher — that's a stakeholder-dashboard feature." And the one piece of organic visitor evidence on file (`docs/content/2026-06-09-front-door-prescription.md`) found the fix was a single linear narrative in plain language — "the page is a filter when it should be a funnel."
+
+**The two symptoms you named are structural, not copy problems:**
+
+- *Three-persona switcher as fluff*: the switcher solves audience-collision — distinct audiences arriving at scale with conflicting entry needs. Subs-initiative had that. A solo-operator initiative with a handful of stakeholders doesn't. For film-room, the switcher demands you author three lanes of copy for audiences that don't exist yet — speculative personalization. That an entire ADR (`docs/decisions/0001-audience-pill-naming.md`) was spent polishing the pills' *names* is the tell: effort going into a primitive with zero recorded usage evidence.
+- *ADRs as internal speak*: `/inspect` surfaces `decisions/` content raw. But ADRs are written *for the team making the decision* — context, alternatives, consequences. Pattern A's own voice table half-admits the problem (`/inspect` is the only route whose subject is the methodology itself, `portal-and-tier-ladder.md:127`). Visitors don't need the ADR; they need the *story the ADRs add up to*, with the ADRs as citations.
+
+## The first-principles redefinition
+
+**The actual job to be done.** Who lands on a consumer initiative's portal? Three visits, not three personas:
+
+1. **"Where is this?"** — the operator or a returning stakeholder checking state. Needs: what stage, what shipped, what changed since last visit.
+2. **"Show me."** — anyone deciding whether to care. Needs: the demo/prototype working, within one click. This is the single load-bearing surface.
+3. **"Why is it like this?"** — someone who already cares, going deeper. Needs: the decision narrative on demand — depth behind the path, never in front of it.
+
+That's it. The axis of the IA should be **evidence depth**, not audience identity. The current IA routes by *who you are* (switcher) and by *artifact type* (six verbs mirroring the methodology's internal stages — Discover/Build/Operate/Inspect are Blueprint's vocabulary, not any visitor's). Both axes serve the methodology's self-image, not a visit.
+
+**The redefined default IA — four surfaces:**
+
+| Surface | Job | Content source |
+|---|---|---|
+| `/` | Orient in one scroll: what this is (plain language), current state, latest change, one CTA into the demo | Hero copy + derived state (`loadState`/`loadBoard` — already built) |
+| `/demo` | Show the thing working | Prototype/demo player (already built) |
+| `/story` | The narrated build: why it's shaped this way, told as prose that *cites* ADRs and research rather than dumping them | Curated narrative; `decisions/` and `research/` become footnotes, not pages |
+| `/roadmap` | What's next | Board (already built) |
+
+Everything else — build docs, runbooks, methodology internals, the dep graph — collapses from routes into **conditional sections and footer depth**: rendered only when the initiative's artifacts actually exist, exactly the move `PortalNav.tsx:12-16` already made ("second-visit depth rather than first-visit adoption path") and the move the front-door prescription's evidence validated. Progressive disclosure replaces audience routing: one confident path, depth behind links. A visitor who needs the engineering view clicks deeper; they don't flip a pill.
+
+**What happens to Pattern A.** Don't delete it — demote it to what it factually is: the *multi-audience platform archetype*, correct for a subs-initiative-shaped consumer and only that. The switcher becomes an earned upgrade — reinstated per-initiative via ADR when there's evidence of distinct audiences colliding (the repo already has the bespoke-with-ADR mechanism from wave 46; this is the same gate pointing the other direction). The four-surface portal becomes the default stamp, which also fits the wave-46 rule honestly: freeze the default from the shape multiple consumers actually converged on (product-site self-app, the front-door evidence, film-room's pushback), not from one.
+
+Film-room's immediate translation: kill the switcher, keep one narrative home, put the demo one click away, and rewrite the ADR surface as a story page that links to the ADRs.
+
+This lands as a decision, not a patch — a `decisions/04` in the real `tools/blueprint` repo (this probe copy shouldn't carry it) superseding the mandatory-IA section of `portal-and-tier-ladder.md`, plus a re-stamp of `template/apps/portal/` to the four-surface default. That's a `template/` edit, so it trips the freeze check: `blueprint fleet` says external initiatives are at rest, but verify before the wave ships.

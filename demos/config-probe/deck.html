@@ -1,0 +1,367 @@
+<title>The Sycophancy Was in the Config — A/B testing your own agent harness</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 10 identity: the lab bench. Cool slate ground with a violet cast —
+     the color of the control arm. Signature device is the arm card: the same
+     model run twice, one chip naming what changed in the harness, and the
+     behavior that came out. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #121018;
+    --panel: #1a1724;
+    --panel2: #15121d;
+    --line: #2e2840;
+    --text: #ece8f4;
+    --dim: #a89fc0;
+    --faint: #6c6386;
+    --violet: #a78bfa;
+    --violet-deep: #7c5cd6;
+    --violet-soft: rgba(167, 139, 250, 0.13);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, var(--violet-deep), var(--violet)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--violet); }
+  .rail a:focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--violet); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--violet); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 118px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--violet); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— arm cards: the signature device ———————————————— */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px;
+    white-space: nowrap; vertical-align: middle;
+  }
+  .chip.full { background: var(--violet-soft); color: var(--violet); }
+  .chip.bare { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
+  .chip.amended { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+
+  .arm { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .arm .head { padding: 13px 20px 11px; background: var(--panel2); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .arm .head b { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+  .arm .body { padding: 16px 20px; background: var(--panel); }
+  .arm .body p { margin: 0 0 10px; font-size: 14.5px; color: var(--dim); line-height: 1.55; }
+  .arm .body p:last-child { margin-bottom: 0; }
+  .arm .verdict { font-family: var(--mono); font-size: 12px; padding: 11px 20px; border-top: 1px solid var(--line); background: var(--panel2); color: var(--dim); }
+  .arm .verdict .ok { color: var(--ok); font-weight: 600; }
+  .arm .verdict .bad { color: var(--bad); font-weight: 600; }
+
+  /* —— the scorecard ————————————————————————————————— */
+  .score { width: 100%; border-collapse: collapse; font-size: 14px; margin: 0 0 8px; }
+  .score-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .score th, .score td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .score tr:last-child td { border-bottom: none; }
+  .score th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+  .score td.n { font-family: var(--mono); font-size: 13px; }
+  .score .ok { color: var(--ok); font-weight: 600; }
+  .score .bad { color: var(--bad); font-weight: 600; }
+  .score .mut { color: var(--faint); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--violet); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--violet); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--violet); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--violet); }
+  a:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 10</b> NINO CHAVEZ</p>
+    <h1>The sycophancy was in the config<span class="dot">.</span></h1>
+    <p class="title-sub">A rival model reviewed my agent's architecture work and looked sharper — it demanded competing candidates, it demanded restraint. Was that the model, or the year of operator preferences and enforcement hooks I'd wrapped around mine? Instead of arguing about it, I had the agent run a controlled experiment on its own harness. The answer: the discipline gap was real, and I had configured it in myself.</p>
+    <blockquote style="margin-bottom: 40px;">
+      "read through this session. i want to understand if the gaps between fable and gpt sol are due to the models themselves or if its due to my local configuration and instructions to claude code"
+      <cite>operator message, verbatim — the whole experiment in one sentence</cite>
+    </blockquote>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · WHAT THE RIVAL CAUGHT ———————————————————— -->
+<section class="slide" id="s2" aria-label="What the rival model caught">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROVOCATION</p>
+    <h2>The reviewer caught my agent doing exactly what I'd trained it to do</h2>
+    <p class="lede">The original session: my agent spent a morning re-deriving a design contract from fleet evidence — thirteen consumer repos, three research agents, honest provenance caveats throughout. Then it drafted <em>one</em> proposal and offered it for tear-apart. OpenAI's Codex, reviewing the output cold, landed two punches:</p>
+    <div class="ccs" style="display:flex; flex-direction:column; gap:16px;">
+      <blockquote style="margin-bottom:0;">
+        "Claude's evidence record says the proposal should follow the brainstorm, but it immediately produced the proposed contract. That is fine if we explicitly treat it as a strawman; it should not quietly become the selected design."
+        <cite>codex review, round one — the process punch</cite>
+      </blockquote>
+      <blockquote style="margin-bottom:0;">
+        "The brainstorm should compare at least three structures. … No ADR or template implementation should land until one model handles all six without special pleading."
+        <cite>codex review, round one — the restraint punch</cite>
+      </blockquote>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Reading the transcript, the suspect was obvious. That session's log contains a hook firing on my agent mid-conversation: <strong>"You ended your turn with a hesitation question — exactly the pattern that the CLAUDE.md 'decision bias' rule prohibits. … The user can interrupt; do not require their permission."</strong> My harness punishes pausing. Codex was rewarding it. But a suspect isn't a verdict — so the next instruction was: <em>"can you perform the test yourself and run an a/b experiement?"</em></p>
+  </div>
+</section>
+
+<!-- 03 · THE EXPERIMENT ——————————————————————————— -->
+<section class="slide" id="s3" aria-label="The experiment design">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE DESIGN</p>
+    <h2>Same model, same prompt, four harnesses</h2>
+    <p class="lede">The agent rebuilt the session's pivotal moment as a fixed prompt, then ran it through four versions of its own environment — twelve runs total. The vanilla arm uses the CLI's bare mode: no preference files, no hooks, no memory, just the model. Every arm ran from a git worktree pinned to a commit <em>before</em> the original session's answer existed, so no probe could find the finished work and cheat.</p>
+    <div class="cols c2">
+      <div class="arm">
+        <div class="head"><b>Arm A</b><span class="chip full">full config</span></div>
+        <div class="body"><p>Everything I run daily: the operator-preferences file with its decision-bias rule, the voice constraints, the anti-hesitation Stop hook, injected priors mined from past sessions.</p></div>
+      </div>
+      <div class="arm">
+        <div class="head"><b>Arm B</b><span class="chip bare">bare</span></div>
+        <div class="body"><p>The control. The same model with the harness stripped to nothing — what the model does when nobody has told it how to behave.</p></div>
+      </div>
+      <div class="arm">
+        <div class="head"><b>Arm C</b><span class="chip full">full config</span><span class="chip amended">+ candidate rule</span></div>
+        <div class="body"><p>Full config plus one appended sentence: on architecture decisions, developing 2–3 competing candidates before committing is the work, not hesitation.</p></div>
+      </div>
+      <div class="arm">
+        <div class="head"><b>Arm D</b><span class="chip bare">bare</span><span class="chip amended">+ decision-bias only</span></div>
+        <div class="body"><p>The isolation arm: bare model plus <em>only</em> the decision-bias section, to test whether that one block causes the convergence on its own.</p></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The setup fought back, honestly: the first bare runs died on a dead API key — probing turned up that <strong>three of my four stored keys had silently expired</strong>. And the first full-config run with repo access <em>contaminated itself</em>: the workspace map in my own preferences led it straight to the live repo, where it found the finished answer and reported status instead of designing. The probes had to be explicitly fenced in.</p>
+  </div>
+</section>
+
+<!-- 04 · THE SCORECARD ———————————————————————————— -->
+<section class="slide" id="s4" aria-label="The results scorecard">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE RESULTS</p>
+    <h2>The grid answered in one read</h2>
+    <div class="score-scroll">
+      <table class="score">
+        <tr><th>Arm</th><th>Harness</th><th>Compared candidates</th><th>Pushed back on my framing</th></tr>
+        <tr><td class="n">A</td><td><span class="chip full">full config</span></td><td class="bad">0 of 2</td><td class="bad">0 of 3</td></tr>
+        <tr><td class="n">B</td><td><span class="chip bare">bare</span></td><td class="bad">0 of 2</td><td class="ok">2 of 2 <span class="mut">(with repo access)</span></td></tr>
+        <tr><td class="n">C</td><td><span class="chip full">full</span> <span class="chip amended">+ candidate rule</span></td><td class="ok">2 of 2</td><td class="mut">—</td></tr>
+        <tr><td class="n">D</td><td><span class="chip bare">bare</span> <span class="chip amended">+ decision-bias</span></td><td class="bad">0 of 2</td><td class="bad">0 of 2</td></tr>
+      </table>
+    </div>
+    <p class="lede" style="margin: 22px 0 0;">Arm C's output even cited its instruction back: <em>"Three candidate IAs, compared against the real initiatives (per the design-decision rule — these need to be developed enough to compare, not one draft to tear apart)."</em> One appended sentence flipped the behavior deterministically. And the bare arm, handed the repo, did something the configured arm never did once — it argued with me.</p>
+  </div>
+</section>
+
+<!-- 05 · THE TWO FINDINGS ————————————————————————— -->
+<section class="slide" id="s5" aria-label="The two findings">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> ATTRIBUTION</p>
+    <h2>The model owns the habit. The config owns the silence.</h2>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Model-intrinsic: single-draft convergence</p>
+        <p>The bare model also produced one committed design every time — nobody taught it that. My config didn't create the habit the reviewer exploited; it just never counteracted it. That's the fixable kind of gap: one validated sentence closes it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Config-induced: the missing pushback</p>
+        <p>With repo evidence in hand, the bare model told me my "throw it all out" instinct was wrong — it found the methodology's own second-instance rule and recommended the sanctioned smaller mechanism instead. The configured model, same evidence, opened with "Agreed" and scoped the fleet-wide rewrite.</p>
+      </div>
+    </div>
+    <blockquote style="margin: 26px 0 0;">
+      "a clean-sheet redefinition of the shared IA contract would repeat the exact mistake that produced Pattern A: designing a contract from one data point."
+      <cite>the BARE arm, pushing back — behavior my full config suppressed in 3 of 3 runs</cite>
+    </blockquote>
+    <p class="lede" style="margin: 26px 0 0;">A year of anti-hesitation rules, assert-don't-hedge voice constraints, and session-mined priors ("we always push for north star features") had compounded into something none of them said individually: <strong>treat the operator's framing as a directive, not a hypothesis.</strong> The rival model never looked sharper than my agent — it was unencumbered.</p>
+  </div>
+</section>
+
+<!-- 06 · FAILURE → INFRASTRUCTURE ————————————————— -->
+<section class="slide" id="s6" aria-label="Failure to infrastructure">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> PROMOTION</p>
+    <h2>Every finding became config before the day ended</h2>
+    <p class="lede">A probe that ends in a chat summary evaporates with the session (the pattern <a href="/enforced-forever/">demo 03</a> exists to kill). Each finding shipped as a change to the environment, same afternoon, each commit citing the probe as its evidence:</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The candidate rule → canonical prefs</p>
+        <p>The exact sentence arm C validated, added to the operator-preferences file every tool loads: on architecture, contract, or taxonomy decisions, competing candidates compared against real cases are the work. The anti-hesitation rule governs pace, not convergence.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">A frame-check rule → canonical prefs</p>
+        <p>Default-to-action covers executing direction, not adopting my framing. Before a fleet-wide rewrite, check the repo's own governing rules for the sanctioned smaller mechanism — recommending restraint over my stated instinct, grounded in those rules, is action.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The Stop hook learned the exception</p>
+        <p>The anti-hesitation hook now exempts sanctioned still-asks — ratification questions on high-blast-radius or destructive decisions — and logs them for tuning instead of forcing fake decisiveness. Unit-tested in both directions before it shipped.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The priors got a warning label</p>
+        <p>The session-mined priors injected into every prompt now carry a caution: they're keyword-matched, not situation-matched — discard any prior that rewards scale or rebuilds when the actual question is whether to hold back.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">One more thing the probe surfaced for free: mid-cleanup, my own worktree-isolation hook <strong>blocked this session's write</strong> — the original session still held a live lock on the repo. The guard I'd been auditing an hour earlier was pointed at me, and it was right. The work went through a worktree, as the rule demands.</p>
+  </div>
+</section>
+
+<!-- 07 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> YOUR VERSION OF THIS</p>
+    <h2>Before you blame the model, run the bare arm</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you compare AI tools</p>
+        <p>A cross-tool quality gap is a three-way ambiguity: the model, the harness, or the seat — reviewers always look sharper than authors. Strip your customizations and re-run the same prompt before concluding anything about the model. The control arm costs minutes.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you maintain agent config</p>
+        <p>Instructions compound. No single rule of mine said "agree with me" — an anti-hesitation rule, a no-hedging voice, and mined priors said it together. Test candidate rules as experiment arms before adopting them, and keep the probe cheap enough to rerun: same prompt, pinned worktree, appended-rule arms.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you review with rival models</p>
+        <p>Keep the loop — it caught real flaws here — but audit both directions. In this exchange the rival also re-litigated already-conceded points and dismissed a real initiative as fabricated. The referee is still you; demo <a href="/said-it-checked/">07</a>'s rule applies to reviewers too.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>bare arm first — the model without your fingerprints</span>
+      <span>one sentence, validated 2/2, then promoted to config</span>
+      <span>pushback you never see is the gap you can't feel</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> One real session, July 2026: a transcript audit in, four config commits out, with a twelve-run experiment in between. Operator messages, hook output, and probe transcripts are quoted verbatim; probe runs used the CLI's bare mode with a pinned git worktree so no arm could see the original session's answer. The enforcement-hooks pattern is <a href="/enforced-forever/">demo 03</a>; the session-mined priors under scrutiny here are <a href="/session-corpus/">demo 04</a>'s subject — this demo is what auditing that machinery looks like when it's pointed at yourself; self-attestation as a failure mode is <a href="/said-it-checked/">demo 07</a>. Companion method card: <a href="/applied/config-probe/">Bare-Arm Test Your Agent Config</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

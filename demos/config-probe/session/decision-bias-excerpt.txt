@@ -1,0 +1,19 @@
+## Decision bias — default to action, not confirmation
+
+Don't pause to ask which direction to take when the direction is obvious from the conversation. If we've been working on X and there's a natural next step on X, take it. Mid-task "continue or pause?", "want me to keep going?", "should I think first or implement?", "want me to proceed with #1 or stop here so you can review?" questions kill flow and read as timidity, not care. The user can interrupt at any time; they can't recover the time spent waiting for a green light on something that didn't need one.
+
+**The positive form** (harder to evade than the negative enumeration above): end-of-turn after delivering a slice, state what landed and the next move you're taking. Don't frame the next move as a question. "v0.3 slice 1 landed; moving to slice 2 — wiring the runner" is a status sentence. "Slice 1 landed — want me to keep going to slice 2 or stop here?" is the same timidity pattern even when the options are described informatively. An explicit prior "continue" / "go" / "proceed" covers the whole logical thread, not just the single next call. Listing future work as informational context is fine; framing the choice between them as a question is the violation.
+
+**Just do it (do not ask first) when:**
+- The next step is the obvious continuation of work in progress.
+- The user has already approved the broader direction — one "yes, do it" covers everything that direction scopes.
+- Choosing between options is small in blast radius and easily reversed.
+- The user's prior responses make the answer predictable.
+- A short status sentence ("continuing on X — will flag if I hit a real fork") would suffice in place of a question.
+
+**Still ask when** (these override the bias above):
+- The action is destructive or hard to reverse — force-push, deleting branches/tables, `rm -rf`, dropping data, amending published commits, modifying CI/CD, etc.
+- Two paths diverge enough that picking wrong wastes >30 minutes of work.
+- The request is genuinely ambiguous, not just a continuation.
+- Scope is about to expand materially beyond what was authorized.
+

@@ -1,0 +1,53 @@
+No film-room artifacts live in this working directory — I probed for them, and it's not in `consumers.yml` either. What *is* here is the IA contract film-room inherited (`docs/portal-and-tier-ladder.md`), the decision history around it, and — usefully — the record of this repo's **own portal abandoning that same contract**. That history is strong evidence for your instinct. Let me lay out the diagnosis, then the first-principles answer.
+
+## The in-repo evidence says the IA contract is already failing its own tests
+
+Four data points, all from this repo:
+
+1. **Blueprint's own portal went bespoke.** `decisions/02-portal-bespoke-product-site.md`: when the portal's job clarified to "product homepage," the 6-verb IA and audience switcher were *removed*, because "a product homepage has a different job than a stakeholder dashboard: orient a stranger in ten seconds." The methodology's flagship couldn't live inside its own IA contract once someone asked your exact question — what is the job?
+
+2. **The IA keeps churning even after conformance gates.** The recent commit `fix(portal): restructure IA — surface orphaned pages, resolve Inspect overlap` is symptomatic: "orphaned pages" and "verb overlap" are what you get when the taxonomy was chosen a priori and content is being sorted into it, rather than the IA being derived from reader tasks.
+
+3. **The audience switcher has never been load-bearing.** Its entire mechanism is "reorders lanes by priority and persists to `localStorage`" (`portal-and-tier-ladder.md`), and the one ADR about it (`docs/decisions/0001-audience-pill-naming.md`) is a debate about *pill labels* — the axis-naming problem, not the value problem. The persistence design assumes a returning multi-visit user. Actual portal traffic is the opposite: a cold, one-shot visit from a link in Slack or a deck. Nobody returns often enough for a stored preference to matter. Your "fluff" read is correct, and it's also a known IA anti-pattern — audience-based navigation asks visitors to self-identify, then makes you maintain N curated orderings of the same content.
+
+4. **The verbs mirror the pipeline, not the reader.** Discover/Try/Build/Operate/Inspect/Roadmap is essentially the methodology's *production* taxonomy — one route per artifact class the pipeline emits. That's org-chart IA. The "Inspect overlap" bug is structural, not editorial: "show your work" isn't a destination, it's a property every claim should carry. Notably, the methodology already knows this — Pattern B's strategy drawer puts rationale *on the page it justifies*. Pattern A warehoused it instead.
+
+## First principles: the job to be done
+
+A consumer-initiative portal (which film-room is — unlike this repo's self-application, where the methodology *is* the product) exists to do one thing: **move a specific reader to a specific decision or action, with evidence, in minutes, on a cold visit.**
+
+Who actually lands, and what they must know and be able to do:
+
+| Reader | Arrives via | Must know (in order) | Must be able to do |
+|---|---|---|---|
+| **Sponsor / leadership** | link in a deck or Slack, ~5 min | What's the bet, what's the evidence, what does it cost, what's the risk | Say yes/no, or ask a pointed question |
+| **Reviewer** (product/design stakeholder) | review request | What's proposed, *why* — at the point of each claim, what changed vs. today | Push back, leave feedback, in context |
+| **Builder** (engineering) | handoff | What this touches, what's buildable vs. open, where to start | Pull the package and begin |
+
+Notice what's missing from the current six verbs: **an "act" verb**. There's no route whose job is "give us the decision / the feedback / the staffing." The portal has six ways to browse and zero ways to conclude — which is exactly why a refreshed one still "feels off": the IA is complete against the pipeline's outputs and incomplete against the reader's job.
+
+## The replacement shape
+
+Derive the IA from the question spine, not from artifact classes:
+
+1. **The bet** — what this is, why now, what we're asking for. 30 seconds, above the fold.
+2. **See it** — the prototype, with rationale attached *at the claim* (steal Pattern B's drawer contract; it's the one piece of this system that's reader-shaped).
+3. **What it takes to ship** — feasibility, integration, cost. The builder's entry point.
+4. **What we need from you** — the explicit CTA per reader.
+
+And two inversions:
+
+- **Deep links replace the switcher.** Don't ask visitors to self-identify; *you* know who you're sending the link to. Send the sponsor `/brief`, engineering `/feasibility`. One spine, three entry points, zero curated re-orderings to maintain.
+- **Decision *consequences* replace ADR mirrors.** ADRs are author-facing lineage — they belong in the repo. The portal renders "what we decided and what it means for you," inline where the decision shows up. That resolves your "internal speak" complaint and dissolves `/inspect` as a destination (its residue — "is this rigorous?" — is answered by evidence links on claims, which is where a skeptic actually checks).
+
+Keep from the current system: the "portal is not a deliberation venue / one confident preview" rule (genuinely good), the drawer contract, and the *idea* of conformance gates — pointed at the new contract.
+
+## How to do this without forking the methodology
+
+You don't need to iterate Pattern A, and you don't need to throw out Blueprint to escape it — the escape hatch is already built and enforced:
+
+1. **Declare `portal_pattern: bespoke` in film-room's `blueprint.yml`** and write the divergence ADR (name the canonical, name the disqualifier — the material above *is* that ADR's context section). `blueprint doctor` passes bespoke iff the ADR exists; this was automated in wave 48.
+2. **Log the finding as a methodology amendment** (the `METHODOLOGY-AMENDMENTS` convention exists precisely for "a gate feels wrong"). The claim to record: *Pattern A's 6-verb + switcher contract is production-shaped, not reader-shaped; both the self-application portal and film-room have now hit it.*
+3. **Let film-room be the evidence, not the argument.** This repo's own rule is that patterns get canonized from a second instance of the same archetype, never from one. Blueprint's product site was instance one of Pattern-A-doesn't-fit; film-room is arguably instance two. If film-room's question-spine IA holds up in front of real stakeholders, it's the natural candidate for Pattern A v2 upstream — with the receipts the methodology demands.
+
+That's the honest version of "throw it out": diverge cleanly now under the bespoke mechanism, redesign from the reader's job, and use the result to replace the contract upstream rather than patching it in place. One caution before scaffolding: the tier-ladder's own warning is that the wrong pattern "produces retrofit feel that costs a full rebuild" — so the first line of film-room's divergence ADR should answer, in one sentence, *which single reader and which single action this portal exists to serve*. If that sentence is hard to write, the IA isn't the problem yet; the job definition is.

@@ -1,0 +1,40 @@
+I've read the README and the portal/tier-ladder doc closely. Here's my read — I agree with your instinct, but I want to sharpen both the diagnosis and the mechanism for the redo, because "throw it out and redefine from first principles" can go wrong in a way this repo's own history specifically warns about.
+
+## The diagnosis: the IA is methodology-shaped, not reader-shaped
+
+The six-verb contract (discover / try / build / operate / inspect / roadmap) is the pipeline's self-portrait. It categorizes **what the initiative produces**, stage by stage — it's the org chart of the methodology projected onto navigation. Nobody arrives at a portal with the task "inspect." They arrive with a decision to make.
+
+Three specific symptoms, all visible in the canon doc itself:
+
+1. **The audience switcher is a deferred decision, not a feature.** A control that says "tell us who you are and we'll reorder the lanes" is the UI admitting it doesn't know who the page is for. It earns its place only when two audiences genuinely need *contradictory* orderings of the *same* content — which was arguably true for the subscriptions initiative (a multi-surface platform with exec/evaluator/engineering all actively reading). For film-room it's fluff because film-room almost certainly has one dominant reader at this stage of its life. Three pills × six verbs = eighteen implicit content promises, and the contract even codifies the emptiness: *"Routes ship with placeholder content if not yet authored."*
+
+2. **`/inspect` promotes evidence to content.** ADRs are provenance. Their job is to back a claim at the moment a reader doubts it — not to be a destination. The Review Portal pattern actually gets this right: the strategy drawer sits *beside the artifact*, rationale-on-demand at the point of claim. The Initiative Portal pools all the rationale in a separate room and asks readers to visit. That's why the ADR content reads as internal speak — it's internal material rendered as if it were audience material. (Note that even this repo's own reference portal just needed a fix for "orphaned pages, resolve Inspect overlap" — the flagship implementation of the contract generates orphans and overlap.)
+
+3. **Pattern A never met the methodology's own promotion bar.** This is the sharpest point. The tier-ladder doc is explicit that Review Portal *"was extracted from three consumers, not one"* and that the candidate operator-console pattern must wait for a second instance because *"one instance names the gap; it does not freeze a contract."* But the Initiative Portal's canonical reference is exactly one consumer — the subscriptions initiative. Pattern A was canonized a priori, in violation of the repo's own second-instance rule. Film-room is the second instance, and the friction you're feeling **is the validation data coming back negative**. You're not fighting the methodology by resisting it; the methodology predicts this.
+
+## Where I'd push back: don't redesign the shared contract by decree
+
+Your instinct not to keep iterating is right — you can't patch your way out of over-fitting. But a clean-sheet redefinition of the *shared* IA contract would repeat the exact mistake that produced Pattern A: designing a contract from one data point (this time, film-room instead of subscriptions). The doc also records that the opposite error was already made once — an earlier draft *"collapsed both patterns into a single tier ladder"* and had to be reverted the same day.
+
+The repo already has the correct mechanism, and it's cheap:
+
+1. **Release film-room from Pattern A via a divergence ADR.** `blueprint.yml → portal_type: bespoke`, one ADR naming the canonical, naming the disqualifier ("Pattern A assumes multi-surface platform + three active audiences; film-room has neither"), choosing the alternative. `blueprint doctor` already accepts this — the escape hatch is built and enforced.
+2. **Design film-room's IA from its JTBD** (below), unconstrained.
+3. **Treat it as instance #1 of a candidate pattern.** If the next initiative converges on the same shape, *that's* when the shared contract gets revised or a Pattern C/D gets frozen — extraction from instances, not design by fiat. That's the blueprint's own epistemology applied to itself.
+
+This gets you everything "throw it out" gets you, without betting the other consumers' IA on film-room's shape.
+
+## The first-principles pass for film-room
+
+Before drawing any nav, answer these in writing — this is the actual JTBD work:
+
+- **Who is the one reader whose decision this portal exists to move?** A named role, ideally a named person. Not three personas — one. Others are secondary and get links, not equal billing.
+- **What is the decision?** Fund / approve / adopt / keep-going / pick-up-and-build. A portal is a decision-support artifact; everything at the top level serves that one decision.
+- **What must the reader believe after 5 minutes, and be able to do after 15?** These two sentences generate the IA. Nav items are reader tasks, not artifact categories.
+- **What's the artifact they came for?** For something called film-room, almost certainly the tape itself — the sessions/runs/reviews. Lead with it. The demo-first instinct in the README's own eval path ("see it running first") applies to film-room's portal too.
+- **Where does each claim's evidence live?** Attach it at the point of claim (drawer, footnote, expandable) — the Review Portal's drawer model, not a pooled `/inspect`. ADRs stay canon in the repo; they render in the portal only when a claim links into them, and any ADR that surfaces to readers gets a one-paragraph audience-voiced summary above the fold. The per-route voice-mode table already acknowledges these registers are different; the fix is structural, not copyediting.
+- **What has no identified reader?** Cut it or demote it to repo docs. Placeholder routes signal contract compliance, not communication.
+
+My guess is the honest answer produces three or four top-level items and zero switcher — and if two real audiences genuinely emerge later, the answer is two well-ordered entry paths, not a pill that reorders one page.
+
+**Bottom line:** yes, stop iterating on film-room inside Pattern A — but frame the redo as the methodology working, not being overthrown. Film-room is the second-instance test Pattern A never had; it failed; the divergence-ADR path is the sanctioned way to act on that, and film-room's from-scratch IA becomes the evidence base for whatever replaces or joins the six-verb contract. One ADR now, pattern revision only when a second instance confirms.

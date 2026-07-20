@@ -1,0 +1,42 @@
+You're right to stop iterating. Waves 87–88 style fixes ("surface orphaned pages, resolve overlap") are symptoms of an IA that was organized around what the *project produces* rather than what a *reader needs*. Patching that structurally never converges. Here's the first-principles take:
+
+## The actual job to be done
+
+Nobody lands on the portal to "browse film-room." They land in one of four modes, in a strict funnel order:
+
+1. **Orient** (30 seconds): What is this? Is it for my problem? — from a link, a README, a comparison table.
+2. **Evaluate** (5 minutes): Why this over alternatives? What does adopting it cost me? Is it credible/maintained?
+3. **Adopt** (first hour): Get me from zero to a first working result. One golden path, no branches.
+4. **Operate & extend** (recurring): Reference material, gate configuration, troubleshooting, contribution.
+
+That's the whole IA. Everything on the portal should be assignable to exactly one of these modes, and the nav should read as that funnel.
+
+## Why the current pieces fail
+
+- **The persona switcher** fails because readers don't self-identify with personas — they arrive with a task. Three personas × N pages also triples your maintenance surface, which is exactly why the IA keeps drifting. Personas belong in your *design docs* as a lens for writing; they should never be UI.
+- **ADRs on the portal** fail because ADRs are *producer* artifacts — a decision log for maintainers. Readers have a different question: not "what did we decide and when" but "why does it work this way?" Keep ADRs in the repo. Where a real reader-facing question exists (e.g., "why gates instead of reviews?"), distill the ADR into a short explanation page in the Evaluate/Operate sections. Most ADRs won't earn a page, and that's correct.
+
+## The multi-initiative angle (the real leverage)
+
+Since you now have several blueprint initiatives, the IA shouldn't be redesigned per portal — it should be **part of the blueprint methodology itself**. Define one IA contract:
+
+- **Orient**: one landing page — problem, promise, proof, one CTA.
+- **Evaluate**: comparison/landscape, adoption cost, credibility signals.
+- **Adopt**: single quickstart golden path.
+- **Operate**: reference, how-tos, troubleshooting.
+- **Explain**: a small, curated set of "why" pages (distilled from ADRs).
+
+Each initiative's portal is then an *instantiation* of that template. Film-room becomes the pilot for the contract, and future initiatives inherit it instead of each getting a bespoke redesign wave.
+
+## Acceptance test for the new IA
+
+Ship it only when a cold visitor can answer these without help:
+
+- "What problem does this solve?" — landing page, zero clicks.
+- "Why this instead of X?" — one click.
+- "How do I get a first result?" — one click, one page, no forks.
+- "Where do I look when a gate blocks me?" — findable from any page.
+
+If a page doesn't serve one of those questions, it moves to the repo or gets deleted. That's the razor that keeps the next 20 waves from re-accreting the same clutter.
+
+The practical sequence: write the IA contract as a short ADR/spec first (this one *is* internal, correctly), rebuild film-room's nav against it as a greenfield exercise — don't migrate pages, re-justify each one — then backport the contract to the other initiatives.

@@ -1,0 +1,32 @@
+You're right to throw it out. The tell is in your own diagnosis: the persona switcher and surfaced ADRs are both symptoms of the same root mistake — the current IA is organized around **what we produced** (personas, decision records, methodology artifacts) rather than **what a reader came to do**. Iterating on that skeleton just rearranges the wrong bones. Here's the first-principles rebuild.
+
+## The actual job to be done
+
+A portal has one job: **take someone who just landed with a question and get them to an answer without making them learn our internal model first.** Everything else is decoration.
+
+## Who actually lands, and with what question
+
+Forget personas — nobody arrives *as* a persona, they arrive *with an intent*, and the same person carries different intents on different visits. Realistically there are only three arrival modes:
+
+1. **"What is this and should I care?"** — an evaluator, skeptical, will give you 90 seconds. Needs: what film-room does, one concrete example of it working, and why it's credible. They will not click a switcher; they will not read an ADR.
+2. **"I'm bought in — how do I run it?"** — a practitioner mid-task. Needs: quickstart, task-shaped how-tos, and reference they can grep. They arrive via search or a deep link, not the homepage, so every task page must stand alone.
+3. **"Why does it work this way?"** — a contributor or someone who hit a weird behavior. This is the *only* audience for whom ADR content is signal. It belongs in a clearly-labeled decision log / internals section — an appendix, not front-door content.
+
+The three-persona switcher fails because it forces a *identity* choice before answering an *intent* question, and it triples maintenance surface for content that mostly says the same thing three ways.
+
+## The redefined IA
+
+Organize by intent progression, not audience or artifact type:
+
+- **Front door (one page):** what film-room is in two sentences, one real worked example (input → output, the actual film-room artifact), and a single "run it now" path. No tabs, no switcher.
+- **Use:** quickstart, then task-shaped guides ("review a session," "add a gate," "interpret a report"). Written in the reader's vocabulary, not ours — "wave," "gate," "pilot" only appear after being defined in-line or they get renamed.
+- **Reference:** config, CLI/commands, output schema. Grep-able, boring, complete.
+- **Internals (explicitly labeled):** methodology, ADRs, blueprint lineage. This is where the internal speak *belongs* — it's honest there. It just can't be load-bearing for the other three sections.
+
+This generalizes across the blueprint initiatives too: the shared template is the four intents, not shared page inventory. Each initiative fills the same four slots with its own content, which is what makes the family coherent without forcing artifact-mirroring.
+
+## The test for every page
+
+Name the question a reader has when they land on it. If you can't state the question in the reader's words, the page is internal exhaust — move it to Internals or delete it. Run the current sitemap through that filter and I'd expect roughly half the pages to fail, including the ADR surfacing and all three persona variants.
+
+Next move from here is mechanical: audit the current film-room page inventory against those four intents, produce the kill/move/rewrite list, and draft the new front door — that's the concrete spec to build against.

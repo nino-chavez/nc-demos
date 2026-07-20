@@ -1,0 +1,13 @@
+{
+  "number": "10",
+  "title": "The Sycophancy Was in the Config",
+  "hook": "A rival model reviewing my agent's work looked sharper — it demanded competing candidates and restraint. So my agent A/B tested its own harness: same model, same prompt, config on and off. The vanilla arm pushed back on me twice. The configured arm never did.",
+  "date": "2026-07",
+  "for": "Anyone who compares AI tools and concludes one model is smarter — and anyone whose agent config has grown by accretion.",
+  "get": "A twelve-run experiment on a live harness: the bare-mode control arm, a self-contaminating probe, a scorecard separating model habits from config damage, and one validated sentence that flipped the behavior 2/2.",
+  "do": "Before blaming the model, run the bare arm — then test candidate rules as experiment arms and promote only what the grid validates.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 10 title slide: the sycophancy was in the config, with the operator's verbatim question about model versus configuration",
+  "theme": "config-experiment",
+  "accent": "#a78bfa"
+}

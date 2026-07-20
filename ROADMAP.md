@@ -19,10 +19,32 @@ Selection bar, in order: teaches a transferable agent-working method →
 anchored to real sessions/artifacts with honest failure material → sanitizable
 for permanent public hosting.
 
+Shipped 2026-07-20: **10 The Sycophancy Was in the Config** (A/B probe of the
+operator's own harness: bare-mode control arm, model-vs-config attribution,
+one validated rule promoted same day — with Applied companion "Bare-Arm Test
+Your Agent Config"). Mined from the session that ran the probe, continuing
+09's mined-from-a-new-session lineage.
+
 ## Queue
 
 The opening arc (01-08) is complete. Next demos come from the backlog below,
 or from new sessions worth telling — the selection bar above still applies.
+
+- **Cross-model adversarial review** (candidate, sanitization-gated) — the
+  Fable-vs-Codex loop behind demo 10's provocation: rival model attacks the
+  evidence package, author verifies-before-conceding, catches the reviewer
+  re-litigating stale artifacts — and the author's own "confabulated
+  initiative" flag turns out wrong (real repo, missing from the registry).
+  Natural sequel to 07: a rival's attestation isn't verification either.
+  HARD GATE: source transcript (blueprint 9b73d08b) is threaded with 630
+  commercial strategy (fee ceilings, negotiation prep) — needs a full
+  sanitization pass, not a skim, before anything ships.
+- **The fleet voted against my abstraction** (candidate, HOLD) — the portal-IA
+  autopsy: a canonical pattern that was an n=1 extraction, the origin repo
+  deleting the audience switcher while the fleet gate still enforced it, a
+  consumer passing conformance while serving nobody. Demo 08 sequel. Blocked
+  until the candidate-B contract ratifies and the wave ships — don't publish
+  the autopsy before the replacement lands.
 
 ## Backlog / segments (not standalone decks)
 
