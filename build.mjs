@@ -10,6 +10,7 @@
 // <body>; this script wraps it), meta.json (index-card fields), and img/.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, cpSync, rmSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -140,3 +141,4 @@ const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
   .replace('<!--APPLIED-->', appliedCards.join('\n'))
 writeFileSync(join(DIST, 'index.html'), index)
 console.log(`dist/ — ${slugs.length} demo(s) + index${appliedCards.length ? ` + ${appliedCards.length} applied` : ''}`)
+execFileSync('node', [join(HERE, 'tools', 'lib', 'encounter-audit.mjs'), `--root=${HERE}`, '--strict'], { stdio: 'inherit' })

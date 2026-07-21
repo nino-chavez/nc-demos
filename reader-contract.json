@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "project": "Ways of Working Demos",
+  "defaults": {
+    "reader": "a technically curious builder or leader evaluating how AI-agent work is actually done",
+    "job": "understand the demonstrated technique, judge the evidence, and know how to try the reusable part",
+    "assumedKnowledge": [
+      "general software and AI-agent concepts"
+    ],
+    "plainness": "practitioner",
+    "precisionLocks": [
+      "verbatim session excerpts",
+      "measured token and cost figures",
+      "public links and commands",
+      "honest failures and limitations"
+    ]
+  },
+  "surfaces": [
+    {
+      "name": "published teaching site",
+      "renderedRoots": [
+        "dist"
+      ],
+      "sourceRoots": [
+        "demos",
+        "applied",
+        "site/index.html",
+        "build.mjs"
+      ],
+      "allowTerms": [
+        "AI",
+        "API",
+        "CLI",
+        "CI",
+        "JSONL",
+        "MCP",
+        "DOM",
+        "ADR",
+        "ADR-0001",
+        "state:derive",
+        "area:content",
+        "mine_sessions",
+        "mine_transcripts",
+        "mine_corrections",
+        "mine_failures",
+        "friction_mining",
+        "deep_friction_scan",
+        "detailed_analysis"
+      ],
+      "denyTerms": [],
+      "maxWordsPerText": 120
+    }
+  ]
+}
