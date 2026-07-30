@@ -1,0 +1,374 @@
+<title>Everyone Recommending It Was the Project — grading a tool's evidence before adoption</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 12 identity: the ledger. Ink-dark ground with a teal cast — the
+     color of a source that checks out. Signature device is the ledger row:
+     a claim on the left, a stamp on the right naming who published it.
+     Four stamp states, and one of them is a hole. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1416;
+    --panel: #151e21;
+    --panel2: #111a1c;
+    --line: #24343a;
+    --text: #e6f0f1;
+    --dim: #9ab2b6;
+    --faint: #5f767c;
+    --teal: #2dd4bf;
+    --teal-deep: #0f9e8e;
+    --teal-soft: rgba(45, 212, 191, 0.13);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, var(--teal-deep), var(--teal)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--teal); }
+  .rail a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--teal); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--teal); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 118px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--teal); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— the ledger row: the signature device ——————————— */
+  .stamp {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px;
+    white-space: nowrap; vertical-align: middle;
+  }
+  .stamp.owned { background: rgba(248, 113, 113, 0.13); color: var(--bad); }
+  .stamp.filtered { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+  .stamp.indep { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
+  .stamp.gone { background: rgba(95, 118, 124, 0.16); color: var(--faint); }
+
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+  .src {
+    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start;
+    padding: 15px 20px; border-bottom: 1px solid var(--line);
+  }
+  .src:last-child { border-bottom: none; }
+  .src.hole { background: var(--panel2); }
+  .src .claim { margin: 0; font-size: 15px; color: var(--text); }
+  .src .who { margin: 5px 0 0; font-size: 13.5px; color: var(--dim); }
+  .src .mark { padding-top: 2px; }
+  @media (max-width: 640px) {
+    .src { grid-template-columns: 1fr; }
+    .src .mark { padding-top: 0; }
+  }
+
+  /* —— the route list: six attempts, all dead ————————— */
+  .routes { display: grid; gap: 8px; margin: 0 0 26px; }
+  .route {
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    font-family: var(--mono); font-size: 12.5px;
+    border: 1px solid var(--line); border-radius: 5px; padding: 9px 14px; background: var(--panel);
+  }
+  .route b { font-weight: 600; color: var(--dim); }
+  .route span { color: var(--bad); font-size: 11.5px; letter-spacing: 0.04em; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--teal); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--teal); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--teal); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--teal); }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 12</b> NINO CHAVEZ</p>
+    <h1>Everyone recommending it was the project<span class="dot">.</span></h1>
+    <p class="title-sub">A coding-agent plugin with sixty-six thousand stars keeps arriving in my inbox as a link. Answering "should I adopt this" turned out to be an evidence problem, not a feature problem — and once the sources were sorted by who published them, almost nothing was left standing on its own.</p>
+    <blockquote style="margin-bottom: 40px;">
+      "read through and research "oh my opencode" to understand its use case and how it compares to what i'm already doindg and if using it or adopting it is useful in my agentic ways of working."
+      <cite>operator message, verbatim — one prompt, four links, no other context</cite>
+    </blockquote>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE FORK TRAP ———————————————————————————— -->
+<section class="slide" id="s2" aria-label="The first finding was which repository">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> BEFORE THE FEATURES</p>
+    <h2>The first real finding was which repository I was reading</h2>
+    <p class="lede">Two of the four links pointed at repositories with the same name. Both had a polished page, the same hero image, the same testimonial wall. One of them was a fork whose last commit was six months old.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">What the pages looked like</p>
+        <p>Identical. Same README, same feature table, same reviews section. Nothing rendered on either page announced that one was a copy that had stopped moving in January.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">What one command said</p>
+        <p><strong>951 stars, last pushed 2026-01-25, fork of the other one.</strong> The live project had 66,836 stars, a different name after a rename, and had been pushed to that same morning.</p>
+        <p class="lesson"><b>Identity first.</b> A stale fork reads exactly like the original.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Twenty seconds of repository metadata separated a live project from an abandoned copy of it. That check ran before I read a single feature claim, and it is the cheapest one in this entire demo.</p>
+  </div>
+</section>
+
+<!-- 03 · THE LEDGER ——————————————————————————————— -->
+<section class="slide" id="s3" aria-label="The source ledger">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE LEDGER</p>
+    <h2>Sorted by publisher, not by persuasiveness</h2>
+    <p class="lede">Every claim I had been handed, with one column added: who owns the page it appeared on. The sort takes minutes. Skipping it is what costs you.</p>
+    <div class="ledger">
+      <div class="src">
+        <div><p class="claim">54 lifecycle hooks, 11 named agents, a parallel team mode</p><p class="who">The project's own feature table</p></div>
+        <div class="mark"><span class="stamp owned">vendor</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">"Cancelled my Cursor subscription." "You will never go back."</p><p class="who">Quotes the maintainer selected and pasted into a file he controls</p></div>
+        <div class="mark"><span class="stamp owned">vendor</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">A video review showing token burn, erratic behavior, and a config the plugin deleted unprompted</p><p class="who">A third party — listed approvingly in the project's own reviews section</p></div>
+        <div class="mark"><span class="stamp filtered">filtered</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">66,836 stars</p><p class="who">Counted by the host, displayed on the project's page. Unaudited, gameable, and a measure of interest rather than fit — but nobody wrote it</p></div>
+        <div class="mark"><span class="stamp indep">partly</span></div>
+      </div>
+      <div class="src hole">
+        <div><p class="claim">Users arguing about whether it actually helps</p><p class="who">A forum thread. Nobody curating it. The only genuinely independent source in the pile</p></div>
+        <div class="mark"><span class="stamp gone">unreachable</span></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The most useful item in the pile is the critical review, because it is the only one that shows the tool failing. It is also quoted approvingly a few lines above a link to the project's chat server. A critical review the vendor chose to feature is still evidence — it just survived a filter someone else set.</p>
+  </div>
+</section>
+
+<!-- 04 · THE HOLE ————————————————————————————————— -->
+<section class="slide" id="s4" aria-label="The source I could not reach">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE HONEST FAILURE</p>
+    <h2>The one source with no stake was the one I couldn't get</h2>
+    <p class="lede">A forum thread asking, in plain words, whether this thing really provides an advantage. Six attempts across five different routes. Every one refused.</p>
+    <div class="routes">
+      <div class="route"><b>Standard page fetch</b><span>network security block</span></div>
+      <div class="route"><b>The site's older interface</b><span>network security block</span></div>
+      <div class="route"><b>Raw data endpoint</b><span>returned the block page as markup</span></div>
+      <div class="route"><b>A real browser on my own profile</b><span>access denied</span></div>
+      <div class="route"><b>A reader proxy</b><span>401 — bad network reputation</span></div>
+      <div class="route"><b>Two mirror instances</b><span>403 · proof-of-work challenge failed</span></div>
+    </div>
+    <blockquote>
+      Summarizing a discussion I never read would have produced the most quotable section in the writeup and the only invented one. The thread got written down as unreachable, and the pile carried a known hole through to the end.
+      <cite>the disposition — <a href="/said-it-checked/">demo 07</a>'s rule, applied to a source instead of a claim</cite>
+    </blockquote>
+    <p class="lede" style="margin: 0;">The gap matters more than the missing quotes. After it, everything still standing had been published by a party with something at stake in my answer.</p>
+  </div>
+</section>
+
+<!-- 05 · ADVERSE INTEREST ————————————————————————— -->
+<section class="slide" id="s5" aria-label="The claim that decided it">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> WHAT DECIDED IT</p>
+    <h2>One source had every reason not to say it</h2>
+    <p class="lede">The plugin's strongest edition runs on a different coding agent than mine. My subscription is with the model vendor. So the whole question reduced to one thing: can those two be connected?</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The plugin's own answer</p>
+        <p>Honest, and I respect it: <em>technically possible, but I cannot recommend it.</em> Still a sentence on the project's own page, in a document written to persuade.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The answer that settled it</p>
+        <p>The host agent's documentation offers a subscription login option and then says, about its own feature, that <strong>the model vendor explicitly prohibits this</strong> — noting the components enabling it were removed in a later release.</p>
+        <p class="lesson"><b>Adverse interest.</b> Nobody writes that for marketing.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Secondary reporting fills in a timeline across four months — token rejection, updated terms, legal demands, a final cutoff. I read several accounts and could not confirm the specific clause on the vendor's own terms page, which carries only a generic line about not sharing credentials. <strong>That timeline stays labeled as reporting.</strong> The verified part was enough: the flagship edition means paying for other subscriptions and setting mine aside — a price that appears on no page I was handed.</p>
+  </div>
+</section>
+
+<!-- 06 · WHAT I COULD CHECK MYSELF ————————————————— -->
+<section class="slide" id="s6" aria-label="The checks that needed nobody's word">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> TRUSTING NOBODY</p>
+    <h2>Two checks that needed no source at all</h2>
+    <p class="lede">Both were cheap for one reason worth naming: my own setup is already written down, in public, for unrelated reasons. Lining the plugin's inventory up against mine was reading, not excavation.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The inventory diff</p>
+        <p>Most of the 54 hooks had a counterpart already running: idle-agent recovery, duplicate-read prevention, rules injection, language-server navigation, documentation lookup, structured search, an interviewing planner.</p>
+        <p class="lesson"><b>Covered · absent · blocked.</b> Three buckets, not two.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The reverse direction</p>
+        <p>One item ran the other way. A guard that refuses to let two sessions commit from the same working directory — enforced as a denied tool call, not offered as an optional flag. The plugin has no equivalent.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The collision check</p>
+        <p>The lighter edition installs command-line tools into a shared directory and writes blocks into a config file I have been editing for months. Every name it adds is prefixed; every block is a new named section. Nothing collided.</p>
+        <p class="lesson"><b>But:</b> it sets a ceiling of 1,000 parallel threads per session.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Two things were genuinely absent. A hash-anchored edit tool that rejects a stale edit instead of corrupting the file — a real idea, with one weak model reported going from 6.7% to 68.3% success on that change alone, and one I cannot act on because I cannot patch my agent's editor. And structural code search, which turned out to be a separate open-source tool that installs in one command and requires adopting nothing. I took that one.</p>
+  </div>
+</section>
+
+<!-- 07 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> YOUR VERSION OF THIS</p>
+    <h2>Sort the pile before you read it</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If a tool arrives as a link</p>
+        <p>Check identity before features — forks and renames are free and invisible. Then add one column to everything you have been handed: who owns the page. Expect most rows to come back owned by the vendor. That is what a product page is for; it is only a problem when you did not notice.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you need one claim to decide</p>
+        <p>Go looking for a source that loses by publishing it. For agent tooling that is almost always the host platform's documentation, the license file rather than the badge, or the terms page itself. It outweighs the entire testimonial wall above it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you cannot reach a source</p>
+        <p>Write down that you could not, and carry the hole forward. The summary you would have invented is indistinguishable from the one you would have read, which is exactly why it is the most dangerous paragraph available to you.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>identity before features</span>
+      <span>one column: who owns the page</span>
+      <span>the source that loses by saying it</span>
+      <span>a named hole beats an invented quote</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> One session, July 2026: one operator prompt with four links in, a decision and two published artifacts out. Repository metadata, the plugin's reference documentation, the host agent's provider docs, and a video transcript were read directly; the forum thread was not reached and is marked as such throughout. The inventory diff ran against a public methodology repository, which is the only reason it was cheap. Mid-session the worktree guard described on slide 6 <b>blocked this demo's own sibling commit</b> — another session held a live lock on that repository, and the rule was pointed at me. Verification as a discipline is <a href="/said-it-checked/">demo 07</a>; provenance labels on research output are <a href="/applied/provenance/">the applied card</a>; auditing your own harness rather than someone else's is <a href="/config-probe/">demo 11</a>. Companion method card: <a href="/applied/adopt-or-skip/">Grade a Tool Before You Install It</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
