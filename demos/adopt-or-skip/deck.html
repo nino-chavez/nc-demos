@@ -1,0 +1,396 @@
+<title>One Component I Didn't Already Have — measuring a tool against the setup you run</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 12 identity: the subtraction. Ink-dark ground with a teal cast —
+     the color of a component that is genuinely new. Signature device is the
+     component ledger: what the tool installs on the left, a stamp on the
+     right saying whether it is already running. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1416;
+    --panel: #151e21;
+    --panel2: #111a1c;
+    --line: #24343a;
+    --text: #e6f0f1;
+    --dim: #9ab2b6;
+    --faint: #5f767c;
+    --teal: #2dd4bf;
+    --teal-deep: #0f9e8e;
+    --teal-soft: rgba(45, 212, 191, 0.13);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, var(--teal-deep), var(--teal)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--teal); }
+  .rail a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--teal); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--teal); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 118px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--teal); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— the component ledger: the signature device ————— */
+  .stamp {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px;
+    white-space: nowrap; vertical-align: middle;
+  }
+  .stamp.have { background: rgba(95, 118, 124, 0.2); color: var(--dim); }
+  .stamp.na { background: rgba(95, 118, 124, 0.2); color: var(--faint); }
+  .stamp.broken { background: rgba(248, 113, 113, 0.13); color: var(--bad); }
+  .stamp.cost { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+  .stamp.new { background: var(--teal-soft); color: var(--teal); }
+
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+  .src {
+    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start;
+    padding: 13px 20px; border-bottom: 1px solid var(--line);
+  }
+  .src:last-child { border-bottom: none; }
+  .src.hit { background: var(--panel2); box-shadow: inset 3px 0 0 var(--teal); }
+  .src .claim { margin: 0; font-size: 15px; color: var(--text); }
+  .src .who { margin: 4px 0 0; font-size: 13.5px; color: var(--dim); }
+  .src .mark { padding-top: 2px; }
+  @media (max-width: 640px) {
+    .src { grid-template-columns: 1fr; }
+    .src .mark { padding-top: 0; }
+  }
+
+  .tally { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 0; }
+  .tally div {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 6px; padding: 9px 14px; background: var(--panel);
+  }
+  .tally b { color: var(--text); font-size: 15px; margin-right: 7px; }
+  .tally.win b { color: var(--teal); }
+
+  .routes { display: grid; gap: 8px; margin: 0 0 26px; }
+  .route {
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    font-family: var(--mono); font-size: 12.5px;
+    border: 1px solid var(--line); border-radius: 5px; padding: 9px 14px; background: var(--panel);
+  }
+  .route b { font-weight: 600; color: var(--dim); }
+  .route span { color: var(--bad); font-size: 11.5px; letter-spacing: 0.04em; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--teal); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--teal); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--teal); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--teal); }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 12</b> NINO CHAVEZ</p>
+    <h1>One component I didn't already have<span class="dot">.</span></h1>
+    <p class="title-sub">A coding-agent plugin with sixty-six thousand stars keeps arriving in my inbox. It advertises eleven agents and fifty-four hooks. Measured against the setup I already run, the version that could actually land on my machine came out at a delta of one.</p>
+    <blockquote style="margin-bottom: 40px;">
+      "read through and research "oh my opencode" to understand its use case and how it compares to what i'm already doindg and if using it or adopting it is useful in my agentic ways of working."
+      <cite>operator message, verbatim — note "compares to what i'm already doing," which is the whole job</cite>
+    </blockquote>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · HALF A SUBTRACTION ———————————————————————— -->
+<section class="slide" id="s2" aria-label="A feature list is half a subtraction">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE REAL QUESTION</p>
+    <h2>A feature list is half a subtraction</h2>
+    <p class="lede">Eleven agents and fifty-four hooks is eleven and fifty-four <em>against zero</em>. Nobody who has been doing this a year is at zero. The number that decides adoption is what remains after your own setup is subtracted — and that half lives on your machine, not on the project's page.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Version one · runs on a different agent</p>
+        <p>The full plugin runs on OpenCode. I have it installed and have not opened it since September. My subscription is with a vendor whose terms that path violates — stated in the host agent's own documentation, not the plugin's.</p>
+        <p class="lesson"><b>Not a close call.</b> Never the interesting half.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Version two · runs where I actually work</p>
+        <p>A smaller build installs into a terminal agent I drive daily. Eight components instead of the full surface. This one had a real path onto the machine, so this is the one worth measuring.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">So the question stopped being "is this good" — by most accounts it is — and became "what does it add to <em>this</em>."</p>
+  </div>
+</section>
+
+<!-- 03 · THE SUBTRACTION —————————————————————————— -->
+<section class="slide" id="s3" aria-label="The component ledger">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE SUBTRACTION</p>
+    <h2>Eight components, one column added</h2>
+    <div class="ledger">
+      <div class="src">
+        <div><p class="claim">Project-rules injection</p><p class="who">My agent already loads its instructions file. Mine is 253 lines</p></div>
+        <div class="mark"><span class="stamp have">native</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">Work-continuation enforcement</p><p class="who">I ported my own hook for this months ago; it is already running</p></div>
+        <div class="mark"><span class="stamp have">native</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">An effort keyword</p><p class="who">Duplicates native reasoning levels, mine enabled through the top tier</p></div>
+        <div class="mark"><span class="stamp have">native</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">A Windows shell shim</p><p class="who">I work on a Mac</p></div>
+        <div class="mark"><span class="stamp na">n/a</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">A durable multi-goal loop</p><p class="who">Disabled — its own tracker says the program it needs is not shipped</p></div>
+        <div class="mark"><span class="stamp broken">broken</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">Anonymous telemetry</p><p class="who">On by default. A cost, not a feature</p></div>
+        <div class="mark"><span class="stamp cost">cost</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">A comment checker</p><p class="who">New — and the piece users in the tracker name as a token waster</p></div>
+        <div class="mark"><span class="stamp cost">mixed</span></div>
+      </div>
+      <div class="src hit">
+        <div><p class="claim">Language-server tools</p><p class="who">Genuinely absent from my setup. The entire delta</p></div>
+        <div class="mark"><span class="stamp new">new</span></div>
+      </div>
+    </div>
+    <div class="tally">
+      <div><b>3</b>already running</div>
+      <div><b>1</b>wrong platform</div>
+      <div><b>1</b>broken upstream</div>
+      <div><b>2</b>cost or mixed</div>
+      <div class="win"><b>1</b>genuine gain</div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · WHAT USERS FILED ————————————————————————— -->
+<section class="slide" id="s4" aria-label="What the users filed">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE SOURCE THAT ISN'T CURATED</p>
+    <h2>The documentation says what it does when it works</h2>
+    <p class="lede">The issue tracker says what it does on other people's machines — <strong>161 issues filed in thirty days</strong>, written by users, and impossible to quietly prune without the gap showing. It is the fastest read of a project's health that exists, and it is entirely mechanical.</p>
+    <blockquote>
+      "a simple 'Hello world' currently uses 15 to 25k tokens" — quoted back by the maintainer, who agreed: <strong>"It does appear to be using a lot because there are many tools currently provided."</strong>
+      <cite>user report and maintainer confirmation, December 2025 — deferred loading was planned; I found no evidence it shipped</cite>
+    </blockquote>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Scoping this honestly</p>
+        <p>That figure was measured on the <em>full</em> build with its whole tool surface. It does not transfer to the eight-component version, and I am not going to pretend it does. It tells you what the design optimizes for, not what the smaller build costs.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">What does transfer</p>
+        <p>Context-consumption bugs were still being filed this week. The pattern is live even where the number isn't portable.</p>
+        <p class="lesson"><b>Read for shape,</b> not for counts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · STABILITY + THE EXIT —————————————————————— -->
+<section class="slide" id="s5" aria-label="Stability and reversibility">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE SHAPE OF THE FAILURES</p>
+    <h2>It breaks when its host moves, and it doesn't fully leave</h2>
+    <div class="routes">
+      <div class="route"><b>Dead after one host release</b><span>plugin disappears</span></div>
+      <div class="route"><b>Works on one point version, broken on the next</b><span>agents stop loading</span></div>
+      <div class="route"><b>Task calls fail on a third</b><span>type error</span></div>
+      <div class="route"><b>Its own auto-update broke subscription auth</b><span>open, filed two days ago</span></div>
+      <div class="route"><b>Uninstall leaves agents registered</b><span>open · full build</span></div>
+      <div class="route"><b>Uninstall leaves the command and config behind</b><span>open · smaller build</span></div>
+    </div>
+    <blockquote>
+      Earlier in this session I called the smaller build "a defensible thing to just try," reasoning that trying was cheap and reversing was clean. <strong>The second half was wrong.</strong> Cheap-to-try is a claim about the exit, not the entrance.
+      <cite>a recommendation retracted mid-session, by its own evidence</cite>
+    </blockquote>
+    <p class="lede" style="margin: 0;">None of this makes it a bad tool. Its stability is downstream of a host that ships fast, which is a structural position rather than a defect. It does mean the cost of being wrong is an afternoon of cleanup, not one command.</p>
+  </div>
+</section>
+
+<!-- 06 · THE CORRECTION ——————————————————————————— -->
+<section class="slide" id="s6" aria-label="The correction">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE FAILURE SEGMENT</p>
+    <h2>My first answer was well-argued and under-researched</h2>
+    <p class="lede">The first pass read the project's own pages — a polished README, reference documentation, a video the project links approvingly — and concluded that independent evidence was scarce. It wrote that conclusion up as the finding.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">What was wrong with it</p>
+        <p>Not the reasoning. The research. Every source it examined was one the project published or selected, and it treated the resulting thinness as a discovery rather than as a symptom of where it had looked.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">What the operator said</p>
+        <p><em>"this is not something we should ship. we should solve for getting the needed context."</em> The artifact came down. The second pass ran three queries against the tracker and had better evidence in about a minute.</p>
+        <p class="lesson"><b>A gap is a task,</b> not a thesis.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The tell is worth keeping: when a research pass concludes that the evidence does not exist, that is a claim about the search, and it should be checked before it becomes a claim about the world.</p>
+  </div>
+</section>
+
+<!-- 07 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s7" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> YOUR VERSION OF THIS</p>
+    <h2>Run the subtraction, not the feature list</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Write your baseline down</p>
+        <p>You cannot measure an addition without the starting number. Mine is a public repository, which is the only reason this took twenty minutes rather than an afternoon. Do it once and every future tool question becomes a lookup.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Sort into three buckets</p>
+        <p>Native, new, and blocked — new but unusable for reasons unrelated to quality. People collapse the third into the other two, which distorts the answer both ways. An excellent component you can't run is not a gain and not a criticism.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Query the tracker, then the exit</p>
+        <p>Volume, filing rate, and the failures specific to your platform and your host's version. Then search the tracker for the uninstall itself. Open reports that removal leaves residue are worth more than the whole install guide.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>a feature list is half a subtraction</span>
+      <span>native · new · blocked</span>
+      <span>the tracker is the uncurated half of the repo</span>
+      <span>check the exit before the entrance</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> One session, July 2026: one operator prompt with four links in, a published artifact taken back down, and a second pass that changed the answer. Component mapping was run against a real machine's configuration; issue counts, quotes, and dates come from the project's public tracker and are dated where they are stale. The token figure is scoped to the build it was measured on. The forum thread the first pass chased is still unread — it stopped mattering once 161 monthly filings turned up. Verification as a discipline is <a href="/said-it-checked/">demo 07</a>; provenance labels for research output are <a href="/applied/provenance/">the applied card</a>; auditing your own setup rather than someone else's is <a href="/config-probe/">demo 11</a>. Companion method card: <a href="/applied/adopt-or-skip/">Run the Subtraction Before You Install</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

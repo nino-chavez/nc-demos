@@ -1,0 +1,7 @@
+{
+  "title": "Run the Subtraction Before You Install",
+  "description": "Four checks that run before anything touches your machine: enumerate what you already have, subtract it from what the tool ships into native, new, and blocked, query the part of the repository nobody curates, and confirm the uninstall actually works. The technique behind demo 12.",
+  "cardDesc": "A feature list is half a subtraction. Enumerate your baseline, sort the tool's list into three buckets, then search its tracker for the uninstall.",
+  "accent": "#6ea8fe",
+  "strand": "applied"
+}

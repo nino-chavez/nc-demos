@@ -1,0 +1,287 @@
+<title>Run the Subtraction Before You Install — applied: measure the delta, not the feature list</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks, so the strand reads as one thing. The signature
+     device is the bucket row — native, new, blocked — the three-way sort
+     that turns a feature list into a decision. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116;
+    --panel: #171b22;
+    --panel2: #12151b;
+    --line: #262c36;
+    --text: #e8ecf2;
+    --dim: #9aa5b4;
+    --faint: #5f6b7d;
+    --accent: #6ea8fe;
+    --accent-soft: rgba(110, 168, 254, 0.12);
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --deny: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 108px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .chip { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 3px; white-space: nowrap; vertical-align: middle; }
+  .chip.have { background: rgba(95, 107, 125, 0.2); color: var(--dim); }
+  .chip.new { background: var(--accent-soft); color: var(--accent); }
+  .chip.blocked { background: rgba(251, 191, 36, 0.12); color: var(--warn); }
+
+  /* —— the bucket row: the signature device ——————————— */
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); margin: 0 0 26px; }
+  .src { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; padding: 15px 20px; border-bottom: 1px solid var(--line); }
+  .src:last-child { border-bottom: none; }
+  .src.hit { background: var(--panel2); box-shadow: inset 3px 0 0 var(--accent); }
+  .src .claim { margin: 0; font-size: 15px; color: var(--text); }
+  .src .who { margin: 4px 0 0; font-size: 13.5px; color: var(--dim); }
+  @media (max-width: 640px) { .src { grid-template-columns: 1fr; } }
+
+  .cmd { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 0; }
+  .cmd .label { padding: 11px 18px 9px; background: var(--panel2); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .cmd .label b { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+  .cmd pre { margin: 0; padding: 14px 18px; background: var(--panel); font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: var(--dim); overflow-x: auto; }
+  .cmd pre b { color: var(--text); font-weight: 600; }
+  .cmds { display: flex; flex-direction: column; gap: 14px; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Run the subtraction<br>before you install<span class="dot">.</span></h1>
+    <p class="title-sub">Four checks that run before anything touches your machine: enumerate what you already have, subtract it from what the tool ships, query the part of the repository nobody curates, and confirm the uninstall works.</p>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE FAILURE ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The failure this fixes">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE FAILURE THIS FIXES</p>
+    <h2>A feature list is half a subtraction</h2>
+    <p class="lede">Fifty-four hooks is fifty-four <em>against zero</em>. Against a setup that has been accumulating for a year, the honest number is whatever remains after your own is subtracted — and nobody publishes that half for you, because it lives on your machine.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">What it feels like</p>
+        <p>An impressive list of capabilities, each one plausible, adding up to an obvious yes. The volume does the work that measurement should be doing.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">What it is</p>
+        <p>An unfinished equation. The same list produces a different answer for a person running stock tooling than for a person with a year of hooks and helpers already loaded.</p>
+        <p class="lesson"><b>Cost of skipping:</b> you adopt on volume.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 · BASELINE + BUCKETS ————————————————————————— -->
+<section class="slide" id="s3" aria-label="Baseline and buckets">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> CHECKS ONE AND TWO · THE SUBTRACTION</p>
+    <h2>Write your baseline down, then sort into three</h2>
+    <p class="lede">Check one is the one people skip and the one that pays permanently: get everything your agent loads at startup into a list you can read. Do it once and every future tool question becomes a lookup.</p>
+    <div class="ledger">
+      <div class="src">
+        <div><p class="claim">Native</p><p class="who">Your setup or your agent already does this — remove it from the gain column entirely</p></div>
+        <div><span class="chip have">native</span></div>
+      </div>
+      <div class="src hit">
+        <div><p class="claim">New</p><p class="who">Genuinely absent. This is the delta, and the only column that argues for installing</p></div>
+        <div><span class="chip new">new</span></div>
+      </div>
+      <div class="src">
+        <div><p class="claim">Blocked</p><p class="who">New but unusable for reasons unrelated to quality — wrong platform, broken upstream, needs a subscription you don't hold</p></div>
+        <div><span class="chip blocked">blocked</span></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 0 0 18px;"><strong>Blocked is the bucket people collapse,</strong> and it distorts the answer both ways. A component that is excellent and unusable is not a gain, and it is also not a criticism of the tool. Then run it backwards: what does your baseline do that the tool's list never mentions?</p>
+    <div class="cmd">
+      <div class="label"><b>pull the enumeration, not the sales page</b></div>
+      <pre>curl -fsSL https://raw.githubusercontent.com/&lt;owner&gt;/&lt;repo&gt;/&lt;branch&gt;/<b>docs/reference/features.md</b>
+ls ~/.claude/skills/ ~/.claude/commands/ ~/.claude/hooks/   <b># your side</b></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · THE TRACKER ——————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Query the issue tracker">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> CHECK THREE · THE UNCURATED HALF</p>
+    <h2>Documentation says what it does when it works</h2>
+    <p class="lede">The issue tracker says what it does on other people's machines. Users write it, and unlike a testimonial section it cannot be quietly pruned without the gap showing. Three queries: volume, arrival rate, and your own failure modes.</p>
+    <div class="cmds">
+      <div class="cmd">
+        <div class="label"><b>how much is open, and how fast is it arriving</b></div>
+        <pre>gh api "search/issues?q=repo:&lt;o&gt;/&lt;r&gt;+is:issue+is:open&per_page=1" --jq '.total_count'
+gh api "search/issues?q=repo:&lt;o&gt;/&lt;r&gt;+is:issue+<b>created:&gt;=&lt;30-days-ago&gt;</b>&per_page=1" --jq '.total_count'</pre>
+      </div>
+      <div class="cmd">
+        <div class="label"><b>what users argue about most</b></div>
+        <pre>gh api "search/issues?q=repo:&lt;o&gt;/&lt;r&gt;+is:issue&<b>sort=comments</b>&order=desc&per_page=25" \
+  --jq '.items[] | "\(.comments)c \(.state) #\(.number) \(.title)"'</pre>
+      </div>
+    </div>
+    <p class="lede" style="margin: 22px 0 0;">Read for shape, not counts — a high open count on a popular project mostly means it is popular. Does it break when its host releases? Search the host's version numbers. Do its own updates break things? Search <em>after updating</em>. Are the busiest threads features, or the same bug returning?</p>
+  </div>
+</section>
+
+<!-- 05 · THE EXIT —————————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Check the exit">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> CHECK FOUR · THE EXIT</p>
+    <h2>"Cheap to try" is a claim about uninstalling</h2>
+    <p class="lede">Every installer is one command. The exit is the part nobody tests, and it decides whether being wrong costs you a minute or an afternoon.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Read what it writes</p>
+        <p>Install guides usually say what lands on disk. Check each location against your machine before running anything. Prefixed names and new named sections are additive and reversible; bare generic names and rewrites of sections you already use are not.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Then search for the uninstall</p>
+        <p>Almost nobody does this. Open reports that removal leaves things behind are worth more than the entire installation guide, because they tell you the true cost of being wrong.</p>
+        <p class="lesson"><b>No answer</b> is itself the finding.</p>
+      </div>
+    </div>
+    <div class="cmd" style="margin-top: 18px;">
+      <div class="label"><b>the query that retracts a recommendation</b></div>
+      <pre>gh api "search/issues?q=repo:&lt;o&gt;/&lt;r&gt;+is:issue+<b>uninstall+OR+cleanup+OR+remove</b>" \
+  --jq '.items[] | "\(.state) \(.created_at[0:10]) #\(.number) \(.title)"'</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · START HERE ———————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Start here">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> START HERE</p>
+    <h2>One tool, four checks, forty minutes</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Minutes 0–10</p>
+        <p>List what your agent loads at startup, and name what each item does in a sentence without looking it up. Anything you cannot explain is a finding — it loads every session and you do not know why.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Minutes 10–22</p>
+        <p>Pull the tool's reference enumeration and sort every component into native, new, or blocked. Then run it backwards. Count the new bucket — that count is the decision.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Minutes 22–40</p>
+        <p>Three tracker queries plus two searches specific to your platform and host version. Then the uninstall search. Write one sentence on the recurring failure mode and whether it would reach you.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>a feature list is half a subtraction</span>
+      <span>native · new · blocked</span>
+      <span>the tracker is the half nobody curates</span>
+      <span>check the exit before the entrance</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> The technique behind <a href="/adopt-or-skip/">demo 12</a>, generalized off that session's specifics — including the part where an earlier version of this method skipped check three, concluded the evidence was thin, and had to be retracted. Check one assumes your setup is already written down; if it is not, that is the actual first task, and it is the same enumeration that makes every later comparison cheap. Related: verification as a discipline in <a href="/said-it-checked/">demo 07</a>, provenance labels for research output in <a href="/applied/provenance/">the applied card</a>, and auditing your own setup rather than someone else's in <a href="/config-probe/">demo 11</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

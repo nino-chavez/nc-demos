@@ -1,0 +1,13 @@
+{
+  "number": "12",
+  "title": "One Component I Didn't Already Have",
+  "hook": "A plugin advertising eleven agents and fifty-four hooks, measured against the setup I already run. Of the eight components that could land on my machine, three were already going, one was the wrong platform, one was broken upstream, two were costs. The delta was one.",
+  "date": "2026-07",
+  "for": "Anyone handed a feature list and asked whether to adopt it — especially with a year of accumulated hooks, rules, and helpers already loaded.",
+  "get": "A component-by-component subtraction against a real machine, three mechanical queries against the part of a repo nobody curates, a retracted recommendation, and the correction that produced all of it.",
+  "do": "Write your baseline down, sort the tool's list into native, new, and blocked, then search its tracker for the uninstall before you run the install.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 12 title slide: one component I didn't already have, with the operator's verbatim request to compare the tool against what he already runs",
+  "theme": "tool-adoption",
+  "accent": "#2dd4bf"
+}
