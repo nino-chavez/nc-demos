@@ -1,6 +1,6 @@
 # ways of working — demo series
 
-<img src="assets/readme/hero.svg" alt="ways of working — a demo series of real AI-agent sessions: verbatim messages, real production systems, honest failures. Twelve demos at demos.ninochavez.co spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, config experiments, and tool adoption." width="100%">
+<img src="assets/readme/hero.svg" alt="ways of working — a demo series of real AI-agent sessions: verbatim messages, real production systems, honest failures. Eleven demos at demos.ninochavez.co spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, and config experiments." width="100%">
 
 Public teaching demos of real AI-agent working sessions, hosted at
 [demos.ninochavez.co](https://demos.ninochavez.co). Each demo is one real
@@ -21,7 +21,6 @@ Ordered 01 → 11; each title links to the live session.
 - **[09 · The Beautifier Was an Auditor](https://demos.ninochavez.co/beautifier/)** — A skill built to make a README prettier turned out to be a drift detector. Across five repos it flagged a stale deploy doc, a command list that no longer matched reality, and capabilities nobody had written down. The visual polish was the smallest thing it did.
 - **[10 · The Chiropractor's Four Questions](https://demos.ninochavez.co/four-questions/)** — A sports chiropractor asked four plain questions about selling rehab programs online. The AI's answer was confident, tabulated, sourced — and its evidence was marketing all the way down. Twice. The series' first client-facing session, with the audit that fixed it.
 - **[11 · The Sycophancy Was in the Config](https://demos.ninochavez.co/config-probe/)** — A rival model reviewing my agent's work looked sharper — it demanded competing candidates and restraint. So my agent A/B tested its own harness: same model, same prompt, config on and off. The vanilla arm pushed back on me twice. The configured arm never did.
-- **[12 · Everyone Recommending It Was the Project](https://demos.ninochavez.co/adopt-or-skip/)** — A coding-agent plugin with 66,836 stars keeps arriving as a link. Sorting its evidence by publisher, every source arguing for it belonged to it — the one independent thread was unreachable across five routes, and the claim that decided it came from a vendor with no reason to make it.
 
 ## Applied
 
@@ -39,7 +38,6 @@ gallery.
 | [Mine Your Own Transcripts](https://demos.ninochavez.co/applied/corpus/) | [04](https://demos.ninochavez.co/session-corpus/) |
 | [Put Provenance Labels on AI Research](https://demos.ninochavez.co/applied/provenance/) | [10](https://demos.ninochavez.co/four-questions/) |
 | [Bare-Arm Test Your Agent Config](https://demos.ninochavez.co/applied/config-probe/) | [11](https://demos.ninochavez.co/config-probe/) |
-| [Grade a Tool Before You Install It](https://demos.ninochavez.co/applied/adopt-or-skip/) | [12](https://demos.ninochavez.co/adopt-or-skip/) |
 
 ## Layout
 

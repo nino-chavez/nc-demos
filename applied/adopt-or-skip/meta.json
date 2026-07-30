@@ -1,7 +1,0 @@
-{
-  "title": "Grade a Tool Before You Install It",
-  "description": "Four checks that run before anything touches your machine: sort the evidence by who published it, hunt the source arguing against its own interest, diff the feature list against your own setup in both directions, and read what the installer writes before you let it write. The technique behind demo 12.",
-  "cardDesc": "Sort the pile by publisher, find the claim that costs its author, and diff the inventory before you install anything.",
-  "accent": "#6ea8fe",
-  "strand": "applied"
-}
