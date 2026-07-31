@@ -73,7 +73,7 @@ for (const slug of slugs) {
   cards.push(d)
 }
 
-// The series is a teaching arc — the index reads 01 → 08.
+// The series is a teaching arc — keep the source-defined publication order.
 cards.sort((a, b) => a.meta.number.localeCompare(b.meta.number))
 
 const cardHtml = cards
@@ -102,6 +102,7 @@ const arcHtml = cards
 // section, kept distinct from the numbered session arc.
 const APPLIED = join(HERE, 'applied')
 const appliedCards = []
+const appliedEntries = []
 if (existsSync(APPLIED)) {
   for (const slug of readdirSync(APPLIED).filter((s) => statSync(join(APPLIED, s)).isDirectory()).sort()) {
     const dir = join(APPLIED, slug)
@@ -126,6 +127,7 @@ ${content}
 </html>
 `)
     if (existsSync(join(dir, 'img'))) cpSync(join(dir, 'img'), join(DIST, 'applied', slug, 'img'), { recursive: true })
+    appliedEntries.push({ slug, meta })
     appliedCards.push(`      <a class="applied-card" href="/applied/${slug}/" style="--acc: ${meta.accent || '#6ea8fe'}">
         <span class="at">applied · technique</span>
         <span class="an">${meta.title}</span>
@@ -140,5 +142,66 @@ const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
   .replace('<!--DEMOS-->', cardHtml)
   .replace('<!--APPLIED-->', appliedCards.join('\n'))
 writeFileSync(join(DIST, 'index.html'), index)
+
+const techniques = appliedEntries.map(({ slug, meta }) => ({
+  slug,
+  title: meta.title,
+  summary: meta.cardDesc || meta.description,
+  description: meta.description,
+  principles: meta.principles || [],
+  relatedSessionSlugs: meta.relatedSessionSlugs || [],
+  href: `https://demos.ninochavez.co/applied/${slug}/`,
+}))
+const techniqueBySession = new Map()
+for (const technique of techniques) {
+  for (const sessionSlug of technique.relatedSessionSlugs) {
+    if (!techniqueBySession.has(sessionSlug)) {
+      techniqueBySession.set(sessionSlug, technique.slug)
+    }
+  }
+}
+
+const sessions = cards.map(({ slug, meta }) => ({
+  number: meta.number,
+  slug,
+  title: meta.title,
+  summary: meta.hook,
+  audience: meta.for,
+  evidence: meta.get,
+  practice: meta.do,
+  date: meta.date,
+  theme: meta.theme,
+  accent: meta.accent,
+  artifact: {
+    src: `https://demos.ninochavez.co/${slug}/${meta.preview}`,
+    alt: meta.previewAlt,
+  },
+  relatedTechniqueSlug: techniqueBySession.get(slug),
+  href: `https://demos.ninochavez.co/${slug}/`,
+}))
+const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: HERE,
+  encoding: 'utf8',
+}).trim()
+writeFileSync(
+  join(DIST, 'content-index.json'),
+  `${JSON.stringify({
+    schemaVersion: 1,
+    source: 'apps/nc-demos',
+    sourceRevision,
+    generatedAt: new Date().toISOString(),
+    sessionCount: sessions.length,
+    techniqueCount: techniques.length,
+    sessions,
+    techniques,
+  }, null, 2)}\n`,
+)
+writeFileSync(
+  join(DIST, '_headers'),
+  `/content-index.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=3600
+`,
+)
 console.log(`dist/ — ${slugs.length} demo(s) + index${appliedCards.length ? ` + ${appliedCards.length} applied` : ''}`)
 execFileSync('node', [join(HERE, 'tools', 'lib', 'encounter-audit.mjs'), `--root=${HERE}`, '--strict'], { stdio: 'inherit' })

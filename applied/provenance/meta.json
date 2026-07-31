@@ -2,6 +2,14 @@
   "title": "Put Provenance Labels on AI Research",
   "description": "How to make AI-assisted research trustworthy for a reader who can't check it: a three-tier confidence label on every number, an adversarial audit loop that re-derives claims at their sources, and the honest downgrade when a source can't be read. The technique behind demo 10.",
   "cardDesc": "Three label tiers, an adversarial re-derivation loop, and the honest downgrade — shown working.",
+  "principles": [
+    "Distinguish a source you read from a search result about it.",
+    "Check who owns the domain behind every claim.",
+    "Prefer an honest downgrade to a false confirmation."
+  ],
+  "relatedSessionSlugs": [
+    "four-questions"
+  ],
   "accent": "#6ea8fe",
   "strand": "applied"
 }

@@ -56,6 +56,11 @@ site/index.html   the index page; build injects cards at <!--DEMOS--> and <!--AP
 build.mjs         node build.mjs → dist/
 ```
 
+`node build.mjs` also publishes `/content-index.json`, the canonical
+machine-readable inventory consumed by ninochavez.co. It includes every
+session and applied technique, their source revision, durable relationships,
+and the source frames used by the unified site.
+
 ## Build
 
 ```sh
