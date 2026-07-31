@@ -21,6 +21,9 @@
       "renderedRoots": [
         "dist"
       ],
+      "excludeRoots": [
+        "dist/content"
+      ],
       "sourceRoots": [
         "demos",
         "applied",

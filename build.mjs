@@ -11,11 +11,14 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, cpSync, rmSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const DEMOS = join(HERE, 'demos')
 const DIST = join(HERE, 'dist')
+const PUBLIC_SITE = 'https://ninochavez.co'
+const PUBLISHER_ORIGIN = 'https://nc-demos.pages.dev'
 
 function demo(slug) {
   const dir = join(DEMOS, slug)
@@ -42,6 +45,46 @@ ${content}
 </body>
 </html>
 `
+}
+
+function story({ kind, slug, title, content }) {
+  const style = content.match(/<style>([\s\S]*?)<\/style>/)?.[1]
+  const sections = [...content.matchAll(/<section\b([^>]*)>([\s\S]*?)<\/section>/g)]
+    .filter((match) => /\bclass="[^"]*\bslide\b[^"]*"/.test(match[1]))
+    .map((match, index) => {
+      const attributes = match[1]
+      const className = attributes.match(/\bclass="([^"]+)"/)?.[1] ?? 'slide'
+      const label =
+        attributes.match(/\baria-label="([^"]+)"/)?.[1] ??
+        `Section ${index + 1}`
+
+      return {
+        id: `s${index + 1}`,
+        label,
+        className,
+        html: match[2].trim(),
+      }
+    })
+
+  if (!style || sections.length === 0) {
+    throw new Error(`${kind} ${slug} is missing its style or story sections.`)
+  }
+
+  const sourcePath =
+    kind === 'session' ? `/${slug}/` : `/applied/${slug}/`
+
+  return {
+    schemaVersion: 1,
+    kind,
+    slug,
+    title,
+    sourcePath,
+    assetBase: `${PUBLISHER_ORIGIN}${sourcePath}`,
+    sourceHash: createHash('sha256').update(content).digest('hex'),
+    sectionCount: sections.length,
+    style,
+    sections,
+  }
 }
 
 const artifactAt = process.argv.indexOf('--artifact')
@@ -127,7 +170,7 @@ ${content}
 </html>
 `)
     if (existsSync(join(dir, 'img'))) cpSync(join(dir, 'img'), join(DIST, 'applied', slug, 'img'), { recursive: true })
-    appliedEntries.push({ slug, meta })
+    appliedEntries.push({ slug, meta, title, content })
     appliedCards.push(`      <a class="applied-card" href="/applied/${slug}/" style="--acc: ${meta.accent || '#6ea8fe'}">
         <span class="at">applied · technique</span>
         <span class="an">${meta.title}</span>
@@ -150,7 +193,8 @@ const techniques = appliedEntries.map(({ slug, meta }) => ({
   description: meta.description,
   principles: meta.principles || [],
   relatedSessionSlugs: meta.relatedSessionSlugs || [],
-  href: `https://demos.ninochavez.co/applied/${slug}/`,
+  href: `${PUBLIC_SITE}/demos/applied/${slug}`,
+  storyHref: `${PUBLISHER_ORIGIN}/content/techniques/${slug}.json`,
 }))
 const techniqueBySession = new Map()
 for (const technique of techniques) {
@@ -173,16 +217,32 @@ const sessions = cards.map(({ slug, meta }) => ({
   theme: meta.theme,
   accent: meta.accent,
   artifact: {
-    src: `https://demos.ninochavez.co/${slug}/${meta.preview}`,
+    src: `${PUBLISHER_ORIGIN}/${slug}/${meta.preview}`,
     alt: meta.previewAlt,
   },
   relatedTechniqueSlug: techniqueBySession.get(slug),
-  href: `https://demos.ninochavez.co/${slug}/`,
+  href: `${PUBLIC_SITE}/demos/${slug}`,
+  storyHref: `${PUBLISHER_ORIGIN}/content/sessions/${slug}.json`,
 }))
 const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
   cwd: HERE,
   encoding: 'utf8',
 }).trim()
+for (const [kind, entries] of [
+  ['sessions', cards.map(({ slug, title, content }) =>
+    story({ kind: 'session', slug, title, content }))],
+  ['techniques', appliedEntries.map(({ slug, title, content }) =>
+    story({ kind: 'technique', slug, title, content }))],
+]) {
+  const destination = join(DIST, 'content', kind)
+  mkdirSync(destination, { recursive: true })
+  for (const entry of entries) {
+    writeFileSync(
+      join(destination, `${entry.slug}.json`),
+      `${JSON.stringify({ ...entry, sourceRevision }, null, 2)}\n`,
+    )
+  }
+}
 writeFileSync(
   join(DIST, 'content-index.json'),
   `${JSON.stringify({
@@ -199,6 +259,10 @@ writeFileSync(
 writeFileSync(
   join(DIST, '_headers'),
   `/content-index.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=3600
+
+/content/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=3600
 `,
