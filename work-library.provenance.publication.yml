@@ -1,0 +1,67 @@
+schema: work-library-publication/0
+case_id: provenance-labels
+adapter: git-manifest
+canonical_output: decision
+
+catalog:
+  title: Put Provenance Labels on AI Research
+  subtitle: Evidence discipline · Applied method
+  question: How can a reader tell what an AI-assisted recommendation actually knows?
+  summary: Label every load-bearing claim by how its source was obtained, audit the label at the source, and keep the recommendation only if it survives weaker evidence.
+
+collection_candidates: [commerce, methods, research]
+
+publication:
+  status: draft
+  clearance: internal
+  assurance:
+    human_validation: pending
+
+outputs:
+  - id: decision
+    type: decision-record
+    status: draft
+    artifact: docs/work-library-provenance-record.md
+    clearance: internal
+    assurance:
+      human_validation: pending
+  - id: applied-story
+    type: executive-presentation
+    status: ready
+    artifact: applied/provenance/deck.html
+    clearance: public
+    assurance:
+      human_validation: pending
+  - id: source-metadata
+    type: reference-library
+    status: ready
+    artifact: applied/provenance/meta.json
+    clearance: public
+    assurance:
+      human_validation: pending
+
+projections:
+  - id: decision
+    output: decision
+    artifact: docs/work-library-provenance-record.md
+    render_as: executive-decision
+    label: Decision
+    route: /
+  - id: presentation
+    output: applied-story
+    artifact: applied/provenance/deck.html
+    render_as: html-presentation
+    asset_path: index.html
+    label: Applied method
+    route: /presentation
+  - id: metadata
+    output: source-metadata
+    artifact: applied/provenance/meta.json
+    render_as: reference-document
+    label: Source metadata
+    route: /reference/metadata
+
+exclude:
+  - dist/**
+  - node_modules/**
+  - "**/.git/**"

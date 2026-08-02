@@ -1,0 +1,67 @@
+schema: work-library-publication/0
+case_id: four-questions
+adapter: git-manifest
+canonical_output: decision
+
+catalog:
+  title: The Chiropractor's Four Questions
+  subtitle: Research audit · Applied advisory
+  question: What survives when a confident commerce recommendation is re-derived from its actual sources?
+  summary: The recommendation survived, but three claims failed and another was downgraded. The case turns that failure into a source-level audit discipline.
+
+collection_candidates: [commerce, methods, advisory]
+
+publication:
+  status: draft
+  clearance: internal
+  assurance:
+    human_validation: pending
+
+outputs:
+  - id: decision
+    type: decision-record
+    status: draft
+    artifact: docs/work-library-four-questions-record.md
+    clearance: internal
+    assurance:
+      human_validation: pending
+  - id: applied-story
+    type: executive-presentation
+    status: ready
+    artifact: demos/four-questions/deck.html
+    clearance: public
+    assurance:
+      human_validation: pending
+  - id: source-metadata
+    type: reference-library
+    status: ready
+    artifact: demos/four-questions/meta.json
+    clearance: public
+    assurance:
+      human_validation: pending
+
+projections:
+  - id: decision
+    output: decision
+    artifact: docs/work-library-four-questions-record.md
+    render_as: executive-decision
+    label: Decision
+    route: /
+  - id: presentation
+    output: applied-story
+    artifact: demos/four-questions/deck.html
+    render_as: html-presentation
+    asset_path: index.html
+    label: Applied case
+    route: /presentation
+  - id: metadata
+    output: source-metadata
+    artifact: demos/four-questions/meta.json
+    render_as: reference-document
+    label: Source metadata
+    route: /reference/metadata
+
+exclude:
+  - dist/**
+  - node_modules/**
+  - "**/.git/**"
