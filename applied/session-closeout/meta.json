@@ -1,0 +1,15 @@
+{
+  "title": "Close the Session, Keep the Lesson",
+  "description": "Promote project truth, distill the reusable method, enqueue fast, mine in the background, and delete raw transcripts only after an explicit archive-safety receipt.",
+  "cardDesc": "Turn a finished agent session into durable project truth and compact recall before its raw transcript expires.",
+  "principles": [
+    "Project truth stays with the project that owns it.",
+    "Lifecycle hooks enqueue; background workers mine.",
+    "A current watermark proves ingestion, not semantic completeness."
+  ],
+  "relatedSessionSlugs": [
+    "session-corpus"
+  ],
+  "accent": "#6ea8fe",
+  "strand": "applied"
+}

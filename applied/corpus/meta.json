@@ -7,9 +7,7 @@
     "Turn repeated corrections into priors the next session reads.",
     "Re-derive important numbers when you use them."
   ],
-  "relatedSessionSlugs": [
-    "session-corpus"
-  ],
+  "relatedSessionSlugs": [],
   "accent": "#6ea8fe",
   "strand": "applied"
 }

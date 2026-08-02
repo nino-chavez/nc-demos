@@ -170,7 +170,7 @@
   <div class="wrap">
     <p class="eyebrow"><b>WAYS OF WORKING · DEMO 04</b> NINO CHAVEZ</p>
     <h1>Your sessions<br>are a corpus<span class="dot">.</span></h1>
-    <p class="title-sub">Every agent session leaves a transcript. Mine them, and your own history becomes training data for how you work: reusable prompts, your correction patterns as standing priors, and an honest ledger of what the agent built that actually survived.</p>
+    <p class="title-sub">Every agent session leaves a transcript. Mine it for reusable lessons, promote the project truth, then let the raw record expire. A useful corpus should make your next session better without becoming permanent storage.</p>
     <div class="term" style="max-width: 640px; margin-bottom: 44px;">
       <div class="term-bar"><i></i><i></i><i></i><span>agent — zsh</span></div>
       <pre><span class="p">$</span> python3 artifact-miner.py --out artifact-mine.json
@@ -338,32 +338,115 @@ friction_mining_v2.py, ...) — hence the durable home.</span></pre>
   </div>
 </section>
 
-<!-- 09 · YOUR VERSION ————————————————————————————— -->
-<section class="slide" id="s9" aria-label="Your version of this">
+<!-- 09 · RETENTION INCIDENT ——————————————————————— -->
+<section class="slide" id="s9" aria-label="The retention incident">
   <div class="wrap">
-    <p class="eyebrow"><b>09</b> YOUR VERSION OF THIS</p>
-    <h2>Start with one query, not a platform</h2>
+    <p class="eyebrow"><b>09</b> THE STORAGE BILL</p>
+    <h2>The corpus became the storage problem</h2>
+    <p class="lede">One Codex home directory reached roughly <strong>24 GB</strong>. The useful lesson was not “delete old chats.” Measurement found two stores with different risk:</p>
+    <div class="readout">
+      <div class="rd"><b>Recreated output</b><span><em>18.5 GiB</em> Cargo build files</span></div>
+      <div class="rd"><b>Raw history</b><span><em>5.04 GiB</em> · 246 archives</span></div>
+      <div class="rd"><b>Searchable residue</b><span><em>34 MB</em> recall database</span></div>
+      <div class="rd"><b>Backfilled</b><span><em>605</em> Codex transcripts</span></div>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Build output is mechanical</p>
+        <p>Compiled dependencies can be recreated. Reclaim them from an idle linked worktree after proving the path is ignored, untracked, and unused by a live session.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Transcripts need judgment</p>
+        <p>The compact store retained <strong>553 user signals</strong> and <strong>11,773 completed response examples</strong>. Deletion still stayed blocked because a miner cannot prove that every project-specific decision moved into its owning repository.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · CLOSEOUT LOOP ———————————————————————————— -->
+<section class="slide" id="s10" aria-label="The session closeout loop">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> THE CLOSEOUT LOOP</p>
+    <h2>The hook is transport. The closeout is judgment.</h2>
+    <div class="loop">
+      <div class="lnode"><div class="t">Promote</div><div class="s">project truth into its owning repo</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Receipt</div><div class="s">outcome · proof · gaps · next action</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Enqueue</div><div class="s">fast SessionEnd record, no mining</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Mine</div><div class="s">background worker + provenance</div></div>
+      <div class="larrow">→</div>
+      <div class="lnode"><div class="t">Expire</div><div class="s">grace window + current watermark</div></div>
+    </div>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">What survives</p>
+        <p>Canonical decisions, verified evidence, unresolved questions, the next action, and a small reusable recipe. Each retained record keeps its source client, task identity, project path, and timestamp.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">What does not get claimed</p>
+        <p><strong>Archive-safe: no</strong> is a valid result. It means raw context still carries something important. A current database watermark proves ingestion, not semantic completeness.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · FAILED SAFETY PROOF ————————————————————— -->
+<section class="slide" id="s11" aria-label="The cleanup hook safety lesson">
+  <div class="wrap">
+    <p class="eyebrow"><b>11</b> THE FAILED SAFETY PROOF</p>
+    <h2>The cleanup hook proved its own warning</h2>
+    <p class="lede">A live test removed <strong>594 MB of installed JavaScript dependencies</strong> from a real idle worktree outside the requested scope. The source and branch survived. The test still crossed the authority boundary — and exposed four missing gates:</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Liveness was incomplete</p>
+        <p>The reaper recognized Claude session locks, not active Codex tasks. A multi-client cleanup tool needs one liveness contract or an adapter for every client it claims to protect.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Ignored did not mean disposable</p>
+        <p><span style="font-family: var(--mono);">git check-ignore</span> proves an ignore rule matches. It does not prove there are no tracked descendants. Pair it with <span style="font-family: var(--mono);">git ls-files</span>.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Root mtime was a weak clock</p>
+        <p>Editing an existing file may leave the worktree directory timestamp unchanged. Use a real activity signal, then recheck it immediately before deletion.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Turn-ending hooks are the wrong worker</p>
+        <p>A recursive delete inside a short Stop hook can be interrupted. The safe shape is report first, enqueue, recheck, then clean out of band.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s12" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>12</b> YOUR VERSION OF THIS</p>
+    <h2>Close the session. Keep the lesson.</h2>
     <div class="cols c3">
       <div class="panel">
         <p class="ptag">If you never touch code</p>
-        <p>Your correction history is the most valuable thing you produce with an AI. When you correct the same thing twice, save the correction somewhere the next session will see it — that's the whole loop, manually.</p>
+        <p>Before archiving, write down what changed, what proved it, what remains uncertain, and the next action. Put project truth with the project. Keep the raw chat until that closeout feels complete.</p>
       </div>
       <div class="panel">
         <p class="ptag">If you're technical</p>
-        <p>Your agent's transcripts are on disk right now. Grep them for your own name-brand waste — repeated commands, re-reads, re-built scripts — before building anything. One counted number beats a platform.</p>
+        <p>Make lifecycle hooks append one queue record and return. Mine in a background worker. Bind the watermark to the transcript path and modification time so a changed file gets processed again.</p>
       </div>
       <div class="panel">
         <p class="ptag">If you build systems</p>
-        <p>Mine user turns and agent actions separately — corrections become priors, actions become audits. Make the miner durable with an extend-don't-re-fork rule, and gate every public output behind a scrub pass.</p>
+        <p>Separate policy for raw transcripts, compact recall, canonical docs, and reproducible build artifacts. Deletion needs a grace window, current ingestion, and an explicit answer to “did the important context move?”</p>
       </div>
     </div>
     <div class="stack">
       <a href="https://github.com/nino-chavez/claude-recall-cli">github.com/nino-chavez/claude-recall-cli</a>
+      <a href="https://github.com/nino-chavez/agentic-ways-of-working/blob/main/docs/session-retention.md">reusable retention pattern</a>
+      <a href="/applied/session-closeout/">applied: session closeout</a>
       <span>SQLite + FTS5 · /recall commands</span>
       <span>poe-extract · artifact-miner · session grades</span>
     </div>
     <div class="colophon">
-      <b>Colophon.</b> Every number re-derived for this page on publication day: corpus size and survival from a fresh artifact-miner run, grades and session shapes queried from the live database, the docstring and priors quoted verbatim (client names and private paths scrubbed). Demo 04 in the <a href="/">ways-of-working series</a> — the guards this corpus produced are <a href="/enforced-forever/">demo 03</a>.
+      <b>Colophon.</b> Original corpus numbers were re-derived on publication day from the artifact miner and live database. The retention field note was measured during a 2026-08 cleanup: 18.5 GiB of Cargo output, 5.04 GiB across 246 archives, 605 Codex transcripts backfilled into a 34 MB database, and no transcript deletion approved. Client names and private paths are omitted. Demo 04 in the <a href="/">ways-of-working series</a> — the guards this corpus produced are <a href="/enforced-forever/">demo 03</a>.
     </div>
   </div>
 </section>

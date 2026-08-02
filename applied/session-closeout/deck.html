@@ -1,0 +1,283 @@
+<title>Close the Session, Keep the Lesson — applied session retention</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks. Signature device is the closeout receipt — the
+     evidence boundary between a raw transcript and durable memory. Single-theme.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d;
+    --accent: #6ea8fe; --accent-soft: rgba(110, 168, 254, 0.12); --ok: #4ade80;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 112px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 38px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; }
+  .panel .lesson b { color: var(--accent); }
+  .stat { display: flex; gap: 26px; flex-wrap: wrap; margin: 0 0 4px; }
+  .stat .s { display: flex; flex-direction: column; }
+  .stat .s b { font-family: var(--display); font-weight: 700; font-size: 40px; color: var(--accent); line-height: 1; }
+  .stat .s span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2a3444; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .p { color: var(--accent); }
+  .term .o { color: var(--dim); }
+  .term .g { color: var(--ok); }
+
+  /* prior card — a mined correction, as it re-surfaces */
+  .prior { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--panel); padding: 16px 20px; }
+  .prior .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .prior .q { font-size: 15.5px; color: var(--text); margin: 8px 0 0; line-height: 1.5; }
+  .prior .src { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 10px; }
+
+  blockquote { margin: 0 0 26px; padding: 20px 26px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; font-size: 16.5px; color: var(--dim); max-width: 72ch; }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>Close the session<span class="dot">.</span><br>Keep the lesson<span class="dot">.</span></h1>
+    <p class="title-sub">Raw agent transcripts are working evidence, not permanent memory. Before archiving, move project truth into its owning repository, keep a small searchable residue, and say plainly when the raw record is not safe to delete.</p>
+    <div class="prior" style="max-width:700px; margin-bottom:38px;">
+      <p class="tag">closeout receipt</p>
+      <p class="q">Outcome · canonical updates · verified evidence · still unproven · next action · recall recipe · archive-safe: yes/no</p>
+      <p class="src">The final field is a judgment, not a database status.</p>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE PROBLEM ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE PROBLEM</p>
+    <h2>The archive is carrying four different jobs</h2>
+    <p class="lede">A transcript mixes decisions, evidence, reusable technique, and disposable chronology. Keeping the whole file preserves all four, but makes storage and retrieval worse. Deleting it blindly can erase the only copy of a decision.</p>
+    <div class="stat">
+      <div class="s"><b>24 GB</b><span>Codex home at discovery</span></div>
+      <div class="s"><b>5.04 GiB</b><span>246 archived transcripts</span></div>
+      <div class="s"><b>34 MB</b><span>compact recall database</span></div>
+    </div>
+    <p class="lede" style="margin:22px 0 0;">The compact store made 605 Codex transcripts searchable. That proved ingestion. It did <strong>not</strong> prove that every project-specific lesson had moved somewhere durable, so raw deletion stayed blocked.</p>
+  </div>
+</section>
+
+<!-- 03 · THE MINE ————————————————————————————————— -->
+<section class="slide" id="s3" aria-label="What survives">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> WHAT SURVIVES</p>
+    <h2>Promote meaning before compressing history</h2>
+    <p class="lede">Sort the session into four destinations. This is the semantic work a generic transcript miner cannot do for you.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>the four destinations</span></div>
+      <pre><span class="p">PROJECT TRUTH</span>   <span class="o">→ owning repo: decision, rule, status, next action</span>
+<span class="p">VERIFIED EVIDENCE</span><span class="o">→ tests, receipts, revisions, measured results</span>
+<span class="p">REUSABLE METHOD</span> <span class="o">→ a small skill, recipe, or searchable signal</span>
+<span class="p">CHRONOLOGY</span>      <span class="o">→ raw transcript; retain only while it still carries value</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">Do not turn an agent inference into a project decision. Do not write secrets or private transcripts into a shared recipe. Do not call a human review complete because an agent summarized it.</p>
+  </div>
+</section>
+
+<!-- 04 · CORRECTIONS AS PRIORS ————————————————————— -->
+<section class="slide" id="s4" aria-label="The closeout receipt">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE RECEIPT</p>
+    <h2>Make archive safety an explicit claim</h2>
+    <p class="lede">A closeout receipt gives the next session a compact restart point and makes missing judgment visible.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>$session-closeout</span></div>
+      <pre><span class="g">CLOSEOUT_COMPLETE</span>
+Outcome: cross-client retention pipeline installed
+Canonical updates: docs/session-retention.md
+Verified evidence: parser fixtures and database check passed
+Still unproven: old transcripts may contain unpromoted project detail
+Next action: review the archive after the grace window
+Recall recipe: session-retention-v1
+Archive-safe: <span class="p">no</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;"><strong>Archive-safe: no</strong> is a successful result. It says the closeout found a real gap instead of hiding it behind a green ingestion check.</p>
+  </div>
+</section>
+
+<!-- 05 · WASTE AUDITS ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="The automation">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE AUTOMATION</p>
+    <h2>Keep the lifecycle hook boring</h2>
+    <p class="lede">Turn-ending hooks have short operational budgets. Their job is to record identity and return — not parse a long transcript, update several indexes, or recursively delete files.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>fast path → background path</span></div>
+      <pre><span class="p">SessionEnd</span>  <span class="o">→ append { client, task_id, path, cwd } → return</span>
+             <span class="o">↓</span>
+<span class="p">worker</span>      <span class="o">→ normalize → mine → transact → watermark</span>
+             <span class="o">↓</span>
+<span class="p">policy</span>      <span class="o">→ grace window + closeout + explicit deletion</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">For Codex, review the exact command through <strong>/hooks</strong>. New or changed command hooks require trust, and SessionEnd allows at most three seconds. Trust is a safety boundary, not a startup nuisance to bypass.</p>
+  </div>
+</section>
+
+<!-- 06 · THE HONEST LEDGER ————————————————————————— -->
+<section class="slide" id="s6" aria-label="Provenance">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> PROVENANCE</p>
+    <h2>A small memory still needs a chain of custody</h2>
+    <p class="lede">Different clients write different JSONL shapes. Normalize them at one boundary, and keep enough source identity to audit every retained signal.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Normalize verified prose only</p>
+        <p>Map client events into <strong>timestamp, role, phase, text</strong>. Fixtures should prove that injected instructions, tool output, and summaries do not become user preferences or assistant examples.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Watermark after commit</p>
+        <p>Store source client, canonical task identity, project path, and timestamp. Bind the watermark to transcript path plus modification time, and advance it only after the database transaction commits.<span class="lesson">A current watermark proves <b>ingestion</b>, not semantic completeness.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · HONEST LIMITS ——————————————————————————————— -->
+<section class="slide" id="s7" aria-label="A separate cleanup loop">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> A SEPARATE CLEANUP LOOP</p>
+    <h2>Build artifacts are not session memory</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Prove the candidate</p>
+        <p>Enumerate with <strong>git worktree list</strong>. Exclude the main checkout. Require the candidate path to be ignored and require <strong>git ls-files</strong> to find no tracked descendants.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Prove nobody is using it</p>
+        <p>Recognize live sessions from every supported client. Directory modification time is not enough: editing an existing file may not update the worktree root. Recheck liveness immediately before deletion.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Prove the execution shape</p>
+        <p>Ship report-only first. Enqueue long cleanup work. Recheck every gate just before removal. Never use force for worktree deletion.<span class="lesson">A successful deletion does not prove the <b>safety model</b>.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · USE IT ———————————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Use it">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> USE IT</p>
+    <h2>Close one real session before automating deletion</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">1 · Promote</p>
+        <p>Move decisions, current status, verified evidence, and the next action into the repository or system that owns them. Link instead of duplicating.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">2 · Distill</p>
+        <p>Save a small recipe only when the method will recur. Keep provenance attached. Name uncertainty instead of compressing it into a confident summary.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">3 · Decide</p>
+        <p>Issue the closeout receipt. Keep the transcript through a grace window. Delete only when the closeout says yes and the ingestion watermark is current.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>project truth stays with the project</span>
+      <span>hooks enqueue; workers mine</span>
+      <span>archive-safe: no is allowed</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> An <b>Applied</b> companion to <a href="/session-corpus/">Your Sessions Are a Corpus</a>, distilled from a real 24 GB cleanup. The measured incident backfilled 605 Codex transcripts into a 34 MB recall database and deliberately deleted none of the raw archives. The reusable skill and implementation notes live in <a href="https://github.com/nino-chavez/agentic-ways-of-working/tree/main/skills/session-closeout">agentic-ways-of-working</a>. Codex hook limits and trust behavior are documented in the official <a href="https://learn.chatgpt.com/docs/hooks">Hooks guide</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id; a.setAttribute('aria-label', 'Slide ' + (i + 1)); rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) { if (slides[i].offsetTop <= mid) return i; }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current(); dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) { if (i < 0 || i >= slides.length) return; slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint); paint();
+  })();
+</script>

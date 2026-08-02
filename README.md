@@ -19,7 +19,7 @@ Ordered 01 → 12; each title links to the live session.
 - **[01 · Twelve Messages](https://ninochavez.co/demos/twelve-messages)** — Everything typed to take a live event from spreadsheet chaos to published social content — and the method that made the other 99% happen.
 - **[02 · The Browser Is a Shell Command](https://ninochavez.co/demos/browse-tool)** — Replacing 18,000 tokens of always-loaded browser-automation schema with ten shell commands and a README — and why the agent gets sharper, not weaker.
 - **[03 · Taught Once, Enforced Forever](https://ninochavez.co/demos/enforced-forever)** — Corrections given in chat decay when the session ends. The fix is changing the agent's environment — helpers, deny-hooks, and CI ratchets that carry the rule forever.
-- **[04 · Your Sessions Are a Corpus](https://ninochavez.co/demos/session-corpus)** — 2,747 agent-session transcripts, mined: reusable prompts, your corrections as standing priors, and an honest ledger of what the agent built that survived.
+- **[04 · Your Sessions Are a Corpus](https://ninochavez.co/demos/session-corpus)** — A 24 GB session archive forced the next question: how do you keep the lessons, prove closeout, and let the raw record expire?
 - **[05 · The Product That Files Its Own Tickets](https://ninochavez.co/demos/feedback-loop)** — End users file feedback, an LLM judge triages it into GitHub Issues, an agent implements the safe ones — with the autonomy boundary in deterministic code and a human holding the only merge key.
 - **[06 · The Registry of Landmines](https://ninochavez.co/demos/landmine-registry)** — Some load-bearing facts are invisible to search — the code compiles and the behavior is still wrong. One registry file holds them, a derive catalog enforces them in CI, and a meta-test keeps the registry from lying about itself.
 - **[07 · The Agent Said It Checked](https://ninochavez.co/demos/said-it-checked)** — "Verified" is a sentence, not a fact. A security migration passed its audit while production was broken — and the discipline that came out of it caught three more false claims building this very series.
@@ -43,6 +43,7 @@ gallery.
 | [Promote a Correction to a Guardrail](https://ninochavez.co/demos/applied/guardrails) | [03](https://ninochavez.co/demos/enforced-forever) |
 | [Gate Every Hand-Off](https://ninochavez.co/demos/applied/gates) | [08](https://ninochavez.co/demos/agentic-gates) |
 | [Mine Your Own Transcripts](https://ninochavez.co/demos/applied/corpus) | [04](https://ninochavez.co/demos/session-corpus) |
+| [Close the Session, Keep the Lesson](https://ninochavez.co/demos/applied/session-closeout) | [04](https://ninochavez.co/demos/session-corpus) |
 | [Put Provenance Labels on AI Research](https://ninochavez.co/demos/applied/provenance) | [10](https://ninochavez.co/demos/four-questions) |
 | [Bare-Arm Test Your Agent Config](https://ninochavez.co/demos/applied/config-probe) | [11](https://ninochavez.co/demos/config-probe) |
 | [Run the Subtraction Before You Install](https://ninochavez.co/demos/applied/adopt-or-skip) | [12](https://ninochavez.co/demos/adopt-or-skip) |
