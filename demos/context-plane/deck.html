@@ -1,0 +1,316 @@
+<title>The Memory Server Is Not the Memory — a context plane for three coding agents</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0d14;
+    --panel: #121723;
+    --panel2: #0e121c;
+    --line: #293247;
+    --text: #f4f1e8;
+    --dim: #a7adbb;
+    --faint: #6e778b;
+    --amber: #ffb454;
+    --amber-soft: rgba(255,180,84,.12);
+    --blue: #77a8ff;
+    --green: #62d3a6;
+    --red: #ff7d78;
+    --violet: #b69cff;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y proximity; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--body); }
+  a { color: var(--amber); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .progress { position: fixed; inset: 0 auto auto 0; width: 100%; height: 4px; transform: scaleX(0); transform-origin: 0 50%; background: linear-gradient(90deg,var(--blue),var(--amber)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .rail a.on { background: var(--amber); }
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px,8vh,88px) clamp(20px,6vw,72px); border-bottom: 1px solid var(--line); scroll-snap-align: start; }
+  .wrap { width: min(1080px,100%); margin-inline: auto; }
+  .eyebrow { margin: 0 0 14px; color: var(--dim); font: 12px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+  .eyebrow b { color: var(--amber); margin-right: 10px; }
+  h1, h2 { margin: 0; font-family: var(--display); font-weight: 750; line-height: .92; text-transform: uppercase; text-wrap: balance; }
+  h1 { max-width: 900px; font-size: clamp(54px,10.5vw,126px); }
+  h2 { max-width: 900px; margin-bottom: 22px; font-size: clamp(38px,6vw,66px); }
+  h1 .mark, h2 .mark { color: var(--amber); }
+  .title-sub, .lede { max-width: 68ch; color: var(--dim); }
+  .title-sub { margin: 28px 0 34px; font-size: clamp(17px,2vw,21px); }
+  .lede { margin: 0 0 28px; font-size: clamp(16px,1.8vw,19px); }
+  .lede strong, p strong { color: var(--text); font-weight: 650; }
+  .hint { color: var(--faint); font: 12px var(--mono); }
+  .hint kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; color: var(--dim); font: inherit; }
+  blockquote { max-width: 760px; margin: 0 0 32px; padding: 18px 22px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--amber); border-radius: 8px; color: var(--dim); font-size: 16px; }
+  blockquote cite { display: block; margin-top: 10px; color: var(--faint); font: 11px var(--mono); font-style: normal; letter-spacing: .04em; }
+
+  .cols { display: grid; gap: 16px; }
+  .c2 { grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); }
+  .c3 { grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+  .panel { padding: 22px 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; }
+  .panel h3 { margin: 0 0 9px; font: 700 23px/1 var(--display); text-transform: uppercase; }
+  .panel p { margin: 0; color: var(--dim); font-size: 15px; }
+  .tag { margin-bottom: 12px; color: var(--amber); font: 10.5px var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+  .panel.safe { border-color: rgba(98,211,166,.45); }
+  .panel.fail { border-color: rgba(255,125,120,.48); }
+
+  .harnesses { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 4px 0 24px; }
+  .harness { position: relative; padding: 20px; background: var(--panel2); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .harness::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--acc); }
+  .harness b { display: block; font: 700 25px/1 var(--display); text-transform: uppercase; }
+  .harness span { display: block; margin-top: 8px; color: var(--dim); font-size: 13px; }
+  .harness code { color: var(--acc); font: 11px var(--mono); }
+
+  .flow { display: grid; grid-template-columns: 1.1fr 36px 1fr 36px 1.1fr; align-items: stretch; gap: 8px; margin-top: 12px; }
+  .flow-node { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; }
+  .flow-node b { display: block; margin-bottom: 7px; font: 700 21px/1 var(--display); text-transform: uppercase; }
+  .flow-node span { display: block; color: var(--dim); font-size: 13px; }
+  .flow-node .where { margin-top: 14px; color: var(--amber); font: 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .arrow { display: grid; place-items: center; color: var(--amber); font: 22px var(--mono); }
+  .boundary { margin-top: 18px; padding: 12px 16px; border: 1px dashed var(--amber); border-radius: 7px; color: var(--dim); font: 12px var(--mono); }
+  .boundary b { color: var(--amber); }
+
+  .state-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .state-picker button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--dim); font: 11px var(--mono); cursor: pointer; }
+  .state-picker button.on { border-color: var(--amber); background: var(--amber-soft); color: var(--text); }
+  .state-card { min-height: 185px; padding: 24px; background: var(--panel2); border: 1px solid var(--line); border-radius: 9px; }
+  .state-card .state-name { color: var(--amber); font: 700 32px/1 var(--display); text-transform: uppercase; }
+  .state-card p { max-width: 62ch; margin: 14px 0 0; color: var(--dim); }
+  .state-card .rule { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--text); font: 12px var(--mono); }
+
+  .timeline { display: grid; gap: 0; margin-top: 12px; }
+  .event { display: grid; grid-template-columns: 42px 1fr; gap: 15px; position: relative; padding-bottom: 22px; }
+  .event:not(:last-child)::before { content: ""; position: absolute; left: 20px; top: 40px; bottom: 0; width: 1px; background: var(--line); }
+  .num { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); color: var(--amber); font: 12px var(--mono); z-index: 1; }
+  .event h3 { margin: 2px 0 6px; font: 700 21px/1 var(--display); text-transform: uppercase; }
+  .event p { max-width: 70ch; margin: 0; color: var(--dim); font-size: 14px; }
+  .event.bad .num { border-color: var(--red); color: var(--red); }
+  .event.good .num { border-color: var(--green); color: var(--green); }
+
+  .receipts { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; }
+  .receipt { padding: 17px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  .receipt b { display: block; margin-bottom: 8px; color: var(--faint); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+  .receipt span { font: 700 22px/1 var(--display); text-transform: uppercase; }
+  .receipt em { display: block; margin-top: 8px; color: var(--dim); font: normal 11px/1.4 var(--mono); }
+  .receipt .ok { color: var(--green); }
+  .receipt .hold { color: var(--amber); }
+
+  .term { overflow: hidden; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; }
+  .term-bar { display: flex; gap: 6px; align-items: center; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 9px; height: 9px; border-radius: 50%; background: #323b50; }
+  .term-bar span { margin-left: 8px; color: var(--faint); font: 10.5px var(--mono); }
+  .term pre { margin: 0; padding: 15px 17px; overflow-x: auto; color: var(--dim); font: 12px/1.65 var(--mono); }
+  .term .p { color: var(--amber); }
+  .term .o { color: var(--green); }
+  .term .c { color: var(--faint); }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+  .stack span, .stack a { padding: 5px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; color: var(--dim); font: 11px var(--mono); text-decoration: none; }
+  .stack a { color: var(--amber); }
+  .colophon { margin-top: 30px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--faint); font: 11.5px/1.7 var(--mono); }
+  .colophon b { color: var(--dim); }
+
+  @media (max-width: 760px) {
+    .rail { display: none; }
+    .harnesses { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr; }
+    .arrow { rotate: 90deg; min-height: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress,.rail,.hint { display:none; } .slide { min-height:auto; break-after:page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Sections"></nav>
+
+<section class="slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 13</b> NINO CHAVEZ</p>
+    <h1>The memory server is not the memory<span class="mark">.</span></h1>
+    <p class="title-sub">I wanted Claude, Codex, and Gemini to share what they learn across machines. A Cloudflare backend was the easy part. The hard part was deciding what may become memory, who may approve it, and how to prove the raw transcripts never left the machine.</p>
+    <blockquote>
+      “wasn't it three POVs? gemini, claude, and gpt?”
+      <cite>operator correction, verbatim — the scope reset in one line</cite>
+    </blockquote>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<section class="slide" id="s2" aria-label="Three equal clients">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE SCOPE</p>
+    <h2>Three clients<span class="mark">.</span> One memory contract<span class="mark">.</span></h2>
+    <p class="lede">The first architecture treated one harness as the center and the others as adapters. The correction changed the product: <strong>Claude, Codex, and Gemini are equal clients.</strong> They write through the same queue and retrieve through the same MCP tools. No model owns the truth.</p>
+    <div class="harnesses">
+      <div class="harness" style="--acc:#ff9c8a"><b>Claude</b><span>Session-end enqueue and native remote MCP.</span><code>source_client: claude</code></div>
+      <div class="harness" style="--acc:#77a8ff"><b>Codex</b><span>Transcript ingest and an authenticated MCP bridge.</span><code>source_client: codex</code></div>
+      <div class="harness" style="--acc:#62d3a6"><b>Gemini</b><span>Retained-session sweep, hook, and the same MCP surface.</span><code>source_client: gemini</code></div>
+    </div>
+    <div class="panel">
+      <p class="tag">The governing rule</p>
+      <p>Project files and shared instructions remain authoritative. Retrieved memory is supporting context with provenance, status, and a path back to its source. A plausible old lesson may inform a session; it may not silently overrule the repo.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s3" aria-label="The architecture">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE ARCHITECTURE</p>
+    <h2>The transcript stops at the trust boundary</h2>
+    <p class="lede">Raw logs are useful for mining and terrible as universal prompt context. The local machine extracts a small, re-redacted candidate first. Cloudflare receives that candidate and its provenance—not the conversation that produced it.</p>
+    <div class="flow">
+      <div class="flow-node"><b>Local evidence</b><span>Raw Claude, Codex, and Gemini transcripts; mined lessons; project Git history.</span><span class="where">stays on each machine</span></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>Durable outbox</b><span>Stable IDs, re-redaction, retry state, and an explicit sync cursor.</span><span class="where">crosses only after filtering</span></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>Context plane</b><span>Worker, Queue, D1 search and audit, R2 snapshots, authenticated MCP.</span><span class="where">Cloudflare</span></div>
+    </div>
+    <div class="boundary"><b>BOUNDARY:</b> raw transcript → local distillation → redacted candidate → authenticated ingest → review state → eligible retrieval</div>
+  </div>
+</section>
+
+<section class="slide" id="s4" aria-label="Memory states">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> THE CONTRACT</p>
+    <h2>Retrieval is not approval</h2>
+    <p class="lede">“It matched the query” is not a truth test. Every record carries one of five review states. <strong>Approved is the default search surface.</strong> The other states remain inspectable because forgetting history is different from pretending it never happened.</p>
+    <div class="state-picker" role="tablist" aria-label="Memory states">
+      <button type="button" class="on" data-state="Candidate">Candidate</button>
+      <button type="button" data-state="Approved">Approved</button>
+      <button type="button" data-state="Contradicted">Contradicted</button>
+      <button type="button" data-state="Superseded">Superseded</button>
+      <button type="button" data-state="Stale">Stale</button>
+    </div>
+    <div class="state-card" aria-live="polite">
+      <div class="state-name" id="state-name">Candidate</div>
+      <p id="state-copy">The system extracted something plausible. It is searchable for review, but it is not injected into ordinary sessions.</p>
+      <div class="rule" id="state-rule">NEXT: compare it with its source and current project truth.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5" aria-label="The first sync failure">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE FAILURE</p>
+    <h2>The first scheduled sync proved the gate mattered</h2>
+    <p class="lede">The client was baselined before Gemini’s retained sessions finished catching up. The first scheduled run therefore treated old mined lessons as new work. They were redacted candidates, not raw transcripts—but <strong>the scope was still wrong.</strong></p>
+    <div class="timeline">
+      <div class="event"><div class="num">01</div><div><h3>Baseline too early</h3><p>The cursor recorded an incomplete local database. Nothing in the sync command distinguished first use from a deliberate history import.</p></div></div>
+      <div class="event bad"><div class="num">16</div><div><h3>Old candidates arrived</h3><p>Sixteen retained lessons crossed the boundary. The ingest receipts made the exact batch identifiable.</p></div></div>
+      <div class="event good"><div class="num">✓</div><div><h3>Quarantined, then made fail-closed</h3><p>All sixteen were marked Stale through audited MCP calls. The local baseline moved after catch-up. The staging command now refuses to run without an explicit cursor unless a human requests backfill.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6" aria-label="Live system receipt">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE RECEIPT</p>
+    <h2>What “running” means here</h2>
+    <p class="lede">This is a private live deployment, not a diagram. The receipt separates what works now from what is deliberately held back.</p>
+    <div class="receipts">
+      <div class="receipt"><b>Harnesses connected</b><span class="ok">3 of 3</span><em>Claude · Codex · Gemini</em></div>
+      <div class="receipt"><b>Python tests</b><span class="ok">20 pass</span><em>parsers · outbox · sync safety</em></div>
+      <div class="receipt"><b>Cloud services</b><span class="ok">Live</span><em>Worker · Queue · D1 · R2</em></div>
+      <div class="receipt"><b>Approved memories</b><span class="hold">0</span><em>correct for a fresh review gate</em></div>
+      <div class="receipt"><b>Catch-up candidates</b><span class="hold">16 Stale</span><em>preserved with audit history</em></div>
+      <div class="receipt"><b>AI distillation</b><span class="hold">Off</span><em>deterministic path first</em></div>
+    </div>
+    <div class="stack">
+      <span>authentication required</span><span>credential-shaped content rejected</span><span>at-least-once ingest is idempotent</span><span>R2 snapshots rebuild from D1</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7" aria-label="Cloudflare versus a home server">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE HARDWARE ANSWER</p>
+    <h2>The Mac mini became optional</h2>
+    <blockquote>
+      “can we just host it in cloudflare with r2 and their ai gateway platform?”
+      <cite>operator question, verbatim — the simpler host was already in the room</cite>
+    </blockquote>
+    <div class="cols c2">
+      <div class="panel safe"><p class="tag">Cloudflare owns the shared plane</p><p>Authenticated ingress, durable queueing, searchable reviewed memory, audit history, and portable snapshots need an always-on public endpoint. Worker, Queue, D1, and R2 cover that job without maintaining a home server.</p></div>
+      <div class="panel"><p class="tag">Each machine keeps the private work</p><p>Transcript parsing, local SQLite mining, redaction, and the durable outbox stay beside the source logs. A future local model can help with bulk extraction, but it is an optional worker—not the system’s authority.</p></div>
+      <div class="panel"><p class="tag">AI Gateway is a routing seam</p><p>The gateway is configured with payload logging off and zero-data-retention enabled. Model distillation remains disabled until the deterministic ingest path has enough reviewed examples to evaluate it.</p></div>
+      <div class="panel"><p class="tag">A mini still has one honest use</p><p>Buy the always-on machine when a measured local workload needs it: private embeddings, large batch extraction, or offline access. Do not buy it to create the illusion of architecture.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s8" aria-label="Build your version">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> YOUR VERSION</p>
+    <h2>Start with authority<span class="mark">.</span> Add retrieval last<span class="mark">.</span></h2>
+    <p class="lede">The tool is worth its own project because it has a real contract, three clients, deployment state, and failure modes. The write-up is worth shipping too—but as evidence of the tool, not a substitute for it.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>minimum adoption sequence</span></div>
+      <pre><span class="p">1.</span> keep shared instructions in Git              <span class="c"># always-loaded truth</span>
+<span class="p">2.</span> finish retained-session catch-up             <span class="c"># all three harnesses</span>
+<span class="p">3.</span> baseline the local mining database           <span class="c"># no accidental history import</span>
+<span class="p">4.</span> stage redacted candidates into an outbox     <span class="c"># retryable, inspectable</span>
+<span class="p">5.</span> ingest as Candidate and review               <span class="c"># human authority</span>
+<span class="p">6.</span> retrieve Approved records through MCP        <span class="c"># provenance attached</span>
+<span class="o">7.</span> measure before enabling model distillation   <span class="c"># quality, privacy, cost</span></pre>
+    </div>
+    <div class="stack">
+      <a href="/session-corpus/">demo 04 · session corpus</a>
+      <a href="/applied/session-closeout/">applied · closeout</a>
+      <span>repository rename waits for multi-machine evidence</span>
+      <span>blog post waits for field validation</span>
+    </div>
+    <div class="colophon"><b>Colophon.</b> Built from one real implementation session in August 2026. The three-harness connections, 20-test Python suite, Cloudflare resources, MCP negotiation, first-sync batch, and 16 audited Stale transitions were observed during the build. “Live” means a private authenticated deployment; it does not mean the memory corpus has passed field validation. The first batch remains in the audit trail instead of being erased. The tool keeps its existing repository name until two machines and all three harnesses complete the validation checklist.</div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var states = {
+      Candidate: ['The system extracted something plausible. It is searchable for review, but it is not injected into ordinary sessions.', 'NEXT: compare it with its source and current project truth.'],
+      Approved: ['A human reviewed the record and allowed it into default retrieval. Provenance still travels with it; approval does not turn it into project authority.', 'USE: supporting context. Re-check the owning project when the claim matters.'],
+      Contradicted: ['Current evidence conflicts with this record. It stays visible so the conflict can be explained and the bad path does not quietly return.', 'DO NOT RETRIEVE by default. Link the contradicting evidence.'],
+      Superseded: ['A newer record replaces this one without denying that the old one was once valid.', 'FOLLOW: the replacement record and preserve the chain.'],
+      Stale: ['The record may no longer describe current reality, or it arrived outside the intended sync scope. It remains auditable but is excluded from default recall.', 'REVIEW OR LEAVE QUARANTINED. Never treat age as deletion authority.']
+    };
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-state]'));
+    var name = document.getElementById('state-name');
+    var copy = document.getElementById('state-copy');
+    var rule = document.getElementById('state-rule');
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var state = button.getAttribute('data-state');
+        buttons.forEach(function (item) { item.classList.toggle('on', item === button); });
+        name.textContent = state; copy.textContent = states[state][0]; rule.textContent = states[state][1];
+      });
+    });
+
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (slide, index) {
+      var link = document.createElement('a'); link.href = '#' + slide.id; link.setAttribute('aria-label','Section ' + (index + 1)); rail.appendChild(link);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) if (slides[i].offsetTop <= mid) return i;
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var active = current(); dots.forEach(function (dot,index) { dot.classList.toggle('on',index === active); });
+    }
+    function go(index) { if (index >= 0 && index < slides.length) slides[index].scrollIntoView({behavior:reduced?'auto':'smooth'}); }
+    document.addEventListener('keydown', function (event) {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.target.tagName === 'BUTTON') return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { event.preventDefault(); go(current()+1); }
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); go(current()-1); }
+      else if (event.key === 'Home') { event.preventDefault(); go(0); }
+      else if (event.key === 'End') { event.preventDefault(); go(slides.length-1); }
+    });
+    window.addEventListener('scroll',paint,{passive:true}); window.addEventListener('resize',paint); paint();
+  })();
+</script>
