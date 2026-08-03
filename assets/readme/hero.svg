@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 340" width="100%" role="img" aria-label="ways of working — a demo series of real AI-agent working sessions: verbatim messages, real production systems, honest failures. Receipts, not a highlight reel. Twelve demos at ninochavez.co/demos, spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, config experiments, and tool adoption — plus an Applied strand of technique companions.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1650 340" width="100%" role="img" aria-label="ways of working — a demo series of real AI-agent working sessions: verbatim messages, real production systems, honest failures. Receipts, not a highlight reel. Thirteen demos at ninochavez.co/demos, spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, config experiments, tool adoption, and shared memory — plus an Applied strand of technique companions.">
   <title>ways of working — a demo series of real AI-agent sessions: receipts, not a highlight reel</title>
 
-  <rect x="8" y="8" width="1484" height="324" rx="12" fill="#f6f4ef" stroke="#ddd9d0" stroke-width="1.5"/>
+  <rect x="8" y="8" width="1634" height="324" rx="12" fill="#f6f4ef" stroke="#ddd9d0" stroke-width="1.5"/>
 
   <text x="48" y="62" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" letter-spacing="2.2" fill="#5f646c">WAYS OF WORKING — DEMO SERIES</text>
 
@@ -11,8 +11,8 @@
   <text x="48" y="188" font-family="'Avenir Next', 'Segoe UI', system-ui, sans-serif" font-size="20" fill="#5f646c">Real sessions with an AI agent — <tspan font-weight="600" fill="#1c1e21">verbatim messages, real production systems, honest failures.</tspan></text>
   <text x="48" y="216" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="#5f646c">receipts, not a highlight reel  ·  ninochavez.co/demos</text>
 
-  <!-- the arc: twelve themes, in order, each carrying its demo's real accent -->
-  <line x1="70" y1="270" x2="1430" y2="270" stroke="#ddd9d0" stroke-width="1.5"/>
+  <!-- the arc: thirteen themes, in order, each carrying its demo's real accent -->
+  <line x1="70" y1="270" x2="1580" y2="270" stroke="#ddd9d0" stroke-width="1.5"/>
 
   <circle cx="70" cy="270" r="7" fill="#f97316"/>
   <text x="70" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">01</text>
@@ -61,4 +61,8 @@
   <circle cx="1430" cy="270" r="7" fill="#2dd4bf"/>
   <text x="1430" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">12</text>
   <text x="1430" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">tool-adoption</text>
+
+  <circle cx="1580" cy="270" r="7" fill="#ffb454"/>
+  <text x="1580" y="296" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#1c1e21">13</text>
+  <text x="1580" y="312" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5f646c">shared-memory</text>
 </svg>

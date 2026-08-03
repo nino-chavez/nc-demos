@@ -1,0 +1,13 @@
+{
+  "number": "13",
+  "title": "The Memory Server Is Not the Memory",
+  "hook": "Three coding harnesses needed one place to recall lessons. The first cloud sync caught the real design problem: shared memory needs review states and receipts, not a bigger transcript bucket.",
+  "date": "2026-08",
+  "for": "Builders who use more than one coding agent or more than one machine and keep teaching each session the same lessons.",
+  "get": "A live Claude, Codex, and Gemini context plane on Cloudflare, plus the catch-up failure that forced an explicit baseline and quarantined 16 old candidates.",
+  "do": "Keep raw transcripts local, sync only redacted candidates, and make approval—not retrieval—the gate into future sessions.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Three agent harnesses feeding a guarded memory state machine, with raw transcripts held locally",
+  "theme": "shared memory",
+  "accent": "#ffb454"
+}
