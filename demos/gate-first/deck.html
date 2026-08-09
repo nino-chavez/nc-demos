@@ -1,0 +1,372 @@
+<title>The Gate Was Written First — preregistered gates, honest refusals</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 13 identity: the registry ledger. Warm dark ground; the signature
+     device is the gate card — a prediction registered before the run, the
+     measured result beside it, and a verdict that was never negotiable.
+     Amber carries registration; green/red carry only verdicts.
+     Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #171207;
+    --panel: #221a0b;
+    --panel2: #1c1509;
+    --line: #40340f;
+    --text: #f2ecdd;
+    --dim: #c4b795;
+    --faint: #8d8060;
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+    --pass: #4ade80;
+    --fail: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #8a5a06, var(--amber)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--amber); }
+  .rail a:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--amber); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--amber); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(54px, 10vw, 122px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--amber); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 58ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— gate cards: registered / measured / verdict ————— */
+  .gate { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .gate .reg { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--amber); }
+  .gate .reg .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); margin: 0 0 7px; }
+  .gate .reg p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .gate .meas { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .gate .meas b { font-weight: 600; }
+  .gate .meas .ok { color: var(--pass); }
+  .gate .meas .bad { color: var(--fail); }
+  .gates { display: flex; flex-direction: column; gap: 16px; }
+
+  /* —— ledger table for gate rows —————————————————— */
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .ledger .row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 92px; border-top: 1px solid var(--line); background: var(--panel2); }
+  .ledger .row:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .ledger .row > div { padding: 11px 16px; }
+  .ledger .row .m { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  .ledger .v { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+  .ledger .v.pass { color: var(--pass); }
+  .ledger .v.fail { color: var(--fail); }
+  @media (max-width: 720px) { .ledger .row { grid-template-columns: 1fr 1fr; } .ledger .row > div:first-child { grid-column: 1 / -1; padding-bottom: 2px; } }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--amber); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--amber); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--amber); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--amber); }
+  a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 13</b> NINO CHAVEZ</p>
+    <h1>The gate was<br>written first<span class="dot">.</span></h1>
+    <p class="title-sub">Three ways to make a meeting archive answer a question. Three pass/fail gates, each committed to git before the model weights finished downloading. Three refusals in one day — and the feature that shipped is the one the evidence admitted.</p>
+    <div class="gate" style="max-width: 660px; margin-bottom: 44px;">
+      <div class="reg"><p class="tag">Registered, before the run</p><p>"False passages returned: 0–2. Product work continues only if every clause passes."</p></div>
+      <div class="meas"><b class="bad">✗ measured:</b> 11 false passages. <b>The registered gate failed. No product seam was built.</b></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · WHY FREEZE ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The demo that did not survive">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> WHY THE GATES GOT FROZEN</p>
+    <h2>The demo worked. Then we changed what we counted.</h2>
+    <p class="lede">The subject is a local meeting-notes app I run — recordings stay on the machine, and the build in question was learning to answer questions about past meetings. Its first search probe <strong>passed: 10 of 10</strong>. Three of those ten passed by a margin under 0.04 — a coin balanced on its edge, reported as a win.</p>
+    <div class="gates">
+      <div class="gate">
+        <div class="reg"><p class="tag">The passing demo</p><p>Semantic retrieval finds the right meeting, 10 of 10.</p></div>
+        <div class="meas"><b class="bad">✗ next day:</b> the measured unit changed from whole meetings to 128-word windows — and yesterday's 10 of 10 became <b>7 of 10</b>. Nothing about the model changed. Only the counting did.</div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">A result that dies when you change the ruler was never a result. After you've seen the score, every adjustment feels like fixing the measurement; before, the same adjustment is just design. <strong>So the ruler moved to the only place it's safe: before the run.</strong> Medicine learned this the hard way — trials register their endpoints before anyone unblinds the data. Same instinct, applied to an AI feature.</p>
+  </div>
+</section>
+
+<!-- 03 · THE METHOD ——————————————————————————————— -->
+<section class="slide" id="s3" aria-label="What gets frozen">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE METHOD</p>
+    <h2>Five things frozen, in a commit, before the first run</h2>
+    <blockquote>
+      "Registered 2026-08-08, before the fixture was embedded or any score was observed. <strong>Nothing in this section reports a result.</strong>"
+      <cite>opening line of the probe document, committed before inference</cite>
+    </blockquote>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">The fixture &amp; the model</p>
+        <p>A synthetic test set — invented companies, invented meetings, zero real recordings — plus the exact model files, pinned by checksum. Nobody can quietly swap either after seeing a score.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The threshold &amp; the prediction</p>
+        <p>The pass bar comes from <em>previously committed</em> evidence, never from the run it will judge. The prediction is two-sided — it names how many false positives are tolerable, not just how many hits are hoped for.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The consequence</p>
+        <p>What happens on failure is written down too: stop, record the receipt, build nothing. No re-runs, no threshold-chasing. <strong>The agent can't negotiate with a commit that predates its own output.</strong></p>
+        <p class="lesson"><b>Placement is the trick</b> — outside the loop, earlier in time.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Why this matters for agents specifically: an agent is a relentless completer. If the gate lives anywhere the loop can edit, the loop will satisfy the gate instead of the goal — tuning until the number passes is what "helpful" looks like from inside. The only placement that survives is <strong>earlier in time and outside the editable surface</strong>.</p>
+  </div>
+</section>
+
+<!-- 04 · PROBE ONE ———————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Probe one: the similarity floor">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> PROBE ONE · THE SIMILARITY FLOOR</p>
+    <h2>Every answer came back. So did eleven impostors.</h2>
+    <p class="lede">Rank the meeting windows by similarity to the question; return only what clears a floor fixed in advance. Registered prediction: 0–2 false passages. Eight minutes after the gate was committed, the refusal was on the record:</p>
+    <div class="ledger">
+      <div class="row"><div>Registered measure</div><div>Prediction</div><div>Measured</div><div>Gate</div></div>
+      <div class="row"><div>Expected answers returned</div><div class="m">5–6 of 6</div><div class="m">6 of 6</div><div class="v pass">pass</div></div>
+      <div class="row"><div>False passages returned</div><div class="m">0–2</div><div class="m">11</div><div class="v fail">fail</div></div>
+      <div class="row"><div>Unanswerable questions refused</div><div class="m">2 of 2 required</div><div class="m">1 of 2</div><div class="v fail">fail</div></div>
+      <div class="row"><div>Fresh-process repeatability</div><div class="m">3 identical runs</div><div class="m">3 identical</div><div class="v pass">pass</div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The texture of the failure is the point. Asked about a dental plan that <strong>appears nowhere in the test set</strong>, the system confidently returned three passages anyway. Topical, plausible, wrong — exactly the failure a happy-path demo never surfaces, because nobody demos the question with no answer.</p>
+  </div>
+</section>
+
+<!-- 05 · THE CROWN FACT ——————————————————————————— -->
+<section class="slide" id="s5" aria-label="No threshold can exist">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE FACT TUNING WOULD HAVE HIDDEN</p>
+    <h2>A right answer scored below a wrong one</h2>
+    <p class="lede">The lowest <em>true</em> answer scored <strong style="font-family: var(--mono);">0.4195</strong>. A passage that explicitly answers nothing scored <strong style="font-family: var(--mono);">0.6096</strong>. Any floor high enough to block the impostor also deletes a real answer.</p>
+    <blockquote>
+      "Raising the floor cannot fix this result. […] The bi-encoder score measures topical similarity. It does not establish that a passage answers the question. The fixed floor is left unchanged, and <strong>no alternative is fitted to these scores</strong>."
+      <cite>the probe document's own close, written into the failure record</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">This is the verdict only a frozen gate can deliver. A tuner would have slid the threshold until this fixture passed and shipped a feature that fails on the next real question — "needs tuning" and "cannot work as specced" produce <strong>identical demos and opposite decisions</strong>. The frozen gate is what tells them apart.</p>
+  </div>
+</section>
+
+<!-- 06 · ESCALATION ——————————————————————————————— -->
+<section class="slide" id="s6" aria-label="Stronger mechanisms, same verdict">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> PROBES TWO AND THREE</p>
+    <h2>Stronger machinery, same day, same verdict</h2>
+    <p class="lede">The obvious next move each time was a smarter component. Each got its own preregistered gate — committed before its checkpoint finished downloading — and each probe document opens by restating that the feature <strong>remains stopped</strong>.</p>
+    <div class="gates">
+      <div class="gate">
+        <div class="reg"><p class="tag">Probe two · a pairwise scorer reads question and passage together</p><p>Registered: accept every true answer, refuse the registered control set and all four unanswerable questions.</p></div>
+        <div class="meas"><b class="bad">✗ measured:</b> accepted 11 of 12 answers — and 11 non-answers with them; refused 0 of 4 unanswerable questions. The record's verdict: <b>"passage relevance still is not answerability."</b></div>
+      </div>
+      <div class="gate">
+        <div class="reg"><p class="tag">Probe three · an extractive model with an explicit no-answer option</p><p>Registered: the no-answer head should finally make refusal honest.</p></div>
+        <div class="meas"><b class="bad">✗ measured:</b> 6 false passages accepted, 2 of 4 unanswerable questions refused. Stronger controls than probe two — "but that stronger control result <b>did not make the returned candidate set honest</b>." No repeat runs. No product code.</div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Three mechanisms, three refusals, one afternoon — each failure on the record within minutes of its gate. <strong>Refusal was cheap because the protocol made it cheap.</strong> That's the part worth stealing: the discipline isn't willpower, it's a harness that makes stopping the default outcome of a failed gate.</p>
+  </div>
+</section>
+
+<!-- 07 · SAME WEEK, ELSEWHERE ————————————————————— -->
+<section class="slide" id="s7" aria-label="The same discipline elsewhere">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE SAME WEEK, ELSEWHERE</p>
+    <h2>The discipline generalized. So did the refusals.</h2>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Long-form transcription</p>
+        <p>A preregistered pipeline for transcribing long meetings — synthetic audio, gates on fidelity, seam integrity, and runaway repetition. Measured: <strong>22% word error</strong>, 21 lost seam anchors, 634 runaway four-word repetitions. Three gates failed.</p>
+        <p class="lesson"><b>Refused.</b> The production transcription path was not changed.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Speaker naming</p>
+        <p>What shipped is the honest subset: you type who was in the meeting, one name per voice slot, exact and operator-authored. Automatic voice identification — the demo-friendly version — <strong>stayed unbuilt</strong> after its probe failed the same style of gate.</p>
+        <p class="lesson"><b>Shipped:</b> the version that can't be confidently wrong.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Four refusals in one week, from the same operator's agents, none of them argued after the fact. Every argument had already happened — in a commit, before the run, <strong>when nobody knew the answer and everyone could still be honest</strong>.</p>
+  </div>
+</section>
+
+<!-- 08 · WHAT SHIPPED ————————————————————————————— -->
+<section class="slide" id="s8" aria-label="What shipped instead">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> WHAT SHIPPED INSTEAD</p>
+    <h2>The deliverable was the no</h2>
+    <p class="lede">The app still shipped that week — twice. The release that went out answers questions the only way the evidence admitted: <strong>exact retained words, cited to the turns they came from, with refusal when nothing clears the bar</strong>. No generated summaries, because generation never passed a gate.</p>
+    <div class="gates">
+      <div class="gate">
+        <div class="reg"><p class="tag">The release ledger, same week</p><p>0.5.0 shipped "the first build that can be asked a question" — then a routine check found a common word returning nothing at five meetings.</p></div>
+        <div class="meas"><b class="ok">✓ the response:</b> 0.5.1 cut with the fix, verified — <b>and 0.5.0 deleted rather than left beside it</b>. A build with a broken search doesn't get to keep existing next to the fixed one.</div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Most people have never watched a system tell its owner "no" and the owner ship the no. But that's what the week's output actually was: three features that <em>don't</em> exist, one that does, and receipts for all four. <strong>A refusal with a receipt is a deliverable.</strong> The alternative was three demos that worked and a product that lied.</p>
+  </div>
+</section>
+
+<!-- 09 · YOUR VERSION ————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> YOUR VERSION OF THIS</p>
+    <h2>Decide what failure looks like before you look</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you never touch code</p>
+        <p>Before you look at any AI result — a report, a screening, a recommendation — write down what would make you reject it. One sentence, before. After you've seen the output, you will negotiate with it; everyone does. The sentence you wrote first is the only one that can't.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you're technical</p>
+        <p>Preregister the gate: fixture, model checksums, threshold, a two-sided prediction, and the consequence of failure — committed before first inference. One held-out observation. A failed gate means stop, not tune; "needs tuning" and "can't work" demo identically.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you build systems</p>
+        <p>Put the gate where the loop can't edit it — earlier in time, outside the agent's writable surface. Make receipts content-free so they can live in the repo forever. And make refusal cheap: minutes from failed gate to recorded stop is what keeps the discipline alive.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>the ruler moves only before the run</span>
+      <span>needs-tuning and can't-work demo identically</span>
+      <span>a refusal with a receipt is a deliverable</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every number on these slides — 10-of-10 to 7-of-10, the 6/6-and-11-false result, 0.4195 vs 0.6096, the transcription gate table, the release sequence — was re-read from the probe documents, committed receipts, and release ledger of the meeting-notes app's repository on publication day, not from session summaries. The probes were run by coding agents under the operator's preregistration protocol; fixtures are synthetic and the committed receipts are content-free by declared policy. The app is private and unnamed here; the method is the public part. Demo 13 in the <a href="/">ways-of-working series</a> — the sibling discipline for claims already made is <a href="/said-it-checked/">demo 07</a>; the config that keeps an agent honest is <a href="/config-probe/">demo 11</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

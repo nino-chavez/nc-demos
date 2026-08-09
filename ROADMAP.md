@@ -25,21 +25,21 @@ one validated rule promoted same day — with Applied companion "Bare-Arm Test
 Your Agent Config"). Mined from the session that ran the probe, continuing
 09's mined-from-a-new-session lineage.
 
+Shipped 2026-08-08: **13 The Gate Was Written First** (preregistered admission
+gates: three answerability probes in one day, each gate committed before the
+model weights downloaded, all three refused product integration without
+tuning; the falsifier where a right answer scored below a wrong one, so no
+threshold could exist; the release that deleted its own broken build rather
+than shipping beside it. Sequel to 07 — a passing demo is not admission. Mined
+from the week's sessions, continuing 09's lineage; source tool aliased by
+operator decision, and every number re-read from the source repo's probe
+documents and content-free receipts on publication day.)
+
 ## Queue
 
 The opening arc (01-08) is complete. Next demos come from the backlog below,
 or from new sessions worth telling — the selection bar above still applies.
 
-- **The Gate Was Written First** (candidate, **drafted** — outline and
-  meta.json at `drafts/gate-first/`) — the local-meeting-notes preregistration
-  week (2026-08-08): three answerability probes in one day, each gate committed
-  before the model weights downloaded, all three failed and refused product
-  integration without tuning; the falsifier where a right answer scored below a
-  wrong one, so no threshold could exist; 0.5.0's empty search deleted rather
-  than left beside 0.5.1. Sequel to 07: a passing demo is not admission.
-  Sanitization: trilogy artifacts verified content-free at source (synthetic
-  fixtures, digest-only receipts); ASR and speaker branches still unread past
-  commit messages — see the gate checklist in the outline.
 - **Cross-model adversarial review** (candidate, sanitization-gated) — the
   Fable-vs-Codex loop behind demo 10's provocation: rival model attacks the
   evidence package, author verifies-before-conceding, catches the reviewer

@@ -1,6 +1,6 @@
 # ways of working — demo series
 
-<img src="assets/readme/hero.svg" alt="ways of working — a demo series of real AI-agent sessions: verbatim messages, real production systems, honest failures. Twelve demos at ninochavez.co/demos spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, config experiments, and tool adoption." width="100%">
+<img src="assets/readme/hero.svg" alt="ways of working — a demo series of real AI-agent sessions: verbatim messages, real production systems, honest failures. Thirteen demos at ninochavez.co/demos spanning delegation, tools, enforcement, memory, autonomy, knowledge, verification, process, documentation, applied advisory, config experiments, tool adoption, and admission gates." width="100%">
 
 Public teaching demos of real AI-agent working sessions, published at
 [ninochavez.co/demos](https://ninochavez.co/demos). Each demo is one real
@@ -14,7 +14,7 @@ serves the structured story feeds and source assets. At production cutover,
 
 ## The demos
 
-Ordered 01 → 12; each title links to the live session.
+Ordered 01 → 13; each title links to the live session.
 
 - **[01 · Twelve Messages](https://ninochavez.co/demos/twelve-messages)** — Everything typed to take a live event from spreadsheet chaos to published social content — and the method that made the other 99% happen.
 - **[02 · The Browser Is a Shell Command](https://ninochavez.co/demos/browse-tool)** — Replacing 18,000 tokens of always-loaded browser-automation schema with ten shell commands and a README — and why the agent gets sharper, not weaker.
@@ -28,6 +28,7 @@ Ordered 01 → 12; each title links to the live session.
 - **[10 · The Chiropractor's Four Questions](https://ninochavez.co/demos/four-questions)** — A sports chiropractor asked four plain questions about selling rehab programs online. The AI's answer was confident, tabulated, sourced — and its evidence was marketing all the way down. Twice. The series' first client-facing session, with the audit that fixed it.
 - **[11 · The Sycophancy Was in the Config](https://ninochavez.co/demos/config-probe)** — A rival model reviewing my agent's work looked sharper — it demanded competing candidates and restraint. So my agent A/B tested its own harness: same model, same prompt, config on and off. The vanilla arm pushed back on me twice. The configured arm never did.
 - **[12 · One Component I Didn't Already Have](https://ninochavez.co/demos/adopt-or-skip)** — A plugin advertising eleven agents and fifty-four hooks, measured against the setup I already run. Three components were already going, one was the wrong platform, one broken upstream, two were costs. The delta was one — plus the retracted recommendation that got me there.
+- **[13 · The Gate Was Written First](https://ninochavez.co/demos/gate-first)** — Three ways to make a meeting archive answer a question, three pass/fail gates committed to git before the model weights finished downloading, three refusals in one day. The feature that shipped is the one the evidence admitted.
 
 ## Applied
 
