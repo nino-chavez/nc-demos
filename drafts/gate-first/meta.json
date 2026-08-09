@@ -1,0 +1,13 @@
+{
+ "number": "13",
+ "title": "The Gate Was Written First",
+ "hook": "Three ways to make a meeting archive answer a question, three preregistered gates, three refusals in one day. Each gate was committed to git before the model weights finished downloading — so when the scores came back plausible, there was nothing left to negotiate with. The feature that shipped is the one the evidence admitted.",
+ "date": "2026-08",
+ "for": "Anyone whose agent keeps wiring features that demo well and fail in use — and anyone deciding when a measured capability is allowed to become product.",
+ "get": "A one-day trilogy of preregistered probes — a similarity floor, a pairwise scorer, an extractive no-answer head — each gate frozen before first inference, each failed without tuning; the falsifier showing a right answer scoring below a wrong one, which no threshold can fix; and the honest feature that shipped instead.",
+ "do": "Commit fixture, model digests, thresholds, prediction, and consequences before the first run. Observe the held-out result once. When the gate fails, record the receipt and stop — the refusal is the deliverable.",
+ "preview": "img/preview.jpg",
+ "previewAlt": "Demo 13 title slide: the gate was written first, with the preregistration commit that predates the model download",
+ "theme": "admission-gates",
+ "accent": "#f59e0b"
+}
