@@ -1,0 +1,434 @@
+<title>The Layout Was Inferred, Not Designed — Aisles, four personas, one catalog</title>
+
+<!--
+  Figure provenance (verified in-session, 2026-08-12, wip/aisles unless noted):
+  - "31 weighted rules" — counted directly from src/lib/signals/inference.ts,
+    the `rules` array (lines 58-395): 31 entries, each with a name, a weight,
+    and an evaluate() function.
+  - Four personas (gatherer, hunter, researcher, gifter), spelled as the code
+    spells them — src/lib/signals/inference.ts DEFAULT_PRIOR, lines 404-409
+    (gatherer 0.375, hunter 0.25, researcher 0.25, gifter 0.125; sums to 1.0).
+  - Bayesian framing, log-likelihood-ratio accumulation, softmax posterior —
+    inference.ts:1-19 (header comment) and infer(), lines 514-605.
+  - Component vocabulary (4 types) and the persona/sections contract —
+    src/lib/schema/layout.ts, lines 13-66 (SectionSchema discriminated union,
+    LayoutSchema.sections min 1 / max 8).
+  - Per-persona layout principles, quoted — src/lib/server/layout-prompt.ts,
+    lines 8-60 (PERSONA_DEFINITIONS) and 62-80 (COMPONENT_GUIDE).
+  - Model call (Haiku primary, Sonnet fallback via AI Gateway) —
+    src/routes/api/layout/+server.ts, lines 77-87.
+  - Third fallback tier (static Svelte layout) — README.md "The invariant"
+    section; not directly exercised in this session, cited from docs.
+  - The catalog seam — src/lib/server/catalog.ts:15 (CATEGORY_MAP driven by
+    getBrand().categories) and :28-65 (loadCategoryProducts); BigCommerce
+    Storefront GraphQL calls in src/lib/server/bigcommerce.ts:172
+    (getProductsByCategory) and :250 (getCategories).
+  - Kibble & Co. brand config: 8 categories, theme tokens, footer note —
+    src/lib/brand/config.ts, lines 318-388 (commit 09e074b, "feat(brand):
+    Kibble & Co. brand — palette harvested from the live storefront",
+    2026-08-12 08:38:18 -0500).
+  - Two env vars (BRAND_ID, VITE_BRAND_ID) — config.ts getBrand(), lines
+    392-400, and README.md's quickstart line showing both set together.
+  - Palette source — wip/bc-subscriptions/apps/storefront-svelte/src/app.css,
+    lines 18-22 ("Shelf-Native" theme comment, mint = Auto-Refill signal only)
+    and 26-35 (--color-primary #1e2150, --color-accent #3b5bd0,
+    --color-accent-text #2f49b0, --color-autorefill #37bfa2).
+  - The Nav.svelte bug and fix — commit 09e074b's diff to
+    src/lib/components/Nav.svelte and its own inline comment.
+  - Live URL fetched and confirmed in this session: aisles-kibble.vercel.app
+    renders "Kibble & Co." with the same 8 categories as config.ts.
+  No figure is estimated or invented. No store hash, API key, or credential
+  value appears here.
+-->
+
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 17 identity: the signal ledger. Deep plum-black ground, a single
+     fuchsia accent — distinct from every other demo's palette. The
+     signature device is the persona quad: one row, four cards, same
+     catalog, four different layouts. Pass/fail carries only the honest-
+     failure slide. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #170a1c;
+    --panel: #241030;
+    --panel2: #1c0c26;
+    --line: #3d1f4a;
+    --text: #f5eef9;
+    --dim: #c9b3d4;
+    --faint: #8a6d97;
+    --fuchsia: #d946ef;
+    --fuchsia-soft: rgba(217, 70, 239, 0.12);
+    --pass: #4ade80;
+    --fail: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #86198f, var(--fuchsia)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--fuchsia); }
+  .rail a:focus-visible { outline: 2px solid var(--fuchsia); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--fuchsia); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(34px, 5.2vw, 56px); line-height: 0.98; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 66ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--fuchsia); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(48px, 8.6vw, 100px); line-height: 0.94; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--fuchsia); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 62ch; margin: 0 0 34px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— persona quad: same catalog, four cards ————————————— */
+  .quad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .quad div {
+    border: 1px solid var(--line); border-radius: 6px; padding: 13px 14px;
+    background: var(--panel); font-family: var(--mono); font-size: 11.5px;
+    color: var(--dim); line-height: 1.55;
+  }
+  .quad div b {
+    display: block; font-family: var(--display); text-transform: uppercase;
+    color: var(--fuchsia); font-size: 14px; letter-spacing: 0.02em; margin-bottom: 5px;
+  }
+  @media (max-width: 720px) { .quad { grid-template-columns: repeat(2, 1fr); } }
+
+  /* —— gate cards: registered / measured ——————————————— */
+  .gate { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .gate .reg { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--fuchsia); }
+  .gate .reg .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fuchsia); margin: 0 0 7px; }
+  .gate .reg p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .gate .meas { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .gate .meas b { font-weight: 600; }
+  .gate .meas .ok { color: var(--pass); }
+  .gate .meas .bad { color: var(--fail); }
+  .gates { display: flex; flex-direction: column; gap: 16px; }
+
+  /* —— ledger table ——————————————————————————————————— */
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .ledger .row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border-top: 1px solid var(--line); background: var(--panel2); }
+  .ledger .row:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .ledger .row > div { padding: 11px 16px; }
+  .ledger .row .m { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  @media (max-width: 720px) { .ledger .row { grid-template-columns: 1fr 1fr; } .ledger .row > div:first-child { grid-column: 1 / -1; padding-bottom: 2px; } }
+
+  /* —— color swatches: palette harvest, not invention ——————— */
+  .swatches { display: flex; flex-wrap: wrap; gap: 16px; margin: 4px 0 26px; }
+  .swatch { width: 168px; }
+  .swatch .chip { height: 60px; border-radius: 8px; border: 1px solid var(--line); }
+  .swatch .label { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-top: 9px; line-height: 1.55; }
+  .swatch .label b { color: var(--text); display: block; font-size: 12px; }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .cols.c4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--fuchsia); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--fuchsia); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--fuchsia); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  pre.code {
+    margin: 0 0 26px; padding: 18px 20px; background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 8px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim);
+    max-width: 72ch; white-space: pre-wrap;
+  }
+  pre.code b { color: var(--text); font-weight: 600; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--fuchsia); }
+  a:focus-visible { outline: 2px solid var(--fuchsia); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 17</b> NINO CHAVEZ</p>
+    <h1>The layout was<br>inferred, not<br>designed<span class="dot">.</span></h1>
+    <p class="title-sub">Aisles is a headless storefront that decides its own layout, per visitor, at request time. Same URL, same catalog — the AI infers who's shopping through 31 weighted rules and generates one of four schema-valid layouts to fit. On 2026-08-12 it was pointed at a real BigCommerce catalog for the first time.</p>
+    <div class="quad" style="max-width: 760px; margin-bottom: 40px;">
+      <div><b>Gatherer</b>editorial header, 2-col landscape grid, no quick-add</div>
+      <div><b>Hunter</b>category header, dense 4-col grid, quick-add on</div>
+      <div><b>Researcher</b>specs on every card, no hero, no editorial copy</div>
+      <div><b>Gifter</b>hero product, 3-col grid, safe price tier</div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · WHAT AISLES IS ———————————————————————————— -->
+<section class="slide" id="s2" aria-label="What Aisles is">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> WHAT AISLES IS</p>
+    <h2>One engine, four shoppers it has never met</h2>
+    <p class="lede">Every category page runs the same pipeline. Request-time signals (search query, referrer, UTM tag, device, time of day) and behavioral signals (category views, dwell time, cart adds) feed 31 weighted rules. Each rule contributes a log-likelihood adjustment toward one or more of four personas; the engine sums them against a gatherer-biased prior and takes a softmax to get a probability distribution. The primary persona then drives the AI layout call.</p>
+    <div class="ledger">
+      <div class="row"><div>Persona</div><div>Cold-start prior</div><div>Intent</div><div>Leads with</div></div>
+      <div class="row"><div><b>gatherer</b></div><div class="m">0.375</div><div class="m">browsing to discover</div><div class="m">editorial header + hero</div></div>
+      <div class="row"><div><b>hunter</b></div><div class="m">0.250</div><div class="m">buying with intent</div><div class="m">category header, dense grid</div></div>
+      <div class="row"><div><b>researcher</b></div><div class="m">0.250</div><div class="m">comparing the specs</div><div class="m">category header, specs shown</div></div>
+      <div class="row"><div><b>gifter</b></div><div class="m">0.125</div><div class="m">shopping for someone else</div><div class="m">editorial header + hero</div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The prior leans gatherer on purpose — the exploratory layout is the safest default for a visitor the engine hasn't seen signals from yet. It self-corrects as request and behavioral signals arrive.</p>
+  </div>
+</section>
+
+<!-- 03 · THE SCHEMA IS THE GUARDRAIL ——————————————— -->
+<section class="slide" id="s3" aria-label="The schema is the guardrail">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE SCHEMA IS THE GUARDRAIL</p>
+    <h2>The AI can't invent a component that isn't in the vocabulary</h2>
+    <p class="lede">A model that free-writes a category page can produce anything — including something broken. Aisles constrains it instead: a Zod schema enumerates exactly four component types, and that schema is passed to the model as a structured-output contract, not a suggestion in the prompt.</p>
+    <pre class="code">SectionSchema = discriminatedUnion('component', [
+  <b>editorial-header</b>,  // eyebrow + headline + body copy
+  <b>hero-product</b>,      // one featured product, specs optional
+  <b>product-grid</b>,      // 2/3/4 columns, landscape or square
+  <b>category-header</b>,   // title, sort, filter
+])
+LayoutSchema.sections: 1 to 8, ordered</pre>
+    <p class="lede" style="margin-bottom: 0;">The model chooses which components appear, how products are ordered, and what the copy says — it cannot emit a fifth component or a malformed prop. If generation fails outright, the documented fallback is Claude Haiku → Claude Sonnet → a static Svelte layout, so a valid page always exists.</p>
+  </div>
+</section>
+
+<!-- 04 · FOUR LAYOUTS, CONCRETELY —————————————————— -->
+<section class="slide" id="s4" aria-label="The four layouts, concretely">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> FOUR LAYOUTS, CONCRETELY</p>
+    <h2>The same prompt reads four different rulebooks</h2>
+    <p class="lede">Each persona ships its own layout principles into the prompt. The model isn't told "personalize this" — it's told exactly which components to lead with, whether quick-add appears, and how to sort.</p>
+    <div class="cols c4">
+      <div class="panel">
+        <p class="ptag">Gatherer</p>
+        <p>"No quick-add buttons — this shopper wants to browse, not rush… copy should be warm, editorial, magazine-like."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Hunter</p>
+        <p>"Show quick-add buttons on every card… no editorial copy — no hero product, no lifestyle stories."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Researcher</p>
+        <p>"Show full specs inline on every card… no quick-add buttons — they're not ready to buy yet, they're evaluating."</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Gifter</p>
+        <p>"Group or call out price tiers… copy should be warm, reassuring, and focused on the recipient's experience."</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Every quote above is taken directly from the prompt-construction source — the persona definitions the model actually reads before it writes a single section.</p>
+  </div>
+</section>
+
+<!-- 05 · THE INTEGRATION DAY ———————————————————————— -->
+<section class="slide" id="s5" aria-label="The integration day">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE INTEGRATION DAY</p>
+    <h2>Pointing it at a real store was configuration, not code</h2>
+    <p class="lede">Aisles already ran on three fictional brands — Haven, Volt, Ember — sharing no product data, only the inference engine and prompt pipeline. Adding Kibble &amp; Co., the pet-supply storefront from the same BigCommerce sandbox as two earlier sessions in this series, meant writing a brand config entry and nothing else.</p>
+    <div class="gate">
+      <div class="reg"><p class="tag">The change, committed 2026-08-12</p><p>One brand-config entry: 8 categories mapped 1:1 to the live sandbox's category tree, a harvested theme, and store copy. No route, no query, no component touched.</p></div>
+      <div class="meas"><b class="ok">✓ live:</b> <a href="https://aisles-kibble.vercel.app">aisles-kibble.vercel.app</a> — fetched and confirmed this session, rendering the same 8 categories as the config. It joins the same live sandbox store as the Kibble &amp; Co. fleet (demo 14) and Ask BC (demo 16).</div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">It worked in one pass because the catalog seam was already generic: <code>loadCategoryProducts()</code> reads its category map from <code>getBrand().categories</code>, and calls BigCommerce's Storefront GraphQL through two functions in a shared client. Add a brand, and the same function resolves a different catalog. Selecting the deployed brand is two environment variables — <code>BRAND_ID</code> for the server, <code>VITE_BRAND_ID</code> for anything the client bundle needs at build time.</p>
+  </div>
+</section>
+
+<!-- 06 · THE PALETTE HARVEST ———————————————————————— -->
+<section class="slide" id="s6" aria-label="The palette harvest">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE PALETTE HARVEST</p>
+    <h2>The colors came from the storefront, not a color picker</h2>
+    <p class="lede">Kibble &amp; Co.'s theme wasn't chosen — it was read off the live storefront's own stylesheet, the "Shelf-Native" theme, where mint is reserved for the Auto-Refill subscription signal and never used decoratively elsewhere.</p>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#3b5bd0"></div><div class="label"><b>#3b5bd0 — Cornflower</b>app.css:30, --color-accent, "Native Pet cornflower"</div></div>
+      <div class="swatch"><div class="chip" style="background:#2f49b0"></div><div class="label"><b>#2f49b0 — Cornflower text</b>app.css:32, --color-accent-text</div></div>
+      <div class="swatch"><div class="chip" style="background:#37bfa2"></div><div class="label"><b>#37bfa2 — Seafoam</b>app.css:35, --color-autorefill</div></div>
+      <div class="swatch"><div class="chip" style="background:#1e2150"></div><div class="label"><b>#1e2150 — Ink</b>app.css:26, --color-primary</div></div>
+    </div>
+    <p class="lede" style="margin-bottom: 0;">Every hex value in the brand config traces to a specific line in the storefront's own CSS, not a hand-picked palette. That discipline — harvest the brand, don't invent it — is what keeps a demo built by an agent from drifting into generic-AI color choices.</p>
+  </div>
+</section>
+
+<!-- 07 · WHAT WASN'T RIGHT THE FIRST TIME —————————— -->
+<section class="slide" id="s7" aria-label="An honest failure and its fix">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> WHAT WASN'T RIGHT THE FIRST TIME</p>
+    <h2>A furniture nav sat on top of a pet-food page</h2>
+    <p class="lede">The navigation component called <code>getBrand()</code> directly, in the client. That function reads an environment variable that is only ever set on the server — so on every page, the client silently fell back to the default brand and rendered its category list instead of the active one.</p>
+    <div class="gate">
+      <div class="reg"><p class="tag">The bug, in production</p><p>Kibble & Co.'s catalog rendered correctly below the fold — but the nav bar above it showed Haven's furniture categories: Living Room, Office, Bedroom.</p></div>
+      <div class="meas"><b class="bad">✗ cause:</b> <code>BRAND_ID</code> never reaches the browser bundle, so a client-side <code>getBrand()</code> call always resolves to the default brand, not the one actually deployed.</div>
+    </div>
+    <blockquote style="margin-top: 20px;">
+      "Categories come from the server-loaded brand — <strong>getBrand() is server-only</strong> (BRAND_ID is not exposed to the client bundle, so a client call silently falls back to the default brand)."
+      <cite>inline comment added to the fix, src/lib/components/Nav.svelte, commit 09e074b</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">The fix: flow categories through the page's server load function instead of re-deriving them in the browser. The general lesson travels past this one bug — <strong>an env-selected config read in two runtimes is two sources of truth, and the client one fails silently to a default</strong> rather than erroring loudly.</p>
+  </div>
+</section>
+
+<!-- 08 · WHAT TRANSFERS ———————————————————————————— -->
+<section class="slide" id="s8" aria-label="What transfers to your own build">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> WHAT TRANSFERS</p>
+    <h2>Four habits that made a real store a same-day integration</h2>
+    <div class="cols c4">
+      <div class="panel">
+        <p class="ptag">One catalog seam</p>
+        <p>A single function reads the active brand's category map and calls the storefront API. New brand, same function, different data.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Constrain, don't hope</p>
+        <p>A typed schema passed as a generation contract makes an AI-written layout provably valid, not just usually reasonable.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Harvest the brand</p>
+        <p>Pull real colors from real CSS with a file and a line number. A palette with no citation is a guess wearing a hex code.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">One runtime per config</p>
+        <p>An env var read in both server and client code needs to resolve identically in both, or the client's silent fallback becomes the bug nobody notices until it ships.</p>
+        <p class="lesson"><b>The pattern is reusable.</b> The store is the fixture.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · CLOSE ———————————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Close and colophon">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> CLOSE</p>
+    <h2>Four stores. One page that never stops guessing</h2>
+    <p class="lede">Nothing about the URL changes, and nothing about the catalog changes. What changes is which of 31 rules fired, which persona won the softmax, and which four-component layout the model was allowed to write. Adding a real store to that engine took one config file and two environment variables — and still found a real bug the moment it ran in production.</p>
+    <div class="stack">
+      <span>same catalog, four schema-valid layouts</span>
+      <span>harvest the brand, don't invent it</span>
+      <span>one runtime per config, or it lies silently</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every figure on these slides — the 31-rule count, the four persona priors, the component vocabulary and section limits, the per-persona prompt quotes, the model-fallback chain, the catalog-seam code path, the harvested hex values with their source lines, and the Nav.svelte bug and fix — was read directly from the Aisles repository and its commit history in this session, sources cited in an HTML comment at the top of this file. Kibble &amp; Co. is a fictional demo merchant. <strong>An independent demonstration by Nino Chavez — not a BigCommerce product.</strong> Demo 17 in the <a href="/">ways-of-working series</a> — the storefront it now renders is <a href="/kibble-and-co/">demo 14, Kibble &amp; Co.</a>; the commerce agent running against the same sandbox is <a href="/asks-twice/">demo 16, the agent that asks twice</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

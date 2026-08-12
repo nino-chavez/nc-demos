@@ -1,0 +1,13 @@
+{
+ "number": "17",
+ "title": "The Layout Was Inferred, Not Designed",
+ "hook": "Aisles is a headless storefront that decides its own layout per shopper — 31 weighted rules feed a Bayesian inference engine that picks one of four personas, then an AI model generates the category page from a four-component vocabulary a Zod schema won't let it leave. Same URL, same catalog, four schema-valid layouts. On 2026-08-12 it was pointed at a real BigCommerce store for the first time — a brand-config entry, two environment variables, a harvested palette with file-line citations, and one honest bug: a client-side lookup that silently rendered furniture navigation over a pet-supply catalog.",
+ "date": "2026-08",
+ "for": "Anyone evaluating whether AI-generated UI can be made safe to ship, and anyone deciding how much of a personalization engine should be inferred versus hand-coded per segment.",
+ "get": "The full pipeline read from source — 31 rules, a gatherer-biased Bayesian prior, and a softmax over four named personas (gatherer, hunter, researcher, gifter); the Zod schema that makes an AI-written layout provably valid instead of usually reasonable; the per-persona prompt language that actually reaches the model; the same-day integration against a live BigCommerce sandbox that took one config file because the catalog seam was already generic; a palette harvested from the storefront's own CSS with file and line citations; and the client-side brand-resolution bug the integration surfaced, with its fix.",
+ "do": "Build one catalog function that reads the active brand's config instead of one function per brand. Pass a typed schema to the model as a generation constraint, not a suggestion in the prompt. Harvest brand colors from the real source with a citation, never invent them. When a config is read in both server and client code, make sure it resolves identically in both — the client's silent fallback is the bug that ships.",
+ "preview": "img/preview.jpg",
+ "previewAlt": "Demo 17 title slide: the layout was inferred, not designed, with the four-persona quad — gatherer, hunter, researcher, gifter",
+ "theme": "inferred-not-designed",
+ "accent": "#d946ef"
+}
