@@ -15,8 +15,9 @@
     LayoutSchema.sections min 1 / max 8).
   - Per-persona layout principles, quoted — src/lib/server/layout-prompt.ts,
     lines 8-60 (PERSONA_DEFINITIONS) and 62-80 (COMPONENT_GUIDE).
-  - Model call (Haiku primary, Sonnet fallback via AI Gateway) —
-    src/routes/api/layout/+server.ts, lines 77-87.
+  - Model call (Haiku primary, explicit one-retry Sonnet fallback) —
+    src/lib/server/model.ts (withModelFallback) and
+    src/routes/api/layout/+server.ts (post-Cloudflare-migration).
   - Third fallback tier (static Svelte layout) — README.md "The invariant"
     section; not directly exercised in this session, cited from docs.
   - The catalog seam — src/lib/server/catalog.ts:15 (CATEGORY_MAP driven by
