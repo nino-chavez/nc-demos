@@ -1,0 +1,13 @@
+{
+ "number": "16",
+ "title": "The Agent That Asks Twice",
+ "hook": "Ask BC is a production agent with 29 tools against a live commerce store — 22 that read, 7 that can change it — deployed split across a Next.js app and a Cloudflare Worker with a Durable Object per store. Every mutation needs two turns: a preview, then an explicit confirm. Months later, a sibling platform copied the runtime wholesale for its own merchant copilot — same Durable Object, same codemode sandbox, same two-turn writes — and pointed it at a different API entirely.",
+ "date": "2026-08",
+ "for": "Anyone deciding how much autonomy to hand an agent that can mutate a real system, and anyone wondering whether an agent pattern built once actually gets reused, or just described as reusable.",
+ "get": "The two-turn confirmation pattern read straight from the tool code — nothing mutates on the first call, only on an explicit second call with the confirm flag set to true; the generative-UI block protocol that turns tool output into an inline React component instead of a wall of markdown; the Haiku-default, Sonnet-on-retry model split; a real security gap caught and fixed a month before the app's custom domain went live; and the decision record where a second product adopted the identical Durable-Object-plus-codemode runtime for its own copilot, pointed at an entirely different data plane.",
+ "do": "Put the confirmation gate inside the tool's own execute function, keyed on an explicit boolean the model must set — not a line in the prompt. Route the cheap model by default and upgrade only the step that needs it. When a pattern proves itself once, let the next build copy the runtime and swap only the data plane.",
+ "preview": "img/preview.jpg",
+ "previewAlt": "Demo 16 title slide: the agent that asks twice, showing the preview-then-execute turn card",
+ "theme": "confirm-then-act",
+ "accent": "#3b82f6"
+}

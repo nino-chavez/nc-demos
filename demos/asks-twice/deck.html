@@ -1,0 +1,404 @@
+<title>The Agent That Asks Twice — write tools, confirmation, and a pattern that spread</title>
+
+<!--
+  Figure provenance (verified in-session, 2026-08-12, wip/ask-bc unless noted):
+  - "22 read tools" / "7 write tools" (29 total) — counted directly from
+    workers/agent-runtime/src/index.ts: buildReadTools() (lines 53-476, 22 tool
+    entries) and buildWriteTools() (7 entries: createCoupon, updateProductInventory,
+    setProductVisibility, updateProductPrice, deleteCoupon, updateOrderStatus,
+    createProduct). Matches README.md's own claim and commit 8d0c826 "Complete
+    tool surface: 22 read tools + 7 write tools".
+  - Two-turn confirmation code and system-prompt quotes — index.ts:478-487,
+    529-548, 565-582, 745-754.
+  - Write-audit-log + OAuth-scope-filter behavior — index.ts:1040-1056
+    (logWrite -> DO SQLite; filterWriteToolsByScope).
+  - Model routing quotes — index.ts:937-987 (getModel, beforeTurn).
+  - 7 generative-UI block types + KPICard example JSON — workers/agent-runtime/
+    src/blocks.ts:28-172.
+  - Architecture facts (Vercel/Worker split, no proxy in the chat path, App
+    Extension panels, live URL) — ask-bc/README.md and docs/architecture/README.md.
+  - ADR-0083 title and quotes — wip/bc-subscriptions/docs/decisions/
+    0083-subs-assistant-codemode-runtime.md (canonical: true, dated 2026-07-02).
+  - Security-fix slide — commit 4ff473e "security: remove debug cookies and
+    unauthenticated worker-proxy route" (ask-bc repo, 2026-04-22), read via
+    `git show 4ff473e`; surrounding hardening commits listed are titles only,
+    read via `git log --oneline`.
+  No figure is estimated or invented. Store hash, tokens, and credentials are
+  never reproduced here.
+-->
+
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 16 identity: the confirmation ledger. Near-black blue ground,
+     a single trust-blue accent. The signature device is the turn card —
+     the same tool called twice: confirmed:false returns a preview and
+     touches nothing, confirmed:true executes and writes to the audit log.
+     Blue carries the mechanism; green/red carry only outcomes.
+     Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0a0e1a;
+    --panel: #10162a;
+    --panel2: #0c111f;
+    --line: #202c48;
+    --text: #eef1fb;
+    --dim: #a7b3cc;
+    --faint: #5f6d8c;
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.12);
+    --pass: #4ade80;
+    --fail: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #1e40af, var(--blue)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--blue); }
+  .rail a:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--blue); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(34px, 5.2vw, 56px); line-height: 0.98; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 66ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--blue); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(50px, 9vw, 108px); line-height: 0.94; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--blue); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— turn cards: confirmed:false preview / confirmed:true execute —— */
+  .gate { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .gate .reg { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--blue); }
+  .gate .reg .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 7px; }
+  .gate .reg p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; font-family: var(--mono); }
+  .gate .meas { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .gate .meas b { font-weight: 600; }
+  .gate .meas .ok { color: var(--pass); }
+  .gate .meas .bad { color: var(--fail); }
+  .gates { display: flex; flex-direction: column; gap: 16px; }
+
+  /* —— ledger table: tool name / turn 1 / turn 2 ——————————— */
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .ledger .row { display: grid; grid-template-columns: 1fr 1.3fr 1.3fr; border-top: 1px solid var(--line); background: var(--panel2); }
+  .ledger .row:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .ledger .row > div { padding: 11px 16px; }
+  .ledger .row .m { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  @media (max-width: 720px) { .ledger .row { grid-template-columns: 1fr; } .ledger .row > div { padding-bottom: 2px; } }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--blue); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--blue); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  pre.code {
+    margin: 0 0 26px; padding: 18px 20px; background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 8px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim);
+    max-width: 72ch; white-space: pre-wrap;
+  }
+  pre.code b { color: var(--text); font-weight: 600; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--blue); }
+  a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 16</b> NINO CHAVEZ</p>
+    <h1>The agent that<br>asks twice<span class="dot">.</span></h1>
+    <p class="title-sub">Ask BC is a commerce copilot with 29 tools against a live store — 22 that read, 7 that can change it. The hard design problem was never wiring the write tools. It was making sure the model never used one without a human saying yes, on a separate turn.</p>
+    <div class="gate" style="max-width: 660px; margin-bottom: 44px;">
+      <div class="reg"><p class="tag">Turn 1 · confirmed: false</p><p><code>Will set product ${product_id} inventory to ${inventory_level}. Ask the merchant to confirm.</code></p></div>
+      <div class="meas"><b class="ok">✓ turn 2, after the merchant says yes:</b> the same tool is called again with <b>confirmed: true</b>. Only then does it write, and only then does it log to the store's audit table.</div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · WHAT IT IS ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="What Ask BC is">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> WHAT ASK BC IS</p>
+    <h2>Chat with the store's actual data</h2>
+    <p class="lede">Ask BC answers questions against a real store's orders, products, customers, promotions, and inventory — live at <a href="https://askbc.ninochavez.co">askbc.ninochavez.co</a>, and embedded directly in the BigCommerce admin as an "Ask BC" panel on the Orders and Products pages. It runs on the same live sandbox store the Kibble &amp; Co. fleet runs on (demo 14) — real inventory and order history, nothing fabricated for the demo.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Next.js on Vercel</p>
+        <p>Handles BigCommerce OAuth install, the admin iframe shell, and App Extension registration. Auto-deploys on push to main.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Cloudflare Worker</p>
+        <p>The agent runtime itself: one Durable Object per store, built on Cloudflare's Think and Codemode libraries.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Direct WebSocket</p>
+        <p>The browser connects straight to the Worker. There is no Vercel proxy anywhere in the chat path.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 · THE WRITE PROBLEM ————————————————————————— -->
+<section class="slide" id="s3" aria-label="The write problem">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> THE WRITE PROBLEM</p>
+    <h2>Seven of twenty-nine tools can change the store</h2>
+    <p class="lede">Read tools run inside a sandboxed script and can chain freely — list products, join them to orders, page through results, all with zero mutation risk. Write tools sit outside that sandbox as separate top-level tools, and each one carries a <code>confirmed</code> boolean the model cannot route around.</p>
+    <div class="ledger">
+      <div class="row"><div>Write tool</div><div>Turn 1 — confirmed: false</div><div>Turn 2 — confirmed: true</div></div>
+      <div class="row"><div>updateProductInventory</div><div class="m">Returns a preview, no mutation</div><div class="m">Sets the inventory level, logs the write</div></div>
+      <div class="row"><div>deleteCoupon</div><div class="m">Preview states "cannot be undone"</div><div class="m">Deletes the coupon, logs the write</div></div>
+      <div class="row"><div>updateOrderStatus</div><div class="m">Preview shows the new status label</div><div class="m">Changes the status, logs the write</div></div>
+    </div>
+    <blockquote style="margin-top: 26px;">
+      "Write tools have a <strong>confirmed</strong> parameter. You MUST call them TWICE […] Never call a write tool with confirmed: true on the first mention. Always preview first. <strong>This is a security requirement</strong> — the merchant must explicitly confirm before the store is mutated."
+      <cite>the system prompt taught to the model, workers/agent-runtime/src/index.ts:745-754</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">Every write also logs to the store's Durable Object SQLite, confirmed or not, and the tool set itself is filtered by the store's actual OAuth scope first — a token that can't perform an operation never gets offered the tool for it.</p>
+    <div class="stack">
+      <span>createCoupon</span><span>updateProductInventory</span><span>setProductVisibility</span>
+      <span>updateProductPrice</span><span>deleteCoupon</span><span>updateOrderStatus</span><span>createProduct</span>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · GENERATIVE UI ————————————————————————————— -->
+<section class="slide" id="s4" aria-label="Generative UI">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> GENERATIVE UI</p>
+    <h2>The answer is a component, not a paragraph</h2>
+    <p class="lede">The model emits a fenced <code>block</code> code block containing JSON — a component name and its props. The Next.js client's markdown renderer detects the fence, parses the JSON, and mounts a real React component inline in the chat, in place of a wall of prose. Seven component types cover the answer shapes: KPICard, DataTable, ProductCard, OrderTimeline, InventoryBar, SparklineChart, ErrorCard.</p>
+    <pre class="code">{
+  "type": "KPICard",
+  "props": {
+    "label": "Total Revenue (5 orders)",
+    "value": "$5,344.68",
+    "trend": { "direction": "up", "label": "+12% vs last week" }
+  }
+}</pre>
+    <p class="lede" style="margin-bottom: 0;">The block schema catalog is the single source of truth on both sides: the Worker references it when writing the system prompt, the Next.js app references it when deciding what to render. Add a component in one file, wire a matching React component, and both sides stay in sync without a shared build step.</p>
+  </div>
+</section>
+
+<!-- 05 · MODEL ROUTING ————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Model routing">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> MODEL ROUTING</p>
+    <h2>Haiku by default, Sonnet when something breaks</h2>
+    <blockquote>
+      "Default model: Haiku 4.5 — ~2.6× faster and ~3× cheaper than Sonnet 4.6, <strong>handles 95% of real merchant questions on the first try.</strong>"
+      <cite>getModel(), workers/agent-runtime/src/index.ts:937-944</cite>
+    </blockquote>
+    <p class="lede">Every fresh turn starts on Haiku. A "continuation" — most importantly, a retry after a tool error — upgrades that single step to Sonnet 4.6, then the next fresh turn drops back to Haiku. The upgrade is scoped to the failure, not sticky for the rest of the conversation.</p>
+    <blockquote style="margin-bottom: 0;">
+      "A continuation is anything after the first step in a turn […] That's exactly where <strong>Sonnet's deeper reasoning and error-recovery instincts earn their extra cost.</strong>"
+      <cite>beforeTurn(), workers/agent-runtime/src/index.ts:947-951</cite>
+    </blockquote>
+  </div>
+</section>
+
+<!-- 06 · THE PATTERN SPREAD ———————————————————————— -->
+<section class="slide" id="s6" aria-label="The pattern spread to a second assistant">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> THE PATTERN SPREAD</p>
+    <h2>A second assistant, same runtime, different data plane</h2>
+    <p class="lede">The subscriptions platform from demo 14 later built its own merchant copilot — <code>ADR-0083</code>: <strong>"subs-assistant — merchant copilot on the codemode agent runtime"</strong> — on the identical substrate: a Durable Object per store, Cloudflare's Think and Codemode libraries, the same two-model split. It names ask-bc as its reference implementation outright.</p>
+    <blockquote>
+      "The reference implementation is <strong>ask-bc <code>ADR-001</code></strong> […] ask-bc's Phase-0 measurements […] motivated <strong>adopting the same substrate rather than re-deriving it.</strong>"
+      <cite><code>ADR-0083</code>, wip/bc-subscriptions/docs/decisions/0083-subs-assistant-codemode-runtime.md</cite>
+    </blockquote>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Ask BC's reads</p>
+        <p>Call BigCommerce's public REST APIs directly — products, orders, customers, the storefront's own data plane.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Subs-assistant's reads</p>
+        <p>"Reads pull, never port. Every codemode.* tool traces to a real route in apps/api/openapi.yaml and calls it through a service binding […] generated code sees only RPC stubs." Its own internal API, not BigCommerce's.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Writes kept the identical shape too — pause and skip actions take a <code>confirmed</code> boolean, a false call previews with zero mutation, true executes only after the merchant clicks Confirm. Same store, two assistants, no collision: one speaks for BigCommerce's inventory and orders, the other for the subscription engine sitting beside it. Full build: <a href="/kibble-and-co/">demo 14, Kibble &amp; Co.</a></p>
+  </div>
+</section>
+
+<!-- 07 · WHAT WASN'T RIGHT THE FIRST TIME —————————— -->
+<section class="slide" id="s7" aria-label="A real security gap and its fix">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> WHAT WASN'T RIGHT THE FIRST TIME</p>
+    <h2>A debug route with no lock on the door</h2>
+    <p class="lede">One commit, still in the history: a Next.js API route built for local development proxied straight to the Worker's <code>/smoke</code> endpoint with no auth check at all — reachable in production the moment the matching env var was ever set. Alongside it, a non-httpOnly cookie stored decoded BigCommerce JWT payload keys where any script running in the admin iframe could read them.</p>
+    <div class="gate">
+      <div class="reg"><p class="tag">The commit that closed it</p><p>security: remove debug cookies and unauthenticated worker-proxy route</p></div>
+      <div class="meas"><b class="ok">✓ fixed:</b> the proxy route deleted outright; the debug cookies deleted from the OAuth middleware. The fix landed a full month before the app's custom domain went live.</div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">It wasn't the only one. The same repo's history carries a run of similarly-prefixed commits closing similar gaps one at a time: a per-store rate limit on the WebSocket path, write tools filtered by the store's actual OAuth scope, single-use agent JWTs, the dev credential fallback gated behind a <code>DEV_MODE</code> check. Each commit message names the specific attack it closes, not a failing test — evidence of a deliberate pass over the attack surface, not a suite that happened to catch it.</p>
+  </div>
+</section>
+
+<!-- 08 · WHAT TRANSFERS ———————————————————————————— -->
+<section class="slide" id="s8" aria-label="What transfers to your own build">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> WHAT TRANSFERS</p>
+    <h2>Three habits that outlived the first build</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Confirmation is a protocol</p>
+        <p>Put the gate in the tool's own execute function, keyed on an explicit boolean the model must set — not a line in the prompt asking it nicely to check first. A prompt is advice. A required second call with a different argument is a mechanism.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Route models by task</p>
+        <p>Cheap model by default, upgrade only on the step that actually needs it — a retry, an error, a harder reasoning chain. The upgrade should be scoped to that step, not sticky for the rest of the conversation.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Answers are components</p>
+        <p>A shared schema of typed component props, referenced by the system prompt and the renderer alike, beats asking the model to format a table in markdown and hoping it holds.</p>
+        <p class="lesson"><b>The pattern is the reusable part.</b> The store is the fixture.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · CLOSE ———————————————————————————————————— -->
+<section class="slide" id="s9" aria-label="Close and colophon">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> CLOSE</p>
+    <h2>Two assistants. One rule that didn't change.</h2>
+    <p class="lede">Ask BC shipped first, alone, against one store. Months later a second product — the subscriptions platform from demo 14 — took its ADR as the reference, kept the runtime, kept the two-turn write shape, and pointed the reads somewhere else entirely. The part that mattered wasn't the store, the tool count, or even the model. It was the one rule that traveled unmodified: nothing mutates on the first call.</p>
+    <div class="stack">
+      <span>confirm before mutate</span>
+      <span>cheap model until something breaks</span>
+      <span>the pattern outlived the first build</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> Every figure on these slides — the 22/7/29 tool split, the confirmed-boolean and system-prompt text, the write-audit and OAuth-scope-filter behavior, the model-routing quotes, the seven block types and the KPICard example, <code>ADR-0083</code>'s title and quoted decision text, and the debug-route/cookie security fix — was read directly from the ask-bc and bc-subscriptions repositories in this session, not from a prior summary; sources are cited in an HTML comment at the top of this file. <strong>An independent demonstration by Nino Chavez — not a BigCommerce product.</strong> Demo 16 in the <a href="/">ways-of-working series</a> — the subscriptions build this pattern spread into is <a href="/kibble-and-co/">demo 14</a>; the discipline of committing a verdict before you look is <a href="/gate-first/">demo 13</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
