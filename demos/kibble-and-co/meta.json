@@ -1,0 +1,13 @@
+{
+ "number": "14",
+ "title": "Kibble & Co. Doesn't Sell Anything",
+ "hook": "A pet-supply storefront went live on a real BigCommerce sandbox, moving real Stripe-sandbox money through real dunning logic — and it exists only so a subscription-billing platform could be built against a genuine store instead of a slide deck. Five deployed apps, 94 ADRs, and a generated file that answers 'what's shipped' so nobody has to narrate it. The method is the point; the pet food is the test fixture.",
+ "date": "2026-08",
+ "for": "Anyone evaluating whether spec-driven, agent-orchestrated delivery produces real software, and anyone deciding whether 'proposal → synthesis → ADR' is process theater or a working discipline.",
+ "get": "A five-app BigCommerce subscriptions platform — storefront, admin, API, docs, marketing — built against a live sandbox store behind a fictional pet-supply merchant; 94 ADRs and 218 user stories moving through one repo; the mechanical state-derivation file that replaces status narration; and two real failures, a circular verification audit and a GitHub rate-limit exhaustion, with the fixes that shipped.",
+ "do": "Route every spec edit through proposal → synthesis → ADR with the synthesis ID in the commit message. Make 'what's shipped' a generated file, never a written claim. Build a disposable, fictional storefront when you need real platform behavior without a real merchant's data on the line.",
+ "preview": "img/preview.jpg",
+ "previewAlt": "Demo 14 title slide: Kibble & Co. doesn't sell anything, the fictional pet-supply storefront built to make subscription flows real",
+ "theme": "derived-not-narrated",
+ "accent": "#18b0a8"
+}

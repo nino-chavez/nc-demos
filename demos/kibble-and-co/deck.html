@@ -1,0 +1,373 @@
+<title>Kibble & Co. Doesn't Sell Anything — a subscriptions platform built for real</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 14 identity: the derived ledger. Deep navy ground with a teal
+     accent — pulled from the actual bc-subscriptions marketing brand
+     (apps/marketing/tailwind.config.ts: navy.base #0D213B, brand teal
+     #18B0A8 "durable"). The signature device is the claim/derived card —
+     what a doc says vs. what a mechanical check found — echoing demo 13's
+     registered/measured card but for a different failure: not a preregistered
+     gate, a self-attesting one. Blue carries data; coral carries risk —
+     both borrowed from the same real design system. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #081019;
+    --panel: #0d1c2c;
+    --panel2: #0a1622;
+    --line: #1c3350;
+    --text: #eef3f7;
+    --dim: #a3b4c4;
+    --faint: #62768a;
+    --teal: #18b0a8;
+    --teal-soft: rgba(24, 176, 168, 0.12);
+    --blue: #3878e8;
+    --coral: #f2795c;
+    --pass: #4ade80;
+    --fail: #f2795c;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #0e6a64, var(--teal)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--teal); }
+  .rail a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--teal); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(34px, 5vw, 54px); line-height: 0.98; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 66ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--teal); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(48px, 8.6vw, 104px); line-height: 0.94; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--teal); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 62ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— claim/derived cards: what the doc says vs. what the check found —— */
+  .gate { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .gate .reg { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--teal); }
+  .gate .reg .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin: 0 0 7px; }
+  .gate .reg p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .gate .meas { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .gate .meas b { font-weight: 600; }
+  .gate .meas .ok { color: var(--pass); }
+  .gate .meas .bad { color: var(--fail); }
+  .gate.risk .reg { border-left-color: var(--coral); }
+  .gate.risk .reg .tag { color: var(--coral); }
+  .gates { display: flex; flex-direction: column; gap: 16px; }
+
+  /* —— ledger table for the deployed fleet —————————————— */
+  .ledger { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .ledger .row { display: grid; grid-template-columns: 1.1fr 1.6fr 1fr; border-top: 1px solid var(--line); background: var(--panel2); }
+  .ledger .row:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .ledger .row > div { padding: 11px 16px; }
+  .ledger .row .m { font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
+  .ledger .row a { font-family: var(--mono); font-size: 12.5px; }
+  @media (max-width: 720px) { .ledger .row { grid-template-columns: 1fr; } .ledger .row > div { padding-bottom: 2px; } }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--teal); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--teal); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--teal); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--teal); }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 14</b> NINO CHAVEZ</p>
+    <h1>Kibble & Co.<br>doesn't sell<br>anything<span class="dot">.</span></h1>
+    <p class="title-sub">It's a pet-supply storefront on a real BigCommerce sandbox, moving real Stripe-sandbox money through real dunning logic. It exists only so a subscription-billing platform could be built against a genuine store instead of a slide deck. Five deployed apps, <strong>94 ADRs</strong>, and a generated file that answers "what's shipped" so nobody has to narrate it.</p>
+    <div class="gate" style="max-width: 660px; margin-bottom: 44px;">
+      <div class="reg"><p class="tag">What the README still says</p><p>"38 ADRs" — written 2026-05-24, never updated.</p></div>
+      <div class="meas"><b class="ok">✓ derived:</b> <code>ls docs/decisions/*.md | wc -l</code> → 94 decision records. <b>The count nobody wrote down is the one that's true.</b></div>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · WHAT SHIPPED ————————————————————————————— -->
+<section class="slide" id="s2" aria-label="What shipped">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> WHAT SHIPPED</p>
+    <h2>Five apps, one repo, all deployed</h2>
+    <p class="lede">Not a demo environment behind a login wall — a fleet, publicly reachable, each surface doing its actual job. The storefront runs against a real BigCommerce sandbox store; the admin app is the real BigDesign App Extension a merchant would install; the API is the live engine settling charges. <!-- docs/ORIENTATION.md § URL inventory --></p>
+    <div class="ledger">
+      <div class="row"><div>Surface</div><div>What it is</div><div>Link</div></div>
+      <div class="row"><div>Storefront</div><div class="m">Kibble & Co. — the live demo shop, real sandbox store + Stripe-sandbox money</div><div><a href="https://kibble-headless.bcsubs.app">kibble-headless.bcsubs.app</a></div></div>
+      <div class="row"><div>Admin</div><div class="m">The merchant admin app — the actual product UI, BC App Extension</div><div><a href="https://admin.bcsubs.dev">admin.bcsubs.dev</a></div></div>
+      <div class="row"><div>API</div><div class="m">The live worker settling renewals — production engine for the demo store</div><div><a href="https://api.bcsubs.dev">api.bcsubs.dev</a></div></div>
+      <div class="row"><div>Docs</div><div class="m">Public product docs — merchant guides, developer integration, reference</div><div><a href="https://docs.bcsubs.dev">docs.bcsubs.dev</a></div></div>
+      <div class="row"><div>Marketing</div><div class="m">23 interactive demo tours across three roles — merchant, subscriber, support</div><div><a href="https://marketing.bcsubs.app">marketing.bcsubs.app</a></div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;"><!-- apps/marketing/public/demo/stills/ — 23 tour directories, confirmed by directory listing --> Every tour is a captured recording of the live app, not a mockup: plays real UI, deep-linkable, gated behind one shared passphrase so any surface opens with the same credential.</p>
+  </div>
+</section>
+
+<!-- 03 · WHAT IT DOES ————————————————————————————— -->
+<section class="slide" id="s3" aria-label="What it does">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> WHAT IT DOES</p>
+    <h2>Orders are BC orders. Payments are BC Payments.</h2>
+    <p class="lede">The bet is depth, not breadth. Every recurring charge produces a native BigCommerce order and settles through the merchant's own BC Payments account — inventory, tax, and shipping all ride BC's existing surfaces instead of a parallel system. <!-- PRD.md §4 --> Charges hit BC's stored-instruments vault; the app never touches card data. <strong>Zero PCI scope</strong>, proven end-to-end on a real sandbox store. <!-- ADR-0037; docs/ORIENTATION.md § Platform integration --></p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Merchant</p>
+        <p>Turns an existing catalog into subscriptions — plans, cadence, dunning rules — without duplicating a product record.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Subscriber</p>
+        <p>Skip, swap, pause, or update payment from one self-serve portal, no support ticket.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Support</p>
+        <p>One screen: subscriber, next charge, last five orders, payment health, dunning state.</p>
+        <p class="lesson"><!-- PRD.md §5 --> Three of four PRD personas, verified against §5</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · WHY SUBSCRIPTIONS ———————————————————————— -->
+<section class="slide" id="s4" aria-label="Why subscriptions">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> WHY IT'S NATIVE, NOT BOLTED ON</p>
+    <h2>Every other option on BigCommerce runs the money somewhere else</h2>
+    <p class="lede">The existing subscription apps on BigCommerce settle through a separate Stripe or Braintree account outside BC Payments — a second dashboard, a second payout flow, a second reconciliation problem for the merchant. <!-- PRD.md §1, §2 --> This build routes the whole thing through the platform's own payment rail instead: one dashboard, one payout, one relationship. Pet food is one of the five verticals the spec names outright — CPG, vitamins, coffee, consumables, pet food — which is the actual reason Kibble & Co. is a pet-supply shop and not, say, a coffee subscription. <!-- PRD.md §5.1 --></p>
+  </div>
+</section>
+
+<!-- 05 · HOW IT WAS DELIVERED — SPEC ——————————————— -->
+<section class="slide" id="s5" aria-label="How it was delivered: spec through synthesis">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> HOW IT WAS DELIVERED · SPEC EDITS</p>
+    <h2>No one edits the spec directly</h2>
+    <p class="lede">Discovery and delivery run in one repo, not two. A spec change — PRD, BRD, ARCHITECTURE — starts as a <code>[Spec]</code> proposal, gets ratified in a weekly synthesis pass, and only then becomes a PR. <!-- README.md § Contributing; WAYS-OF-WORKING.md --> The synthesis ID rides in the commit message, so any spec change is traceable back to the decision that authorized it — not just to whoever typed the diff.</p>
+    <div class="gate">
+      <div class="reg"><p class="tag">The convention, in a real commit</p><p><code>docs(adr): store-credit ledger substrate design (synthesis #1930) (#1933)</code></p></div>
+      <div class="meas"><b class="ok">✓ what it buys:</b> git blame answers "why" as well as "what" — the synthesis ID is the join key back to the Hive proposal that decided it. <!-- git log --oneline --all --></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">218 user stories across 28 epics have moved through this path. <!-- BRD.md: grep -c "^#### US-" → 218 --></p>
+  </div>
+</section>
+
+<!-- 06 · HOW IT WAS DELIVERED — STATE ——————————————— -->
+<section class="slide" id="s6" aria-label="How it was delivered: derived state">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> HOW IT WAS DELIVERED · "WHAT'S SHIPPED"</p>
+    <h2>The answer is a file, not a paragraph</h2>
+    <p class="lede">The methodology's own rule: <strong>state derives from code, not from docs.</strong> A prose "what's shipped" audit decays within hours in a multi-agent repo — the moment it's true is over before the doc lands on <code>main</code>. So the canonical answer lives in a generated file, re-run on every deploy. <!-- METHODOLOGY.md §8.1; docs/audits/derived/_state.json --></p>
+    <div class="gates">
+      <div class="gate">
+        <div class="reg"><p class="tag">Presence is not function</p><p>The storefront widget injector emitted <code>&lt;bc-subscriptions-widget&gt;</code>; the PDP renderer read <code>[data-bcs-widget]</code>. Both files existed.</p></div>
+        <div class="meas"><b class="bad">✗ what a presence check found:</b> both checks matched. <code>COMPLIANT</code>. <b>The feature was broken.</b> <!-- METHODOLOGY.md §8.1a, ADR-0067 --></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The fix wasn't a smarter check — it was admitting presence has a ceiling. A five-gate ladder now separates <em>is it specified</em> (G1) from <em>does the artifact exist</em> (G3) from <em>does a scenario pass</em> (G4) from <em>is it green on the live store</em> (G5). Nothing may claim a gate without the ones below it. <!-- ADR-0067 --></p>
+  </div>
+</section>
+
+<!-- 07 · HOW IT WAS DELIVERED — FLEET ——————————————— -->
+<section class="slide" id="s7" aria-label="How it was delivered: prototype and agent fleet">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> HOW IT WAS DELIVERED · THE FLEET</p>
+    <h2>A runnable prototype settles design arguments; a shared board settles collisions</h2>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">The design oracle</p>
+        <p>Every BRD epic gets a working prototype slice — 30 of them, one npm install and five minutes to a running screen. When a spec and a screenshot disagree, the running slice is the tiebreaker, not whoever argued louder. <!-- README.md § Run the prototype --></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">The coordination substrate</p>
+        <p>Multiple agents work the same repo at once through Hive: a task board, file locks, and an append-only decision log on Cloudflare Workers + D1, called through 20+ MCP tools. <code>fit_check</code> catches duplicate work before an agent starts, not after two conflicting PRs land. <!-- METHODOLOGY.md §4b --></p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Five actor classes, each with a different authority: a principal's own harness inherits full authority because a human is in the loop; a pipeline agent gets a narrow deterministic contract; a triage agent can propose from external comments but never merge. Authority follows locus and scope, not which one is "the AI." <!-- METHODOLOGY.md §2 --></p>
+  </div>
+</section>
+
+<!-- 08 · HONEST FAILURE ——————————————————————————— -->
+<section class="slide" id="s8" aria-label="Two real failures">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> TWO THINGS THAT BROKE</p>
+    <h2>An audit that checked nothing, and a repo that rate-limited itself</h2>
+    <div class="gates">
+      <div class="gate risk">
+        <div class="reg"><p class="tag">The circular audit</p><p>Two review agents were asked whether this repo fabricates platform claims. Both returned "clean — zero hard fabrications."</p></div>
+        <div class="meas"><b class="bad">✗ what they'd actually checked:</b> the docs' own sentences claiming "Verified 2026-05-14" and "four independent sources converge" — never BigCommerce's real API or source. The operator's catch: <em>"looks like you just trusted prior verification results as opposed to actually running the verification against docs and code. confirm."</em> <!-- METHODOLOGY-AMENDMENTS.md, 2026-05-28 --></div>
+      </div>
+      <div class="gate risk">
+        <div class="reg"><p class="tag">The self-inflicted rate limit</p><p>~146 pushes a day, each fanning out to ~28 workflows, billed ~2,900 of a 3,000-minute monthly GitHub Actions quota in the first four days of one month.</p></div>
+        <div class="meas"><b class="bad">✗ separately:</b> a "derive state on push to main" job raced its own rebase and GitHub's API rate-limited the repo outright. <b class="ok">✓ fixed by:</b> a long-lived <code>dev</code> branch absorbs day-to-day pushes; <code>main</code> only fast-forwards on release. <!-- CLAUDE.md § "Dev is the integration substrate"; ratified 2026-05-20 --></div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Neither failure shipped quietly. Both are recorded in the repo's own amendments log, with the fix and the reasoning, not just the outcome.</p>
+  </div>
+</section>
+
+<!-- 09 · THE REUSABLE PRACTICE ——————————————————— -->
+<section class="slide" id="s9" aria-label="The reusable practice">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> WHAT'S REUSABLE</p>
+    <h2>Three habits that don't need BigCommerce to be worth stealing</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Spec edits through synthesis</p>
+        <p>Nobody hand-edits the canonical spec. A proposal gets ratified before it becomes a diff, and the ratification ID travels in the commit message — so "why" survives as long as "what" does.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Derived state, never narrated</p>
+        <p>"What's shipped" is a generated file re-run on every deploy, not a document someone remembers to update. If the check can be automated, the prose version of the same claim is a liability, not a convenience.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">A disposable, real front</p>
+        <p>When a feature needs to be proven against real platform behavior, build a fictional merchant on real infrastructure instead of a mockup. Nothing that happens to Kibble & Co. can leak a real customer's data.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>the count nobody wrote down is the one that's true</span>
+      <span>presence is not the same claim as function</span>
+      <span>a fictional merchant on real rails beats a mockup</span>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · CLOSING ————————————————————————————————— -->
+<section class="slide" id="s10" aria-label="Closing">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> WHAT THIS DEMONSTRATES</p>
+    <h2>Not a product pitch — a delivery method, proven against a real platform</h2>
+    <p class="lede">bc-subscriptions is an independent art-of-the-possible build by Nino Chavez, run against public BigCommerce APIs on a personal sandbox store. It is not a BigCommerce product, and nothing here reflects an internal roadmap. What it demonstrates: spec-driven development with an agent fleet can produce working software on a real platform — five deployed apps, a subscriber portal, dunning recovery, and a documentation set someone could actually onboard from — while keeping its own honesty checkable, one derived file and one amendments log at a time.</p>
+    <div class="colophon">
+      <b>Colophon.</b> Every figure on these slides — the 94 ADRs, 218 user stories across 28 epics, the 23 marketing tours, the URL inventory, the widget-injector bug, the circular-audit quote, the Actions-minutes count — was re-read from `docs/decisions/`, `BRD.md`, `apps/marketing/public/demo/stills/`, `docs/ORIENTATION.md`, `METHODOLOGY.md`, `METHODOLOGY-AMENDMENTS.md`, and `CLAUDE.md` in the bc-subscriptions repository on publication day, not from a prior summary. The repo is private; every URL cited above is public. Kibble & Co. is a fictional merchant — no real merchant's data or name appears anywhere in this build. Demo 14 in the <a href="/">ways-of-working series</a> — the sibling discipline for a claim of "verified" is <a href="/said-it-checked/">demo 07</a>; the sibling discipline for a preregistered gate is <a href="/gate-first/">demo 13</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>

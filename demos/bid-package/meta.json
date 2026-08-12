@@ -1,0 +1,13 @@
+{
+  "number": "15",
+  "title": "The Harder Deliverable Wasn't the Build",
+  "hook": "A ten-document vendor bid package — the scoping and estimation kit a global systems integrator needs before it can bid on a BigCommerce-native subscriptions build — projected from a 28-epic, 218-story spec corpus in days, not weeks. A leakage lint hard-fails before a forbidden pattern ever reaches the export, and a bundling script freezes identical, name-stamped copies per vendor. Every document still carries status: draft-internal-review — the release checklist stayed a human's job.",
+  "date": "2026-08",
+  "for": "Anyone evaluating how a client-facing deliverable — a bid package, an SOW, a scoping document — can be produced by agents without becoming a liability the moment it reaches an outside reader.",
+  "get": "How a 10-document, 28-epic, 218-story vendor bid package gets projected — not authored — from a canonical spec corpus, sanitized by a hard-fail leakage lint instead of a proofread, frozen into identical per-vendor bundles, and held behind an unchecked human release checklist before anything ships.",
+  "do": "Keep one canonical source and generate every client-facing artifact from it. Make leakage prevention a whitelist-based lint that runs before the file is written, not a review step someone can skip. Write the release checklist before the package exists.",
+  "preview": "img/preview.jpg",
+  "previewAlt": "Demo 15 title slide: the harder deliverable wasn't the build, showing the ten-document bid package's document list and story counts",
+  "theme": "vendor-scoping",
+  "accent": "#8b93c4"
+}

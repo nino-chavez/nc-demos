@@ -1,0 +1,370 @@
+<title>The Harder Deliverable Wasn't the Build — a bid package projected, sanitized, and gated</title>
+<style>
+  /* ————————————————————————————————————————————————
+     Demo 15 identity: the vendor bid kit. Cool slate-indigo ground —
+     boardroom, not workshop. The signature device is the document table
+     and the lint gate: what ships is whitelisted in, forbidden patterns
+     hard-fail out, and every file still reads draft until a human signs
+     off. Single-theme by design.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #10131a;
+    --panel: #161a24;
+    --panel2: #12151e;
+    --line: #262c3a;
+    --text: #eef1f6;
+    --dim: #b2bac9;
+    --faint: #7b8494;
+    --accent: #8b93c4;
+    --accent-soft: rgba(139, 147, 196, 0.14);
+    --pass: #4ade80;
+    --fail: #f87171;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+
+  html { scroll-snap-type: y proximity; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0;
+  }
+  * { box-sizing: border-box; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 4px; width: 100%;
+    transform-origin: 0 50%; transform: scaleX(0);
+    background: linear-gradient(90deg, #4c5478, var(--accent)); z-index: 50;
+  }
+  .rail {
+    position: fixed; left: 18px; top: 50%; translate: 0 -50%;
+    display: flex; flex-direction: column; gap: 10px; z-index: 40;
+  }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide {
+    min-height: 100svh; display: flex; align-items: center;
+    padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px);
+    scroll-snap-align: start; border-bottom: 1px solid var(--line);
+  }
+  .wrap { width: min(1060px, 100%); margin-inline: auto; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); margin: 0 0 14px;
+  }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(34px, 5vw, 54px); line-height: 0.98; margin: 0 0 22px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 66ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 {
+    font-family: var(--display); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(46px, 8.4vw, 100px); line-height: 0.92; margin: 18px 0 26px; text-wrap: balance;
+  }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 62ch; margin: 0 0 40px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd {
+    font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim);
+  }
+
+  /* —— gate cards: rule / enforcement ————————————— */
+  .gate { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .gate .reg { padding: 15px 20px; background: var(--panel); border-left: 3px solid var(--accent); }
+  .gate .reg .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 7px; }
+  .gate .reg p { margin: 0; font-size: 14.5px; color: var(--text); line-height: 1.5; }
+  .gate .meas { padding: 13px 20px; background: var(--panel2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--dim); }
+  .gate .meas b { font-weight: 600; }
+  .gate .meas .ok { color: var(--pass); }
+  .gate .meas .bad { color: var(--fail); }
+  .gates { display: flex; flex-direction: column; gap: 16px; }
+
+  /* —— document table ——————————————————————————— */
+  .doctable { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .doctable .drow { display: grid; grid-template-columns: 250px 1fr; border-top: 1px solid var(--line); background: var(--panel2); }
+  .doctable .drow:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .doctable .drow > div { padding: 11px 16px; }
+  .doctable .drow .name { color: var(--text); }
+  .doctable .drow .name b { font-family: var(--mono); color: var(--accent); font-weight: 600; margin-right: 8px; }
+  .doctable .drow .job { color: var(--dim); }
+  @media (max-width: 720px) { .doctable .drow { grid-template-columns: 1fr; } .doctable .drow > div:last-child { padding-top: 0; } }
+
+  /* —— checklist rows ——————————————————————————— */
+  .checklist { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 14px; }
+  .checklist .crow { display: grid; grid-template-columns: 1fr 128px; border-top: 1px solid var(--line); background: var(--panel2); }
+  .checklist .crow:first-child { border-top: 0; background: var(--panel); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+  .checklist .crow > div { padding: 11px 16px; }
+  .checklist .crow .status { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); font-style: italic; }
+  @media (max-width: 720px) { .checklist .crow { grid-template-columns: 1fr 92px; } }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 {
+    font-family: var(--display); text-transform: uppercase; font-weight: 600;
+    font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1;
+  }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 12px;
+  }
+  .panel .lesson {
+    font-family: var(--mono); font-size: 12px; color: var(--text);
+    border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em;
+  }
+  .panel .lesson b { color: var(--accent); }
+
+  blockquote {
+    margin: 0 0 26px; padding: 20px 26px; background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px;
+    font-size: 16.5px; color: var(--dim); max-width: 72ch;
+  }
+  blockquote strong { color: var(--text); }
+  blockquote cite { display: block; font-family: var(--mono); font-size: 11.5px; font-style: normal; color: var(--faint); margin-top: 12px; letter-spacing: 0.05em; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel);
+  }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    .progress, .rail, .hint { display: none; }
+    .slide { min-height: auto; break-after: page; }
+  }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · DEMO 15</b> NINO CHAVEZ</p>
+    <h1>The harder deliverable<br>wasn't the build<span class="dot">.</span></h1>
+    <p class="title-sub">Building a working reference implementation of a BigCommerce-native subscriptions capability was the demonstrable part. What a global systems integrator (GSI) actually needs before it can bid on building it for real — a ten-document scoping and estimation package, projected from a 28-epic, 218-story spec corpus — took longer to get right and stayed the harder problem the whole way through.</p>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · ANATOMY ——————————————————————————————— -->
+<section class="slide" id="s2" aria-label="Anatomy of the package">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> TEN DOCUMENTS, ONE JOB EACH</p>
+    <h2>Not a spec dump — ten documents, each answering one question</h2>
+    <p class="lede">The vendor-facing package, files 01 through 10, projects a 28-epic, 218-story requirements corpus into the shape an estimator actually needs. Every document exists to answer one question a bidder would otherwise have to ask in a discovery call.</p>
+    <div class="doctable">
+      <div class="drow"><div>Document</div><div>Answers, for an estimator</div></div>
+      <div class="drow"><div class="name"><b>01</b>Context &amp; scope</div><div class="job">What is being commissioned, for whom, and why native</div></div>
+      <div class="drow"><div class="name"><b>02</b>Capability catalog</div><div class="job">What the capability consists of; the MVP-vs-deferred phase boundary</div></div>
+      <div class="drow"><div class="name"><b>03</b>User journeys</div><div class="job">What the merchant, shopper, and system experiences actually are</div></div>
+      <div class="drow"><div class="name"><b>04</b>Competitive benchmark</div><div class="job">The quality bar: table stakes vs. where this build must exceed it</div></div>
+      <div class="drow"><div class="name"><b>05</b>Platform integration contract</div><div class="job">What the platform provides vs. what must be built; the biggest estimation drivers</div></div>
+      <div class="drow"><div class="name"><b>06</b>Non-functional requirements</div><div class="job">Cross-cutting targets and the evidence bar for each</div></div>
+      <div class="drow"><div class="name"><b>07</b>Work breakdown</div><div class="job">The estimable skeleton — every epic and story, phase-tagged</div></div>
+      <div class="drow"><div class="name"><b>08</b>Scope boundary &amp; engagement model</div><div class="job">In/out of scope, decided policies, change control</div></div>
+      <div class="drow"><div class="name"><b>09</b>Estimation scaffold</div><div class="job">The required bid format; how bids get evaluated</div></div>
+      <div class="drow"><div class="name"><b>10</b>Reference prototype</div><div class="job">The working system as behavior oracle; what bidders can access</div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Ten capability domains — onboarding, catalog, purchase, billing, orders, self-service, operations, platform, commerce, trust — organize all 28 epics. Every story rolls up to exactly one epic; every epic rolls up to exactly one domain. <!-- source: docs/gsi-package/README.md contents table; docs/gsi-package/02-capability-catalog.md §2.1 --></p>
+  </div>
+</section>
+
+<!-- 03 · BID-READY ————————————————————————————— -->
+<section class="slide" id="s3" aria-label="What makes it bid-ready">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> WHAT MAKES IT BID-READY</p>
+    <h2>A spec dump doesn't have tiers, decision points, or a required format</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Effort tiers, where set</p>
+        <p>Stories carry an indicative relative-size tier — extra-small through large — from internal planning, where one exists. Untiered rows are marked TBD rather than left blank, so a missing tier reads as a grooming gap, not a signal that the story is trivial.</p>
+        <p class="lesson"><b>Labeled, not silent</b> — a blank cell would read as an error.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Ten costed decision points</p>
+        <p>The platform-integration contract surfaces ten gaps between what the platform already provides and what the build still needs. Each one ends in a decision the vendor must answer in its own solution design, with both options costed — never left open for later.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">One comparable answer format</p>
+        <p>Bids return eight required sections — fixed-scope estimate, options pricing, decision-point positions, assumptions and risk registers, a team plan, a knowledge-transfer plan, a delivery timeline — so every vendor's bid reads side by side instead of needing to be reformatted first.</p>
+        <p class="lesson"><b>Comparable, not just complete</b> — the format is the point.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Scope is fenced the same way. The initial engagement is fixed against the MVP-tagged stories — roughly 104 of the 218 — with later phases priced as separately exercisable options, not silent inclusions. A bid that redraws any of these boundaries without saying so is treated as non-responsive on that item. <!-- source: docs/gsi-package/07-work-breakdown.md §7.1; 05-bc-platform-integration-contract.md §5.2; 09-estimation-scaffold.md §9.1; 08-scope-boundary-and-engagement-model.md §8.1–8.2 --></p>
+  </div>
+</section>
+
+<!-- 04 · PROJECTION NOT CANON ————————————————— -->
+<section class="slide" id="s4" aria-label="Projection, not canon">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> PROJECTION, NOT CANON</p>
+    <h2>The package has no facts of its own</h2>
+    <p class="lede">Everything in 01–10 derives from a canonical spec corpus that stays the internal source of truth. The package is that corpus's external, architecture-neutral projection — not a second copy someone edits by hand once it exists.</p>
+    <blockquote>
+      "PRD.md/BRD.md remain the internal source of truth; <strong>this package is the external projection</strong> — architecture-neutral and swept of internal-sensitive content."
+      <cite>the package's own provenance note, docs/gsi-package/README.md</cite>
+    </blockquote>
+    <p class="lede" style="margin-bottom: 0;">The work-breakdown tables are generated from a derived sizing file, not hand-typed. When the underlying spec changes materially before the package ships, the fix is regenerating the tables and re-stamping every document's source commit — never hand-editing a row. Two sources of truth is how a bid package rots. <!-- source: docs/gsi-package/README.md "Provenance & maintenance"; tools/brd-export-sanitize/OWNER-SPEC.md maintainer playbook --></p>
+  </div>
+</section>
+
+<!-- 05 · SANITIZATION: THE LINT ————————————————— -->
+<section class="slide" id="s5" aria-label="The sanitization pipeline">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE SANITIZATION PIPELINE</p>
+    <h2>Leakage prevention is a lint, not a proofread</h2>
+    <div class="gates">
+      <div class="gate">
+        <div class="reg"><p class="tag">Whitelisted at the section level</p><p>Only five sections per story ship — the story sentence, acceptance criteria, UX notes, non-functional notes, dependencies. Everything else drops by default, so a new section type in the source is export-safe before anyone remembers to redact it.</p></div>
+        <div class="meas"><b class="ok">✓ enforced in the tool:</b> a forbidden-pattern list — repo paths, runtime names, issue references, secret names, internal URLs — runs over the rendered output and hard-fails before anything is written.</div>
+      </div>
+      <div class="gate">
+        <div class="reg"><p class="tag">Structure can't drift silently</p><p>The export expects exactly 218 stories across 28 epics.</p></div>
+        <div class="meas"><b class="ok">✓ by design:</b> any other count hard-fails the run. A corpus structure change gets absorbed on purpose — never shipped as a silently partial export.</div>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">Five documented failure modes already forced permanent fixes, not one-off patches: a forbidden-word match inside an unrelated string, a phase label written two ways that would have forked the export's phase vocabulary, a scrubbed link label that left its internal URL intact, a status-qualified section header the whitelist silently dropped, and reference-implementation route paths hiding inside sections that otherwise looked clean. <!-- source: tools/brd-export-sanitize/sanitize.py docstring; tools/brd-export-sanitize/OWNER-SPEC.md "Design rationale" and "Failure modes seen" --></p>
+  </div>
+</section>
+
+<!-- 06 · FROZEN BUNDLES ——————————————————————— -->
+<section class="slide" id="s6" aria-label="Frozen per-vendor bundles">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> FROZEN, PER VENDOR</p>
+    <h2>Every bidder gets the same package, name-stamped</h2>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Per-vendor frozen bundles</p>
+        <p>One script stages the sanitized export, stamps every document as issued, generates a cover page, and zips one identical, name-stamped copy per vendor — same content, different filename, so no bidder can argue a rival saw a different scope.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">A gated preview, always marked draft</p>
+        <p>A basic-auth-gated web rendering exists for internal review and guided walkthroughs only. Every page carries a draft banner and is excluded from search indexing, and it is never the artifact handed to a bidder — the issued bundle only ever comes from the zip.</p>
+      </div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The rendered reading set — sidebar navigation, print styling for a PDF, zero external requests, no JavaScript — comes from the same staged files whether it's the gated preview or the delivered zip, so the reading experience can't fork from what actually ships. <!-- source: tools/brd-export-sanitize/bundle.sh; tools/brd-export-sanitize/OWNER-SPEC.md "What it is" and "Danger zones" --></p>
+  </div>
+</section>
+
+<!-- 07 · THE HUMAN GATES ————————————————————— -->
+<section class="slide" id="s7" aria-label="The human gates, honestly unmet">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE HUMAN GATES</p>
+    <h2>Every document here still says draft, internal review</h2>
+    <p class="lede">Agents produced the ten-document package, the sanitization tool, and the bundling script. What they did not do is clear it for release. Every file in 01–10 carries a draft-internal-review status, and a sharing checklist gates anything leaving the repo — none of the following are checked yet.</p>
+    <div class="checklist">
+      <div class="crow"><div>Check</div><div>Status</div></div>
+      <div class="crow"><div>Product-owner review — requirements-accuracy sign-off</div><div class="status">unchecked</div></div>
+      <div class="crow"><div>Engineering review — platform-contract accuracy</div><div class="status">unchecked</div></div>
+      <div class="crow"><div>Adversarial review — hunting internal leakage and overclaim a vendor could monetize</div><div class="status">unchecked</div></div>
+      <div class="crow"><div>Voice pass — no internal vocabulary reaching a vendor reader</div><div class="status">unchecked</div></div>
+      <div class="crow"><div>Sensitive-data re-sweep — codenames, people, vendor names</div><div class="status">unchecked</div></div>
+    </div>
+    <p class="lede" style="margin: 26px 0 0;">The point isn't that agents can't be trusted with a bid package — it's where the boundary sits. Agents draft, sanitize, and freeze. A human decides the package is accurate and safe to leave the building. <strong>That decision doesn't get automated here.</strong> <!-- source: docs/gsi-package/README.md frontmatter (status: draft-internal-review) and "Sharing checklist" --></p>
+  </div>
+</section>
+
+<!-- 08 · YOUR VERSION ————————————————————————— -->
+<section class="slide" id="s8" aria-label="Your version of this">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> YOUR VERSION OF THIS</p>
+    <h2>Derive the package. Don't author it twice.</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">If you scope client work</p>
+        <p>Keep one canonical requirements source and generate every client-facing artifact from it — a bid package, a statement of work, a vendor RFP. The moment someone hand-edits the exported copy, there are two sources of truth and no way to tell which one is right.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If you ship anything to an outside party</p>
+        <p>Make leakage prevention a lint that runs before the file is written, not a review step someone can skip. A whitelist of what's allowed to ship beats a blacklist of what isn't — new content is unsafe by default until someone deliberately allows it.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">If agents are doing the drafting</p>
+        <p>Write the release checklist before the package exists, and keep every draft labeled as a draft until every box on it is checked. The checklist is what keeps "the agent wrote it" from silently becoming "therefore it shipped."</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>projection, not canon</span>
+      <span>a whitelist beats a blacklist</span>
+      <span>draft until every box is checked</span>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · WHAT SHIPPED, WHAT DIDN'T ———————————— -->
+<section class="slide" id="s9" aria-label="What shipped, what didn't">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> WHAT SHIPPED, WHAT DIDN'T</p>
+    <h2>A working build, and a package that still says draft</h2>
+    <p class="lede">The reference implementation runs end-to-end against a live BigCommerce sandbox store — a working system a bidder can be walked through rather than take on faith. The bid package that would let a GSI actually build it for real stayed exactly where the checklist left it: drafted, sanitized, unshipped.</p>
+    <div class="colophon">
+      <b>Colophon.</b> Every count on these slides — ten documents, 28 epics, 218 stories, ten capability domains, ten platform-gap decision points, five documented sanitizer failure modes — was re-read from the package's own files and the sanitization tool's own documentation on publication day, not from a session summary. Ten years as an architect and consultant on enterprise commerce programs, translating business needs into technology roadmaps for large-scale implementations, shaped what "bid-ready" needed to mean here. <strong>An independent demonstration by Nino Chavez — not a BigCommerce product.</strong> Demo 15 in the <a href="/">ways-of-working series</a> — the sibling discipline for gates that block a stage from finishing prematurely is <a href="/gate-first/">demo 13</a>; the registry pattern for load-bearing facts a lint alone won't catch is <a href="/landmine-registry/">demo 06</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.setAttribute('aria-label', 'Slide ' + (i + 1));
+      rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current();
+      dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  })();
+</script>
