@@ -35,7 +35,7 @@
     --color-accent-text #2f49b0, --color-autorefill #37bfa2).
   - The Nav.svelte bug and fix — commit 09e074b's diff to
     src/lib/components/Nav.svelte and its own inline comment.
-  - Live URL fetched and confirmed in this session: aisles-kibble.vercel.app
+  - Live URL fetched and confirmed in this session: aisles.bcsubs.app (Cloudflare Pages)
     renders "Kibble & Co." with the same 8 categories as config.ts.
   No figure is estimated or invented. No store hash, API key, or credential
   value appears here.
@@ -303,7 +303,7 @@ LayoutSchema.sections: 1 to 8, ordered</pre>
     <p class="lede">Aisles already ran on three fictional brands — Haven, Volt, Ember — sharing no product data, only the inference engine and prompt pipeline. Adding Kibble &amp; Co., the pet-supply storefront from the same BigCommerce sandbox as two earlier sessions in this series, meant writing a brand config entry and nothing else.</p>
     <div class="gate">
       <div class="reg"><p class="tag">The change, committed 2026-08-12</p><p>One brand-config entry: 8 categories mapped 1:1 to the live sandbox's category tree, a harvested theme, and store copy. No route, no query, no component touched.</p></div>
-      <div class="meas"><b class="ok">✓ live:</b> <a href="https://aisles-kibble.vercel.app">aisles-kibble.vercel.app</a> — fetched and confirmed this session, rendering the same 8 categories as the config. It joins the same live sandbox store as the Kibble &amp; Co. fleet (demo 14) and Ask BC (demo 16).</div>
+      <div class="meas"><b class="ok">✓ live:</b> <a href="https://aisles.bcsubs.app">aisles.bcsubs.app</a> — fetched and confirmed this session, rendering the same 8 categories as the config. It joins the same live sandbox store as the Kibble &amp; Co. fleet (demo 14) and Ask BC (demo 16).</div>
     </div>
     <p class="lede" style="margin: 26px 0 0;">It worked in one pass because the catalog seam was already generic: <code>loadCategoryProducts()</code> reads its category map from <code>getBrand().categories</code>, and calls BigCommerce's Storefront GraphQL through two functions in a shared client. Add a brand, and the same function resolves a different catalog. Selecting the deployed brand is two environment variables — <code>BRAND_ID</code> for the server, <code>VITE_BRAND_ID</code> for anything the client bundle needs at build time.</p>
   </div>
