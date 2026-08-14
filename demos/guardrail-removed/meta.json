@@ -1,0 +1,13 @@
+{
+ "number": "18",
+ "title": "The Guardrail Removed the Storefront",
+ "hook": "I asked one agent to make an AI storefront look as good as the real one, then handed the work to a second agent in four words: “pick up where Claude ended.” Nineteen commits later the AI was gone — and every commit message was a safety word. Nobody typed “remove the model.” The tests stayed green because they were rewritten to expect it. What caught it was remembering what the live site used to do.",
+ "date": "2026-08",
+ "for": "Anyone running work across two agents, or across days, and anyone who has watched a reasonable safety concern quietly redefine what the product is.",
+ "get": "The verbatim direction that started it and the four-word handoff that dropped it; 27 agent sessions in one repository in a day, zero containing a typed instruction — every operator turn an auto-generated approval; the nineteen-commit verb ladder, where no single commit is wrong and the sequence deletes the feature; the green status line reporting “zero model requests” as an achievement for a product built on model requests; the contract test rewritten from listing model-authorized zones to asserting there are none; and the second overshoot, where the agent sent to fix the mistake made it again first.",
+ "do": "Restate the goal in the first message to the second agent — the plan file carries the paths and drops the why. Review runs of commits, not single diffs; a ratchet is a sequence. Label every number as a fixture property or a product target before it goes green. Keep one test that costs money, so a suite cannot pass hardest when the feature is gone.",
+ "preview": "img/preview.jpg",
+ "previewAlt": "Demo 18 title slide: the guardrail removed the storefront, with the four-step chain from direction to handoff to hardening to removal",
+ "theme": "steering-across-agents",
+ "accent": "#a3e635"
+}
