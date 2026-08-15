@@ -35,7 +35,9 @@ Ordered 01 → 13; each title links to the live session.
 Technique companions to the numbered sessions — the reusable method, stripped
 of one session's specifics, each linking back to the demo it was distilled
 from. Live under `/applied/<slug>/`, listed on the homepage below the demo
-gallery.
+gallery. Each carries a `number` in its `meta.json` — arrival order, like the
+session arc — so the homepage and feed order is stable and a new technique
+appends to the end instead of renumbering the list.
 
 | Technique | Companion to |
 |---|---|
@@ -48,6 +50,7 @@ gallery.
 | [Put Provenance Labels on AI Research](https://ninochavez.co/demos/applied/provenance) | [10](https://ninochavez.co/demos/four-questions) |
 | [Bare-Arm Test Your Agent Config](https://ninochavez.co/demos/applied/config-probe) | [11](https://ninochavez.co/demos/config-probe) |
 | [Run the Subtraction Before You Install](https://ninochavez.co/demos/applied/adopt-or-skip) | [12](https://ninochavez.co/demos/adopt-or-skip) |
+| [One Heavy Job at a Time](https://ninochavez.co/demos/applied/one-heavy-job) | — |
 
 ## Layout
 

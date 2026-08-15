@@ -1,7 +1,8 @@
 {
+  "number": "04",
   "title": "Promote a Correction to a Guardrail",
-  "description": "A correction you give an AI in chat dies with the session. The fix is changing its environment — a wrapper, a deny-hook, or a CI ratchet — so the rule holds forever. The three-rung ladder, with real deny-hooks firing.",
-  "cardDesc": "Wrapper → deny-hook → CI ratchet: promote a repeated correction to the lowest rung that holds.",
+  "description": "A correction you give an AI in chat dies with the session. The fix is changing its environment \u2014 a wrapper, a deny-hook, or a CI ratchet \u2014 so the rule holds forever. The three-rung ladder, with real deny-hooks firing.",
+  "cardDesc": "Wrapper \u2192 deny-hook \u2192 CI ratchet: promote a repeated correction to the lowest rung that holds.",
   "principles": [
     "Promote a correction on the second repeat, not the first.",
     "Use the lowest enforcement rung that holds.",

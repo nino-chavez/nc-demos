@@ -1,7 +1,8 @@
 {
+  "number": "01",
   "title": "Two Ways to Draw a System",
-  "description": "How an AI agent draws a technical diagram that looks like your project and doesn't go stale — hand-authored SVG vs themed Mermaid, chosen per diagram. The first Applied technique companion to the ways-of-working session demos.",
-  "cardDesc": "Hand-authored SVG vs themed Mermaid — chosen per diagram, both shown working.",
+  "description": "How an AI agent draws a technical diagram that looks like your project and doesn't go stale \u2014 hand-authored SVG vs themed Mermaid, chosen per diagram. The first Applied technique companion to the ways-of-working session demos.",
+  "cardDesc": "Hand-authored SVG vs themed Mermaid \u2014 chosen per diagram, both shown working.",
   "principles": [
     "Choose the diagram form instead of defaulting to one.",
     "Make the visual system native to the project, not the tool.",

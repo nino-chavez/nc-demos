@@ -1,7 +1,8 @@
 {
+  "number": "10",
   "title": "One Heavy Job at a Time",
   "description": "Running a model locally turns a laptop into a machine that has to be scheduled. A kernel panic during an inference run, how to decode the panic's exit reason from the vendor's own header instead of guessing at it, and the habits that made recovery a twenty-minute job instead of a lost morning.",
-  "cardDesc": "Local inference makes scheduling an operational decision — and a panic's exit reason is two published integers, not a guess.",
+  "cardDesc": "Local inference makes scheduling an operational decision \u2014 and a panic's exit reason is two published integers, not a guess.",
   "principles": [
     "Give a local model run the machine to itself.",
     "Look the panic's namespace and subcode up in the vendor's header before translating them.",

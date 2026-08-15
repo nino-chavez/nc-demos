@@ -171,13 +171,19 @@ ${content}
 `)
     if (existsSync(join(dir, 'img'))) cpSync(join(dir, 'img'), join(DIST, 'applied', slug, 'img'), { recursive: true })
     appliedEntries.push({ slug, meta, title, content })
-    appliedCards.push(`      <a class="applied-card" href="/applied/${slug}/" style="--acc: ${meta.accent || '#6ea8fe'}">
+  }
+}
+
+// Techniques carry a source-defined number like the session arc: arrival
+// order, so a new entry appends instead of renumbering the list.
+appliedEntries.sort((a, b) => (a.meta.number || a.slug).localeCompare(b.meta.number || b.slug))
+for (const { slug, meta } of appliedEntries) {
+  appliedCards.push(`      <a class="applied-card" href="/applied/${slug}/" style="--acc: ${meta.accent || '#6ea8fe'}">
         <span class="at">applied · technique</span>
         <span class="an">${meta.title}</span>
         <span class="ad">${meta.cardDesc || meta.description}</span>
         <span class="card-cta">open →</span>
       </a>`)
-  }
 }
 
 const index = readFileSync(join(HERE, 'site', 'index.html'), 'utf8')
@@ -188,6 +194,7 @@ writeFileSync(join(DIST, 'index.html'), index)
 
 const techniques = appliedEntries.map(({ slug, meta }) => ({
   slug,
+  number: meta.number,
   title: meta.title,
   summary: meta.cardDesc || meta.description,
   description: meta.description,

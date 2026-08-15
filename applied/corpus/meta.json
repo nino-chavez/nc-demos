@@ -1,7 +1,8 @@
 {
+  "number": "02",
   "title": "Mine Your Own Transcripts",
   "description": "Every agent session is a transcript you usually throw away. Mine them instead: reusable prompts, your corrections as standing priors, and counted waste numbers that justify the next fix. The loop, from 614 real sessions.",
-  "cardDesc": "Treat your agent sessions as a searchable corpus — corrections become priors the next session reads.",
+  "cardDesc": "Treat your agent sessions as a searchable corpus \u2014 corrections become priors the next session reads.",
   "principles": [
     "Treat past sessions as your best reference.",
     "Turn repeated corrections into priors the next session reads.",
