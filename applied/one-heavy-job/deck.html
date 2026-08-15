@@ -1,0 +1,277 @@
+<title>One Heavy Job at a Time — applied local-inference operations</title>
+<style>
+  /* ————————————————————————————————————————————————
+     WAYS OF WORKING · APPLIED strand. Same slate ground + technical blue as
+     the other Applied decks. Signature device is the panic string — the
+     evidence boundary between a plausible diagnosis and a read one.
+     ———————————————————————————————————————————————— */
+  :root {
+    color-scheme: dark;
+    --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d;
+    --accent: #6ea8fe; --accent-soft: rgba(110, 168, 254, 0.12); --ok: #4ade80;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  html { scroll-snap-type: y proximity; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55; margin: 0; }
+  * { box-sizing: border-box; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 4px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, #2c477e, var(--accent)); z-index: 50; }
+  .rail { position: fixed; left: 18px; top: 50%; translate: 0 -50%; display: flex; flex-direction: column; gap: 10px; z-index: 40; }
+  .rail a { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .rail a.on { background: var(--accent); }
+  .rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (max-width: 900px) { .rail { display: none; } }
+
+  .slide { min-height: 100svh; display: flex; align-items: center; padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 72px); scroll-snap-align: start; border-bottom: 1px solid var(--line); }
+  .wrap { width: min(1080px, 100%); margin-inline: auto; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .eyebrow b { color: var(--accent); font-weight: 600; margin-right: 10px; }
+  h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(36px, 5.2vw, 58px); line-height: 0.96; margin: 0 0 22px; text-wrap: balance; }
+  .lede { font-size: clamp(16px, 1.9vw, 19px); color: var(--dim); max-width: 64ch; margin: 0 0 30px; }
+  .lede strong, p strong { color: var(--text); font-weight: 600; }
+
+  .title-slide { border-bottom-color: var(--accent); }
+  h1 { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: clamp(50px, 9vw, 112px); line-height: 0.9; margin: 18px 0 26px; text-wrap: balance; }
+  h1 .dot { color: var(--accent); }
+  .title-sub { font-size: clamp(17px, 2.1vw, 21px); color: var(--dim); max-width: 60ch; margin: 0 0 38px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .hint kbd { font-family: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: var(--dim); }
+
+  .cols { display: grid; gap: 18px; }
+  .cols.c2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .cols.c3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; }
+  .panel h3 { font-family: var(--display); text-transform: uppercase; font-weight: 600; font-size: 22px; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1.1; }
+  .panel p { margin: 0 0 10px; font-size: 15px; color: var(--dim); }
+  .panel p:last-child { margin-bottom: 0; }
+  .ptag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+  .panel .lesson { font-family: var(--mono); font-size: 12px; color: var(--text); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 14px; letter-spacing: 0.02em; display: block; }
+  .panel .lesson b { color: var(--accent); }
+  .stat { display: flex; gap: 26px; flex-wrap: wrap; margin: 0 0 4px; }
+  .stat .s { display: flex; flex-direction: column; }
+  .stat .s b { font-family: var(--display); font-weight: 700; font-size: 40px; color: var(--accent); line-height: 1; }
+  .stat .s span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-top: 6px; }
+
+  .term { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .term-bar { display: flex; align-items: center; gap: 6px; padding: 9px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2a3444; }
+  .term-bar span { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 8px; }
+  .term pre { margin: 0; padding: 15px 17px; font-family: var(--mono); font-size: 12.5px; line-height: 1.62; overflow-x: auto; color: var(--text); }
+  .term .p { color: var(--accent); }
+  .term .o { color: var(--dim); }
+  .term .g { color: var(--ok); }
+  .term .r { color: #f87171; }
+
+  /* prior card — the panic string, as the machine reported it */
+  .prior { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--panel); padding: 16px 20px; }
+  .prior .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); margin: 0; }
+  .prior .q { font-family: var(--mono); font-size: 14px; color: var(--text); margin: 8px 0 0; line-height: 1.5; }
+  .prior .src { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 10px; }
+
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .stack span { font-family: var(--mono); font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; background: var(--panel); }
+  .colophon { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 18px; font-family: var(--mono); font-size: 12px; color: var(--faint); line-height: 1.7; }
+  .colophon b { color: var(--dim); font-weight: 600; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+
+<!-- 01 · TITLE ——————————————————————————————————— -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>WAYS OF WORKING · APPLIED</b> NINO CHAVEZ</p>
+    <h1>One heavy job<span class="dot">.</span><br>At a time<span class="dot">.</span></h1>
+    <p class="title-sub">A model running on your own machine makes scheduling an operational decision. When the machine dies anyway, the panic report tells you what happened in integers you can look up — and the recovery is only cheap if the run was already set up to be interrupted.</p>
+    <div class="prior" style="max-width:760px; margin-bottom:38px;">
+      <p class="tag">the panic string, verbatim</p>
+      <p class="q">initproc exited -- exit reason namespace 2 subcode 0xb</p>
+      <p class="src">Both integers are defined in a header the vendor publishes. Neither one means what it is usually assumed to mean.</p>
+    </div>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<!-- 02 · THE FAILURE ————————————————————————————— -->
+<section class="slide" id="s2" aria-label="The failure">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> THE FAILURE</p>
+    <h2>Three heavy jobs, one 36 GB machine</h2>
+    <p class="lede">A quantized 12-billion-parameter model was running under Apple's MLX at batch size one. On top of it: a worker test suite where every test spawns subprocess bridges, and profiling runs chasing a timeout. The machine kernel-panicked.</p>
+    <div class="stat">
+      <div class="s"><b>29.1 GB</b><span>largest resident process</span></div>
+      <div class="s"><b>36 GB</b><span>memory installed</span></div>
+      <div class="s"><b>3</b><span>heavy jobs stacked</span></div>
+    </div>
+    <p class="lede" style="margin:22px 0 0;">No component misbehaved. The failure was a <strong>scheduling decision</strong> nobody consciously made — each job was started for a good reason, at a moment when the others happened to still be running.</p>
+  </div>
+</section>
+
+<!-- 03 · READ THE PANIC ——————————————————————————— -->
+<section class="slide" id="s3" aria-label="Read the panic">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> READ THE PANIC</p>
+    <h2>The exit reason is two published integers</h2>
+    <p class="lede">Panic reports live in the diagnostics folder. The first few KB carry everything you need. Resist translating the string from memory: look both numbers up.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>decode the exit reason</span></div>
+      <pre><span class="o">/Library/Logs/DiagnosticReports/panic-full-*.panic</span>
+
+<span class="p">initproc</span>   <span class="o">→ launchd, process 1. The kernel panics by design</span>
+             <span class="o">  when it exits. Nothing is left to supervise.</span>
+<span class="p">namespace</span>  <span class="o">→ bsd/sys/reason.h  ·  JETSAM = 1, SIGNAL = 2</span>
+<span class="p">subcode</span>    <span class="o">→ in the signal namespace, the signal number</span>
+             <span class="o">  0xb = 11  ·  signal.h  ·  SIGSEGV</span>
+
+<span class="g">READ</span>       <span class="o">launchd took a segmentation fault.</span>
+<span class="r">NOT</span>        <span class="o">launchd was killed to reclaim memory.</span></pre>
+    </div>
+    <p class="lede" style="margin:18px 0 0;">Jetsam, the mechanism that kills processes under memory pressure, is namespace <strong>1</strong>. It never appears in this string.</p>
+  </div>
+</section>
+
+<!-- 04 · HONEST LIMITS ——————————————————————————— -->
+<section class="slide" id="s4" aria-label="What the log does not say">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> WHAT THE LOG DOESN'T SAY</p>
+    <h2>Separate what you read from what you inferred</h2>
+    <p class="lede">The report carries per-process resident memory, so the workload's footprint is observed. Why the process died is not.</p>
+    <div class="cols c2">
+      <div class="panel">
+        <p class="ptag">Observed</p>
+        <p>Launchd exited on signal 11. One process held 29.1 GB resident. The compressor held 844,864 pages at the log's own stated page size of 16,384 bytes.<span class="lesson">Compressor totals are <b>system-wide</b> — never quote one as a job's footprint.</span></p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Inferred</p>
+        <p>That memory exhaustion caused the segmentation fault. It fits the workload, and the report does not state it. One field points the other way: memory pressure reads false at the instant of the panic.<span class="lesson">Ship it as a <b>hypothesis</b>, in the note and in the write-up.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · SURVIVE IT ——————————————————————————————— -->
+<section class="slide" id="s5" aria-label="Make the run survivable">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> MAKE THE RUN SURVIVABLE</p>
+    <h2>Recovery is bought before the crash, not after</h2>
+    <p class="lede">Two finished runs survived with their result digests. The in-flight run left nothing behind, which is the correct outcome — there was no partial file to talk yourself into trusting.</p>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">Write atomically</p>
+        <p>Emit the result once, at the end, as a single write. A killed run then has exactly two states: finished, or absent.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Pin the inputs</p>
+        <p>Record a digest for every approved input. After a crash, "is this still trustworthy" becomes one hash and one comparison, not a judgment call.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">Predict first</p>
+        <p>Write down what the run should produce before starting it. Relaunching is then a repeat, not a redesign.<span class="lesson">Cost after the panic: <b>about 20 minutes</b>.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · WHERE IT LIVES ——————————————————————————— -->
+<section class="slide" id="s6" aria-label="Where the run lives">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> WHERE THE RUN LIVES</p>
+    <h2>The temporary folder is a delete the system may take</h2>
+    <p class="lede">Artifacts in a persistent research directory survived the reboot untouched. The one casualty was the launch script and its log, which had been parked in the temporary folder. A reboot clears it, and nothing asks first.</p>
+    <p class="lede" style="margin:0 0 18px;">A long run also has to outlive the thing that started it. Terminal windows close, and agent harnesses commonly reap a background job around the ten-minute mark.</p>
+    <div class="term">
+      <div class="term-bar"><i></i><i></i><i></i><span>detach the run, then watch it</span></div>
+      <pre><span class="o">cd ~/research/run-2026-08-15        # persistent, not temporary</span>
+<span class="p">nohup</span> ./run.sh &gt; run.log 2&gt;&amp;1 &amp;   <span class="o"># survives the terminal</span>
+<span class="p">disown</span>                              <span class="o"># survives the shell exiting</span>
+
+<span class="o"># then poll from anywhere — never block a session on it</span>
+<span class="p">tail</span> -n 20 run.log</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · THE RULE ————————————————————————————————— -->
+<section class="slide" id="s7" aria-label="The rule">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE RULE</p>
+    <h2>Inference gets the machine to itself</h2>
+    <p class="lede">One sentence, recorded after the panic: model inference runs alone, and test suites and profiling wait for it to finish. Everyone applies this to production hardware and quietly suspends it for a laptop, because a laptop is where you do everything at once.</p>
+    <p class="lede" style="margin:0;">Deferral has a second edge. A profiling run found a real inefficiency mid-flight — a per-batch step revalidating the whole manifest every call, measured at 0.55 s per batch at 720 candidates. The fix still waits, so that no run straddles a code change and results stay comparable.</p>
+  </div>
+</section>
+
+<!-- 08 · USE IT ———————————————————————————————————— -->
+<section class="slide" id="s8" aria-label="Use it">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> USE IT</p>
+    <h2>Set this up before the next long run, not after</h2>
+    <div class="cols c3">
+      <div class="panel">
+        <p class="ptag">1 · Schedule</p>
+        <p>Decide which job owns the machine. Start nothing heavy beside it. Treat a local model run as an exclusive lock on the hardware.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">2 · Place</p>
+        <p>Put the run directory, its launch script, and its log somewhere the operating system will not clear. Detach the process so it outlives its terminal.</p>
+      </div>
+      <div class="panel">
+        <p class="ptag">3 · Decode</p>
+        <p>If it panics anyway, read the exit reason against the vendor's header. Label the mechanism you read and the cause you inferred differently.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <span>one heavy job at a time</span>
+      <span>atomic results, no partial files</span>
+      <span>observed and inferred are labelled apart</span>
+    </div>
+    <div class="colophon">
+      <b>Colophon.</b> An <b>Applied</b> technique distilled from a real kernel panic on 2026-08-15, during a local classification run for a meeting-notes app. Machine: a 36 GB Apple silicon laptop on macOS 26.5.2. The exit reason namespace constants are read from Apple's published kernel source, <a href="https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/reason.h">bsd/sys/reason.h</a>, on the current tree rather than the tag matching this build; the signal number is from the command-line-tools SDK. The note originally written about this crash named jetsam, and was corrected against those two files.
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var bar = document.getElementById('progress');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    slides.forEach(function (s, i) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id; a.setAttribute('aria-label', 'Slide ' + (i + 1)); rail.appendChild(a);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+    function current() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = slides.length - 1; i >= 0; i--) { if (slides[i].offsetTop <= mid) return i; }
+      return 0;
+    }
+    function paint() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var c = current(); dots.forEach(function (d, i) { d.classList.toggle('on', i === c); });
+    }
+    function goTo(i) { if (i < 0 || i >= slides.length) return; slides[i].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); }
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); goTo(current() + 1); }
+      else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); goTo(current() - 1); }
+      else if (k === 'Home') { e.preventDefault(); goTo(0); }
+      else if (k === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+    });
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint); paint();
+  })();
+</script>
