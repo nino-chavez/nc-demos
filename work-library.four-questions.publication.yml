@@ -32,14 +32,6 @@ outputs:
     clearance: public
     assurance:
       human_validation: pending
-  - id: source-metadata
-    type: reference-library
-    status: ready
-    artifact: demos/four-questions/meta.json
-    clearance: public
-    assurance:
-      human_validation: pending
-
 projections:
   - id: decision
     output: decision
@@ -54,13 +46,6 @@ projections:
     asset_path: index.html
     label: Applied case
     route: /presentation
-  - id: metadata
-    output: source-metadata
-    artifact: demos/four-questions/meta.json
-    render_as: reference-document
-    label: Source metadata
-    route: /reference/metadata
-
 exclude:
   - dist/**
   - node_modules/**
