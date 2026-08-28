@@ -1,0 +1,652 @@
+<title>The Home AI Server Question — local models, frontier APIs, and the cost of the box</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0d13;
+    --surface: #111722;
+    --surface-2: #0d121b;
+    --line: #283244;
+    --ink: #f4f1e8;
+    --muted: #a9b1c0;
+    --faint: #68758b;
+    --amber: #ffb454;
+    --amber-soft: rgba(255, 180, 84, .12);
+    --blue: #84a9ff;
+    --green: #62d3a6;
+    --red: #ff817a;
+    --violet: #b99dff;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-snap-type: y proximity; }
+  body {
+    margin: 0;
+    background:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+      var(--bg);
+    background-size: 48px 48px;
+    color: var(--ink);
+    font: 16px/1.55 var(--body);
+  }
+  a { color: var(--amber); }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+  }
+  .progress {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 4px;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, var(--blue), var(--amber));
+    z-index: 50;
+  }
+  .rail {
+    position: fixed;
+    left: 18px;
+    top: 50%;
+    translate: 0 -50%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 40;
+  }
+  .rail a {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+  }
+  .rail a.on { background: var(--amber); }
+  .slide {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: clamp(52px, 8vh, 92px) clamp(20px, 6vw, 78px);
+    border-bottom: 1px solid var(--line);
+    scroll-snap-align: start;
+  }
+  .wrap { width: min(1120px, 100%); margin-inline: auto; }
+  .eyebrow {
+    margin: 0 0 15px;
+    color: var(--muted);
+    font: 12px/1.4 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .eyebrow b { color: var(--amber); margin-right: 10px; }
+  h1, h2, h3 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 750;
+    line-height: .94;
+    text-wrap: balance;
+  }
+  h1, h2 { text-transform: uppercase; }
+  h1 { max-width: 920px; font-size: clamp(58px, 11vw, 140px); }
+  h2 { max-width: 900px; margin-bottom: 22px; font-size: clamp(38px, 6.2vw, 72px); }
+  h3 { font-size: 24px; }
+  .mark { color: var(--amber); }
+  .title-sub, .lede { max-width: 70ch; color: var(--muted); }
+  .title-sub { margin: 28px 0 34px; font-size: clamp(17px, 2vw, 21px); }
+  .lede { margin: 0 0 28px; font-size: clamp(16px, 1.8vw, 19px); }
+  .lede strong, p strong { color: var(--ink); font-weight: 650; }
+  .hint { color: var(--faint); font: 12px var(--mono); }
+  .hint kbd {
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 7px;
+    color: var(--muted);
+    font: inherit;
+  }
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 26px;
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font: 11px var(--mono);
+    letter-spacing: .04em;
+  }
+  .stamp::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+  .cols { display: grid; gap: 15px; }
+  .c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel {
+    padding: 22px 24px;
+    background: rgba(17, 23, 34, .92);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .panel p { margin: 0; color: var(--muted); font-size: 15px; }
+  .tag {
+    margin: 0 0 12px;
+    color: var(--amber);
+    font: 10.5px var(--mono);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+  }
+  .panel h3 { margin-bottom: 10px; }
+  .panel.local { border-color: rgba(132, 169, 255, .48); }
+  .panel.frontier { border-color: rgba(255, 180, 84, .5); }
+  .panel.safe { border-color: rgba(98, 211, 166, .45); }
+  .panel.warning { border-color: rgba(255, 129, 122, .48); }
+
+  .bill {
+    display: grid;
+    grid-template-columns: 1fr 34px 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .bill-side {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .bill-side h3 { font-size: 29px; }
+  .bill-side.local h3 { color: var(--blue); }
+  .bill-side.cloud h3 { color: var(--amber); }
+  .bill-item {
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .bill-item b { display: block; margin-bottom: 2px; color: var(--ink); font-size: 15px; }
+  .versus { display: grid; place-items: center; color: var(--faint); font: 12px var(--mono); }
+
+  .route-grid { display: grid; gap: 10px; margin-top: 18px; }
+  .route {
+    display: grid;
+    grid-template-columns: 175px 1fr;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--acc);
+    border-radius: 7px;
+  }
+  .route b { color: var(--acc); font: 12px var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+  .route span { color: var(--muted); font-size: 14px; }
+
+  .formula {
+    margin: 20px 0;
+    padding: 18px 20px;
+    background: var(--surface-2);
+    border: 1px dashed var(--amber);
+    border-radius: 8px;
+    color: var(--ink);
+    font: 14px/1.8 var(--mono);
+  }
+  .formula .op { color: var(--amber); }
+  .formula .hint-line { display: block; color: var(--faint); font-size: 11px; }
+
+  .calculator {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, .7fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .field { display: grid; gap: 6px; }
+  .field label { color: var(--muted); font: 11px/1.3 var(--mono); }
+  .field input {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font: 14px var(--mono);
+  }
+  .field input::placeholder { color: var(--faint); }
+  .results {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .results h3 { color: var(--amber); font-size: 25px; }
+  .result {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .result b { color: var(--ink); font: 650 14px var(--mono); text-align: right; }
+  .result-note { margin: 4px 0 0; color: var(--faint); font: 11px/1.5 var(--mono); }
+  .calc-note { grid-column: 1 / -1; color: var(--faint); font: 11px/1.5 var(--mono); }
+
+  .receipts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .receipt {
+    min-height: 130px;
+    padding: 15px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .receipt b { display: block; margin-bottom: 11px; color: var(--faint); font: 10px var(--mono); letter-spacing: .11em; text-transform: uppercase; }
+  .receipt span { display: block; color: var(--green); font: 700 25px/1 var(--display); text-transform: uppercase; }
+  .receipt em { display: block; margin-top: 9px; color: var(--muted); font: normal 11px/1.4 var(--mono); }
+  .receipt.hold span { color: var(--amber); }
+
+  .decision {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 1px;
+    overflow: hidden;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .decision > div { padding: 19px; background: var(--surface); }
+  .decision .head { color: var(--faint); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  .decision b { display: block; margin: 9px 0 6px; color: var(--ink); font: 700 22px/1 var(--display); text-transform: uppercase; }
+  .decision p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 14px; }
+  th, td { padding: 13px 15px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--faint); background: var(--surface-2); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  td { color: var(--muted); }
+  td b { color: var(--ink); font-weight: 650; }
+  td.score { color: var(--amber); font: 700 18px/1 var(--display); white-space: nowrap; }
+  .evidence-note { margin: 12px 0 0; color: var(--faint); font: 11px/1.55 var(--mono); }
+  .evidence-note strong { color: var(--muted); }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .stat { padding: 15px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  .stat b { display: block; color: var(--amber); font: 700 27px/1 var(--display); }
+  .stat span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .callout { margin-top: 16px; padding: 16px 18px; border-left: 3px solid var(--amber); background: var(--amber-soft); color: var(--muted); font-size: 14px; }
+  .callout strong { color: var(--ink); }
+
+  .steps { display: grid; gap: 11px; margin-top: 18px; }
+  .step {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .step-num { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--amber); border-radius: 50%; color: var(--amber); font: 12px var(--mono); }
+  .step b { display: block; margin-bottom: 3px; color: var(--ink); }
+  .step span { color: var(--muted); font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 23px; }
+  .chip { padding: 5px 10px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font: 11px var(--mono); }
+  .chip.warn { border-color: rgba(255,129,122,.5); color: var(--red); }
+  .colophon { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--faint); font: 11px/1.65 var(--mono); }
+  .colophon b { color: var(--muted); }
+
+  @media (max-width: 900px) {
+    .receipts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .calculator { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .rail { display: none; }
+    .c2, .c3, .bill, .decision { grid-template-columns: 1fr; }
+    .versus { min-height: 22px; }
+    .route { grid-template-columns: 1fr; gap: 6px; }
+    .fields { grid-template-columns: 1fr; }
+    .receipts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 460px) {
+    .slide { padding-inline: 18px; }
+    h1 { font-size: clamp(48px, 15vw, 76px); }
+    .receipts { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print { .progress, .rail, .hint { display: none; } .slide { min-height: auto; break-after: page; } }
+</style>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<nav class="rail" id="rail" aria-label="Sections"></nav>
+
+<section class="slide" id="s1" aria-label="Title">
+  <div class="wrap">
+    <p class="eyebrow"><b>A DECISION TOOL</b> FOR AI BUILDERS</p>
+    <h1>The home AI server question<span class="mark">.</span></h1>
+    <p class="title-sub">Should you buy a Mac mini or Mac Studio to run local models, or keep using frontier APIs? The useful answer is not a spec sheet. It is a workload, privacy, quality, and cost comparison.</p>
+    <p class="lede"><strong>Local models and frontier models earn different jobs.</strong> A home machine becomes worthwhile when a measured private or repetitive workload can repay its fixed cost. Until then, it may be an expensive way to avoid a calculation.</p>
+    <span class="stamp">framework + calculator · no invented prices</span>
+    <p class="hint"><kbd>→</kbd> or scroll to advance · <kbd>←</kbd> to go back</p>
+  </div>
+</section>
+
+<section class="slide" id="s2" aria-label="The hidden bill">
+  <div class="wrap">
+    <p class="eyebrow"><b>01</b> THE QUESTION BEHIND THE QUESTION</p>
+    <h2>The box is one line on the bill</h2>
+    <p class="lede">“Local is free” hides the purchase, power, storage, upkeep, and the time you spend keeping the thing useful. “Cloud is expensive” hides the fact that you only pay when you use it.</p>
+    <div class="bill">
+      <div class="bill-side local">
+        <h3>At home</h3>
+        <div class="bill-item"><b>Fixed hardware</b>Purchase price spread across its useful life.</div>
+        <div class="bill-item"><b>Electricity</b>Idle draw plus active model time.</div>
+        <div class="bill-item"><b>Operations</b>Storage, backups, updates, cooling, and your maintenance time.</div>
+      </div>
+      <div class="versus">vs</div>
+      <div class="bill-side cloud">
+        <h3>With APIs</h3>
+        <div class="bill-item"><b>Variable usage</b>Requests, input tokens, output tokens, or batch jobs.</div>
+        <div class="bill-item"><b>Hosted services</b>Memory store, queues, storage, logs, and network access.</div>
+        <div class="bill-item"><b>Data boundary</b>What leaves the machine, under which provider settings, and for what job.</div>
+      </div>
+    </div>
+    <div class="formula"><span class="op">monthly home cost</span> = hardware amortization + power + storage/backup + maintenance<br><span class="op">monthly frontier cost</span> = model usage + hosted services<br><span class="hint-line">The hardware only has a payback story if both sides use the same workload and quality bar.</span></div>
+  </div>
+</section>
+
+<section class="slide" id="s3" aria-label="Route work by job">
+  <div class="wrap">
+    <p class="eyebrow"><b>02</b> ROUTE BY JOB</p>
+    <h2>Local and frontier are not substitutes</h2>
+    <p class="lede">A local model is useful when privacy, repetition, latency, or offline access matters. A frontier model is useful when the task depends on broad capability, difficult synthesis, or a judgment you are still learning how to evaluate.</p>
+    <div class="cols c2">
+      <div class="panel local">
+        <p class="tag">Local model</p>
+        <h3>Cheap repetition</h3>
+        <p>Run embeddings, classify or extract a large batch, search private notes, or keep a small tool available when the network is absent. The benefit is control over the path and the marginal cost.</p>
+      </div>
+      <div class="panel frontier">
+        <p class="tag">Frontier model</p>
+        <h3>Expensive judgment</h3>
+        <p>Use a hosted model for hard synthesis, ambiguous reasoning, quality comparisons, or a task where the cost of a weak answer is higher than the API bill.</p>
+      </div>
+    </div>
+    <div class="route-grid">
+      <div class="route" style="--acc: var(--blue)"><b>Private retrieval</b><span>Local parsing and embeddings can keep raw notes on the machine. Retrieval is not the same as approval.</span></div>
+      <div class="route" style="--acc: var(--green)"><b>Bulk extraction</b><span>Test a local worker against a fixed sample before assuming “free” means “good enough.”</span></div>
+      <div class="route" style="--acc: var(--amber)"><b>Hard synthesis</b><span>Keep the frontier call when the task needs judgment, not just a predictable transformation.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4" aria-label="Break-even calculator">
+  <div class="wrap">
+    <p class="eyebrow"><b>03</b> USE YOUR NUMBERS</p>
+    <h2>The break-even math is small</h2>
+    <p class="lede">No one else's electricity rate, call volume, hardware price, or token mix answers your question. Enter your own values. The calculator stays blank until you do.</p>
+    <div class="calculator">
+      <div class="fields">
+        <div class="field"><label for="hardwarePrice">hardware purchase price · $</label><input id="hardwarePrice" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="hardwareLife">useful life · months</label><input id="hardwareLife" type="number" min="1" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="idleWatts">idle draw · watts</label><input id="idleWatts" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="activeWatts">active draw · watts</label><input id="activeWatts" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="activeHours">active hours per month</label><input id="activeHours" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="electricityRate">electricity · $ / kWh</label><input id="electricityRate" type="number" min="0" step="0.01" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="localOps">storage + backup + upkeep · $ / month</label><input id="localOps" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="frontierCalls">frontier requests · / month</label><input id="frontierCalls" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="frontierCost">average frontier cost · $ / request</label><input id="frontierCost" type="number" min="0" step="0.0001" placeholder="e.g. 0" inputmode="decimal"></div>
+        <div class="field"><label for="frontierOps">hosted services · $ / month</label><input id="frontierOps" type="number" min="0" step="1" placeholder="e.g. 0" inputmode="decimal"></div>
+        <p class="calc-note">Model the same job on both sides. If a local model needs human correction and the frontier result does not, put that correction time into local upkeep.</p>
+      </div>
+      <div class="results" aria-live="polite">
+        <h3>Your comparison</h3>
+        <div class="result"><span>home monthly, incl. amortization</span><b id="homeMonthly">—</b></div>
+        <div class="result"><span>frontier monthly</span><b id="frontierMonthly">—</b></div>
+        <div class="result"><span>hardware payback</span><b id="breakEven">—</b></div>
+        <p class="result-note" id="calcStatus">Enter all ten values to calculate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5" aria-label="What the build proved">
+  <div class="wrap">
+    <p class="eyebrow"><b>04</b> ONE REAL BUILD</p>
+    <h2>The home-server build answered a different question</h2>
+    <p class="lede">The original question led to a shared context plane for Claude, Codex, and Gemini. It tested the memory boundary and the hand-off. The model-quality comparison came later, in Yawn.</p>
+    <div class="receipts">
+      <div class="receipt"><b>Clients connected</b><span>3</span><em>Claude · Codex · Gemini</em></div>
+      <div class="receipt"><b>Python tests</b><span>20</span><em>parsers · outbox · sync safety</em></div>
+      <div class="receipt"><b>Cloud services</b><span>Live</span><em>Worker · Queue · D1 · R2</em></div>
+      <div class="receipt hold"><b>Old candidates</b><span>16</span><em>quarantined as Stale</em></div>
+      <div class="receipt hold"><b>AI distillation</b><span>Off</span><em>deterministic path first</em></div>
+    </div>
+    <div class="panel safe" style="margin-top: 16px"><p class="tag">Observed result</p><p>Raw transcripts stayed beside the source logs. Only filtered, re-redacted candidates crossed into the shared plane. Approval—not retrieval—remained the gate into future sessions.</p></div>
+    <div class="cols c2" style="margin-top: 16px">
+      <div class="panel local"><p class="tag">Cutting Board</p><p>Its sessions tested a product boundary, not model quality: footage stayed local, and AI was described as ordering attention rather than deciding what is good. No local-versus-frontier benchmark was found there.</p></div>
+      <div class="panel frontier"><p class="tag">Yawn</p><p>Its evaluation tested the normal note-taking job against a hosted notetaker reference. The reference was useful for comparison, but it was not treated as ground truth.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6" aria-label="Yawn model comparison">
+  <div class="wrap">
+    <p class="eyebrow"><b>05</b> THE MISSING COMPARISON</p>
+    <h2>Yawn gave us the local-versus-hosted result</h2>
+    <p class="lede">Two real meetings were scored by hand against the action items produced by a hosted notetaker. Local models ran through Ollama on Apple Silicon at temperature zero.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Same calls</th><th>Hosted reference*</th><th>Local Llama 3.1 8B</th><th>Local Gemma 3 12B</th></tr></thead>
+        <tbody>
+          <tr><td><b>Meeting A · shorter</b></td><td class="score">4</td><td class="score">2</td><td class="score">2</td></tr>
+          <tr><td><b>Meeting B · longer</b></td><td class="score">6</td><td class="score">1</td><td class="score">2</td></tr>
+          <tr><td><b>Total reference items</b></td><td class="score">10</td><td class="score">3</td><td class="score">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="evidence-note"><strong>*Reference is not truth.</strong> Every reference item was checked against the transcript first. The local totals describe omissions, not hallucination rates. The 8B and 12B models both produced true notes that omitted much of what the reference contained.</p>
+    <div class="callout"><strong>The first useful answer:</strong> on this workload, “local” was not equivalent to “frontier.” It was private and controllable, but the installed local configurations missed more commitments.</div>
+  </div>
+</section>
+
+<section class="slide" id="s7" aria-label="Pipeline comparison">
+  <div class="wrap">
+    <p class="eyebrow"><b>06</b> SAME AUDIO, DIFFERENT CHAINS</p>
+    <h2>The best local result came from changing the pipeline</h2>
+    <p class="lede">Meeting B was held constant while transcript source and speaker labels changed. The local end-to-end arm used local audio transcription, no speaker labels, and the same local note models.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Arm</th><th>Transcript</th><th>Labels</th><th>Local Llama 3.1 8B</th><th>Local Gemma 3 12B</th></tr></thead>
+        <tbody>
+          <tr><td><b>A</b></td><td>Hosted platform</td><td>Named</td><td class="score">1/6</td><td class="score">2/6</td></tr>
+          <tr><td><b>B</b></td><td>Hosted platform</td><td>Stripped</td><td class="score">0/6</td><td class="score">3/6</td></tr>
+          <tr><td><b>C</b></td><td><b>Our local audio</b></td><td>None</td><td class="score">0/6</td><td class="score">4/6</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="evidence-note">The local transcript preserved every term needed for the six scored commitments, used 91% of the hosted transcript's word count, and ran at 25× realtime on a laptop. This was one meeting and one configuration, not a general law.</p>
+    <div class="callout"><strong>Why this matters:</strong> the remaining gap was in note-writing, not automatically in speech recognition. A better pipeline can beat a weaker model choice on one job.</div>
+  </div>
+</section>
+
+<section class="slide" id="s8" aria-label="The hardware answer changed">
+  <div class="wrap">
+    <p class="eyebrow"><b>07</b> THE DESIGN TURN</p>
+    <h2>The Mac mini became optional</h2>
+    <p class="lede">Once the shared memory system ran on an always-on public endpoint, the home server stopped being the center of the architecture. It became a possible worker.</p>
+    <div class="cols c2">
+      <div class="panel safe"><p class="tag">Shared plane</p><h3>Cloud services did the job</h3><p>Authenticated ingress, durable queueing, reviewed search, audit history, and portable snapshots were enough for the shared layer.</p></div>
+      <div class="panel local"><p class="tag">Private work</p><h3>Each machine kept its evidence</h3><p>Transcript parsing, local SQLite mining, redaction, and the durable outbox stayed beside the raw source logs.</p></div>
+      <div class="panel frontier"><p class="tag">Routing seam</p><h3>Frontier remained a choice</h3><p>A gateway can route hard work to hosted models, but model distillation stays disabled until quality, privacy, and cost are measured.</p></div>
+      <div class="panel warning"><p class="tag">Honest use for a box</p><h3>Buy only for a measured gap</h3><p>A home machine earns its place for private embeddings, large repeated batches, or offline access. Not because the diagram looks better with one.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9" aria-label="Model scale and pipeline">
+  <div class="wrap">
+    <p class="eyebrow"><b>08</b> WHAT THE LOCAL STUDY FOUND NEXT</p>
+    <h2>Bigger was not the answer</h2>
+    <p class="lede">On a real capture ledger, model scale and prompt batching changed the result in surprising ways. The useful improvement came from making one candidate decision per call, then pruning locally.</p>
+    <div class="stat-grid">
+      <div class="stat"><b>10/13</b><span>Gemma 3 12B, batched, registered view</span></div>
+      <div class="stat"><b>4/13</b><span>Gemma 3 27B, same registered view</span></div>
+      <div class="stat"><b>12/13</b><span>Gemma 3 12B, one candidate per call</span></div>
+      <div class="stat"><b>27–54</b><span>cited excerpts after the surviving pruner across four local cells</span></div>
+    </div>
+    <div class="table-wrap" style="margin-top: 16px">
+      <table>
+        <thead><tr><th>Local validation cell</th><th>Kept before prune</th><th>Kept after prune</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Meeting 1 · Ollama</td><td>71/165</td><td>35</td><td class="score">12/13</td></tr>
+          <tr><td>Meeting 1 · MLX</td><td>104/165</td><td>27</td><td class="score">12/13</td></tr>
+          <tr><td>Meeting 2 · Ollama</td><td>90/300</td><td>48</td><td class="score">13/13</td></tr>
+          <tr><td>Meeting 2 · MLX</td><td>152/300</td><td>54</td><td class="score">13/13</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="evidence-note">The four-cell result used Gemma 3 12B, single-candidate calls, and a deterministic contiguous-run collapse. It is a measured local pipeline result, not a claim that Gemma 3 12B is a frontier replacement.</p>
+  </div>
+</section>
+
+<section class="slide" id="s10" aria-label="Local operating cost">
+  <div class="wrap">
+    <p class="eyebrow"><b>09</b> THE COST THAT WAS ACTUALLY MEASURED</p>
+    <h2>Local cost showed up as bytes, memory, and time</h2>
+    <p class="lede">The sessions measured operating constraints. They did not produce a trustworthy dollar comparison yet.</p>
+    <div class="stat-grid">
+      <div class="stat"><b>8.06 GB</b><span>separate Gemma 3 12B 4-bit Yawn note-model download</span></div>
+      <div class="stat"><b>1.61 GB</b><span>full local Whisper Turbo transcription model</span></div>
+      <div class="stat"><b>464 MB</b><span>Q4 local Whisper Turbo download option</span></div>
+      <div class="stat"><b>6.5 GiB</b><span>observed Ollama Gemma 3 12B resident memory in a resource audit</span></div>
+    </div>
+    <div class="cols c2" style="margin-top: 16px">
+      <div class="panel local"><p class="tag">Measured locally</p><p>One installed local note pass produced the useful overview/decisions/follow-ups shape in about 28 seconds. MLX admission runs also recorded model load, call time, resident memory, model-tree digests, and strict response failures.</p></div>
+      <div class="panel warning"><p class="tag">Still missing</p><p>No verified Mac mini or Mac Studio purchase price, long-run wattage, API invoice, token bill, or correction-time ledger for the same workload. Those are the numbers the calculator asks you to supply.</p></div>
+    </div>
+    <div class="colophon"><b>Scope note.</b> Download size is not runtime memory. A model that fits on disk may still need more unified memory while running. These figures are receipts from Yawn's local experiments and a separate resource audit, not hardware recommendations.</div>
+  </div>
+</section>
+
+<section class="slide" id="s11" aria-label="What remains unproven">
+  <div class="wrap">
+    <p class="eyebrow"><b>10</b> THE LIMITS</p>
+    <h2>The evidence is useful because it stays narrow</h2>
+    <p class="lede">We have a measured local-versus-hosted note-taking result. We still do not have a complete home-server business case.</p>
+    <div class="cols c2">
+      <div class="panel warning"><p class="tag">Not measured</p><p>Actual electricity draw and maintenance time for a Mac mini or Mac Studio under a repeatable workload.</p></div>
+      <div class="panel warning"><p class="tag">Not produced</p><p>No finished Mac Studio-versus-frontier monthly TCO spreadsheet. The calculator here intentionally asks for the missing inputs.</p></div>
+      <div class="panel warning"><p class="tag">Not general</p><p>Yawn's comparison used a small set of real meetings and a hosted reference that may also omit commitments. It does not establish universal model rankings.</p></div>
+      <div class="panel safe"><p class="tag">What is supported</p><p>Local models can be useful for private, repeated, offline work. Frontier models can be worth their cost for hard judgment. The boundary should be measured per workload.</p></div>
+    </div>
+    <div class="colophon"><b>Evidence note.</b> The implementation facts come from one August 2026 context-plane build and the Yawn local-note study. The model figures are hand-scored research results, not current hardware or API pricing.</div>
+  </div>
+</section>
+
+<section class="slide" id="s12" aria-label="Smallest proof">
+  <div class="wrap">
+    <p class="eyebrow"><b>11</b> START SMALL</p>
+    <h2>The first purchase is a measurement</h2>
+    <p class="lede">If you are curious about a home AI server, you can answer most of the question before buying one.</p>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><div><b>Name one workload</b><span>Do not compare “AI” in general. Pick a batch, a retrieval path, or an offline task.</span></div></div>
+      <div class="step"><span class="step-num">2</span><div><b>Record the frontier baseline</b><span>Count requests, tokens, latency, quality, correction time, and what data crossed the boundary.</span></div></div>
+      <div class="step"><span class="step-num">3</span><div><b>Run a local sample</b><span>Use the same inputs and the same quality bar. Include power and human cleanup.</span></div></div>
+      <div class="step"><span class="step-num">4</span><div><b>Put both totals in the calculator</b><span>If the local advantage is real and durable, the hardware decision gets easier.</span></div></div>
+    </div>
+    <div class="chips"><span class="chip">same workload</span><span class="chip">same quality bar</span><span class="chip">same privacy question</span><span class="chip warn">no benchmark by implication</span></div>
+    <div class="colophon"><b>Provenance.</b> Drawn from the Yawn local-note evaluation (July 28–August 14, 2026), the context-plane build (August 2), and the Cutting Board comparison (August 16). Private meeting text, audio, and raw transcripts are not included. Treat every result as scoped evidence, not a universal model ranking.</div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.from(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var progress = document.getElementById('progress');
+
+    slides.forEach(function (slide, index) {
+      var link = document.createElement('a');
+      link.href = '#' + slide.id;
+      link.setAttribute('aria-label', slide.getAttribute('aria-label') || ('Section ' + (index + 1)));
+      rail.appendChild(link);
+    });
+
+    function updatePosition() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      var current = 0;
+      slides.forEach(function (slide, index) {
+        if (slide.getBoundingClientRect().top <= window.innerHeight * .45) current = index;
+      });
+      Array.from(rail.children).forEach(function (link, index) {
+        link.classList.toggle('on', index === current);
+      });
+    }
+
+    window.addEventListener('scroll', updatePosition, { passive: true });
+    window.addEventListener('resize', updatePosition);
+    updatePosition();
+
+    document.addEventListener('keydown', function (event) {
+      if (event.target && /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
+      var current = slides.findIndex(function (slide) { return slide.getBoundingClientRect().top > -window.innerHeight * .45; });
+      if (current < 0) current = slides.length - 1;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ') {
+        event.preventDefault();
+        slides[Math.min(current + 1, slides.length - 1)].scrollIntoView({ behavior: 'smooth' });
+      }
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        slides[Math.max(current - 1, 0)].scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
+    var inputIds = ['hardwarePrice', 'hardwareLife', 'idleWatts', 'activeWatts', 'activeHours', 'electricityRate', 'localOps', 'frontierCalls', 'frontierCost', 'frontierOps'];
+    var inputs = inputIds.map(function (id) { return document.getElementById(id); });
+    var money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    function calculate() {
+      var values = inputs.map(function (input) { return Number(input.value); });
+      var complete = inputs.every(function (input) { return input.value !== '' && Number.isFinite(Number(input.value)) && Number(input.value) >= 0; });
+      var life = values[1];
+      var activeHours = values[4];
+      if (!complete || life <= 0) {
+        document.getElementById('homeMonthly').textContent = '—';
+        document.getElementById('frontierMonthly').textContent = '—';
+        document.getElementById('breakEven').textContent = '—';
+        document.getElementById('calcStatus').textContent = 'Enter all ten values to calculate.';
+        return;
+      }
+      var hoursPerMonth = 730;
+      var kwh = ((values[2] * Math.max(hoursPerMonth - activeHours, 0)) + (values[3] * activeHours)) / 1000;
+      var power = kwh * values[5];
+      var localOperating = power + values[6];
+      var homeMonthly = values[0] / life + localOperating;
+      var frontierMonthly = values[7] * values[8] + values[9];
+      var monthlyAdvantage = frontierMonthly - localOperating;
+      var breakEven = monthlyAdvantage > 0 ? values[0] / monthlyAdvantage : null;
+
+      document.getElementById('homeMonthly').textContent = money.format(homeMonthly);
+      document.getElementById('frontierMonthly').textContent = money.format(frontierMonthly);
+      document.getElementById('breakEven').textContent = breakEven === null ? 'does not repay' : breakEven.toFixed(1) + ' months';
+      document.getElementById('calcStatus').textContent = breakEven === null
+        ? 'On these inputs, local operating cost is already above the frontier bill.'
+        : 'Includes hardware amortization and estimated power. Add correction time to local upkeep.';
+    }
+    inputs.forEach(function (input) { input.addEventListener('input', calculate); });
+  }());
+</script>

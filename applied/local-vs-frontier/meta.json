@@ -1,0 +1,14 @@
+{
+  "title": "The Home AI Server Question",
+  "description": "A measured local-versus-frontier comparison built from the Yawn note-taking study and a context-plane experiment. It separates model quality, privacy, latency, operating cost, and the hardware bill before asking whether a Mac mini or Mac Studio earns its place.",
+  "cardDesc": "A measured local-versus-frontier comparison, plus the cost inputs for deciding whether to buy a home AI server.",
+  "principles": [
+    "Measure the workload before buying the machine.",
+    "Route private, repetitive work locally and reserve frontier calls for jobs that need them.",
+    "Count correction time and operating cost, not just API tokens.",
+    "Treat a failed comparison as useful evidence about the pipeline, not only the model."
+  ],
+  "relatedSessionSlugs": [],
+  "accent": "#ffb454",
+  "strand": "applied"
+}

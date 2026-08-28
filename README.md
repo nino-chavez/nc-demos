@@ -51,6 +51,7 @@ appends to the end instead of renumbering the list.
 | [Bare-Arm Test Your Agent Config](https://ninochavez.co/demos/applied/config-probe) | [11](https://ninochavez.co/demos/config-probe) |
 | [Run the Subtraction Before You Install](https://ninochavez.co/demos/applied/adopt-or-skip) | [12](https://ninochavez.co/demos/adopt-or-skip) |
 | [One Heavy Job at a Time](https://ninochavez.co/demos/applied/one-heavy-job) | — |
+| [The Home AI Server Question](https://ninochavez.co/demos/applied/local-vs-frontier) | Yawn note-taking study + context-plane build |
 
 ## Layout
 
