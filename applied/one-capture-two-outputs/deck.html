@@ -3,7 +3,7 @@
   :root {
     color-scheme: dark;
     --bg: #0e1116; --panel: #171b22; --panel2: #12151b; --line: #262c36;
-    --text: #e8ecf2; --dim: #9aa5b4; --faint: #5f6b7d; --accent: #6ea8fe;
+    --text: #e8ecf2; --dim: #9aa5b4; --faint: #9aa5b4; --accent: #6ea8fe;
     --accent-soft: rgba(110, 168, 254, .12); --ok: #7fd6a0;
     --display: "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
     --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
@@ -35,7 +35,7 @@
   .media-frame img, video { display: block; width: 100%; height: auto; }
   figcaption { padding: 13px 16px; color: var(--faint); font-size: 13px; }
   .capture { margin-top: 30px; }
-  .flow { display: grid; gap: 10px; margin: 24px 0 0; padding: 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); color: var(--dim); font-size: 14px; line-height: 1.55; white-space: pre; }
+  .flow { display: block; margin: 24px 0 0; padding: 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); color: var(--dim); font-size: 14px; line-height: 1.55; white-space: pre; }
   .flow b { color: var(--text); font-weight: 600; }
   .flow .accent { color: var(--accent); }
   .evidence { margin-top: 20px; }
@@ -49,6 +49,8 @@
   .role p { margin: 0; color: var(--dim); }
   .source-note { margin: 26px 0 0; color: var(--faint); font-size: 12px; line-height: 1.65; }
   .source-note a { color: var(--accent); }
+  .guide-link { display: inline-block; min-height: 44px; margin-top: 22px; padding: 10px 15px; border: 1px solid var(--accent); border-radius: 6px; color: var(--text); text-decoration: none; }
+  .guide-link:hover { background: var(--accent-soft); }
   a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   @media (max-width: 760px) {
     .two, .three { grid-template-columns: 1fr; }
@@ -57,26 +59,27 @@
   }
 </style>
 
-<section class="slide" aria-labelledby="outcome-title">
+<section class="slide" aria-label="One product journey, two teaching outputs" aria-labelledby="outcome-title">
   <div class="wrap">
     <p class="eyebrow"><b>Ways of Working · Applied</b> Rally HQ</p>
     <h1 id="outcome-title">One capture.<br>Two ways to teach<span class="dot">.</span></h1>
-    <p class="lede">A staged Rally HQ tournament journey can become a click-through guide and a playable video without inventing a second story for the product. The useful part is the attachment to real interface state: the teaching layer starts with the product, then adds an explanation a reader can follow.</p>
+    <p class="lede">Rally HQ now has click-through guides and matching videos for its organizer, captain and fan journeys. Each pair comes from one set of captured product frames and teaching steps. A reader can follow the guide at their own pace or watch the same path unfold.</p>
+    <a class="guide-link" href="https://rallyhq.app/demos/create-tournament/">Try the tournament guide</a>
     <figure class="media-frame capture">
-      <img src="https://nc-demos.pages.dev/applied/one-capture-two-outputs/img/tournament-step.png" alt="Rally HQ tournament form with Pool play to bracket selected, four teams per pool, and a Create tournament button." width="1280" height="720">
+      <img src="img/tournament-step.png" alt="Rally HQ tournament form with Pool play to bracket selected, four teams per pool, and a Create tournament button." width="1280" height="720">
       <figcaption>A captured staged product frame. It shows a tournament form; it does not show customer activity or a live hosted event.</figcaption>
     </figure>
   </div>
 </section>
 
-<section class="slide" aria-labelledby="video-title">
+<section class="slide" aria-label="Watch the matching tournament video" aria-labelledby="video-title">
   <div class="wrap">
     <p class="eyebrow"><b>02</b> The playable version</p>
     <h2 id="video-title">The video keeps the path whole</h2>
-    <p class="lede">Some readers want to watch the setup unfold before they decide where to look more closely. The same staged create-tournament journey is available here as a video with its own controls. It has no spoken narration, so the surrounding copy carries the explanation instead of treating the clip as self-explanatory.</p>
+    <p class="lede">The same staged create-tournament journey is available here as a video with its own controls. It uses the captured stills, captions and target areas from the guide's source. It has no spoken narration; the written steps in the linked guide provide a descriptive alternative.</p>
     <figure class="media-frame capture">
-      <video controls preload="metadata" aria-describedby="video-caption">
-        <source src="https://nc-demos.pages.dev/applied/one-capture-two-outputs/img/walkthrough.mp4" type="video/mp4">
+      <video controls playsinline preload="metadata" poster="https://nc-demos.pages.dev/applied/one-capture-two-outputs/img/tournament-step.png" aria-describedby="video-caption">
+        <source src="img/walkthrough.mp4" type="video/mp4">
         Your browser does not support HTML video. The captured tournament frame and written explanation remain available on this page.
       </video>
       <figcaption id="video-caption"><strong>Synthetic staged tournament.</strong> Demonstration footage of the product flow, not user data, customer behavior, or a claim that every path has been validated.</figcaption>
@@ -84,15 +87,16 @@
   </div>
 </section>
 
-<section class="slide" aria-labelledby="source-title">
+<section class="slide" aria-label="One captured manifest supplies both outputs" aria-labelledby="source-title">
   <div class="wrap">
     <p class="eyebrow"><b>03</b> The source shape</p>
     <h2 id="source-title">The guide keeps each teaching step addressable</h2>
-    <p class="lede">The interactive version needs more than a screen recording. A capture stops at each product step, saves a clean frame, and records the explanation and target area for that step. That makes a reader able to move through the same journey at their own pace, rather than scrubbing a video to find one choice.</p>
+    <p class="lede">Agents drive the real app through a staged journey. The capture pauses before each action, saves a clean frame, and records its caption and target area in a manifest—a file describing each teaching step. Render Kit reads that same manifest to build the click-through player and the motion video. A changed explanation has one source to update.</p>
     <pre class="flow" aria-label="Source-bound path from app journey to two teaching outputs"><b>Rally HQ app journey</b>
-  <span class="accent">→</span> captured product state
-     <span class="accent">├─</span> frames + captions + hotspot manifest <span class="accent">→</span> interactive guide
-     <span class="accent">└─</span> recorded walkthrough                    <span class="accent">→</span> playable video</pre>
+  <span class="accent">→</span> frames + captions + target areas
+     <span class="accent">→</span> one shared manifest
+        <span class="accent">├─</span> click-through guide
+        <span class="accent">└─</span> motion video</pre>
     <details class="evidence">
       <summary>Show the captured-step evidence</summary>
       <pre class="excerpt">"frame": "step-09.png",
@@ -103,7 +107,7 @@
   </div>
 </section>
 
-<section class="slide" aria-labelledby="roles-title">
+<section class="slide" aria-label="Four guides for organizer, captain and fan jobs" aria-labelledby="roles-title">
   <div class="wrap">
     <p class="eyebrow"><b>04</b> The reader journeys</p>
     <h2 id="roles-title">Four views begin with four jobs</h2>
@@ -117,7 +121,7 @@
   </div>
 </section>
 
-<section class="slide" aria-labelledby="catalogue-title">
+<section class="slide" aria-label="Shared labels prevent separate cards drifting" aria-labelledby="catalogue-title">
   <div class="wrap">
     <p class="eyebrow"><b>05</b> The shared catalogue</p>
     <h2 id="catalogue-title">Labels have one place to come from</h2>
@@ -129,12 +133,12 @@
   </div>
 </section>
 
-<section class="slide" aria-labelledby="limits-title">
+<section class="slide" aria-label="What these staged outputs establish" aria-labelledby="limits-title">
   <div class="wrap">
     <p class="eyebrow"><b>06</b> The evidence boundary</p>
     <h2 id="limits-title">The output teaches one staged path</h2>
     <p class="lede">This establishes a concrete teaching pattern: a product journey can support both a paced, interactive guide and a continuous video while staying attached to the same visible product state and reader-role catalogue.</p>
-    <p class="lede" style="margin-top:18px;">It leaves important things unmeasured. These assets do not establish adoption, customer outcomes, speed or cost savings, current hosted status, or complete behavior across Rally HQ. They are produced examples of a staged journey. That is enough to inspect the teaching approach; it is not a substitute for evidence about the product in use.</p>
+    <p class="lede" style="margin-top:18px;">These are synthetic demonstration journeys, not customer records. Adoption, teaching effectiveness, and production time savings have not been measured. Inspecting the outputs can show whether they explain this path; it cannot establish complete behavior across Rally HQ.</p>
     <p class="source-note"><b>Public demo:</b> <a href="https://ninochavez.co/demos/applied/one-capture-two-outputs">https://ninochavez.co/demos/applied/one-capture-two-outputs</a></p>
   </div>
 </section>
